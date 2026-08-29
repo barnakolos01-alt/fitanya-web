@@ -100,7 +100,7 @@ function computeAudit(data) {
   const fatGrams = Math.round((targetKcal * 0.28) / 9);
   const carbGrams = Math.round((targetKcal - (proteinGrams * 4 + fatGrams * 9)) / 4);
 
-  const palmProtein = Math.round(proteinGrams / 30);
+  const palmProtein = Math.max(Math.round(proteinGrams / 30), 2);
   const fistVeg = 3;
   const cuppedCarb = Math.max(Math.round(carbGrams / 40), 2);
   const thumbFat = Math.max(Math.round(fatGrams / 15), 2);
@@ -113,7 +113,7 @@ function computeAudit(data) {
   if (data.focus === "bor_puffadas" || data.focus === "torna_has") {
     profile = "Regenerációs & Bőrfeszesítő Profil";
     recommendedPkg = "vip";
-    pkgReason = "A szülés utáni kötőszöveti regeneráció, a feszes has és az SOS puffadásmentesítés miatt a 8 az 1-ben VIP csomag nyújtja a legteljesebb megoldást.";
+    pkgReason = "A szülés utáni kötőszöveti regeneráció, a feszes has és az SOS puffadásmentesítés miatt a 7 az 1-ben VIP csomag nyújtja a legteljesebb megoldást.";
   } else if (data.snacking === "folyamatos" || data.kitchen === "15perc") {
     profile = "Időhiányos Gyors-Megoldás Profil";
     recommendedPkg = "premium";
@@ -193,49 +193,50 @@ const MEAL_PLAN = {
   },
 };
 
-// IDE JÖNNEK AZ ÉLES STRIPE LINKJEID
+// ÉLES STRIPE FIZETÉSI LINKEK
 const STRIPE_PAYMENT_LINKS = {
   basic: "https://buy.stripe.com/7sY00l4y4cHZ3Lf4Hq9ws00",
   premium: "https://buy.stripe.com/4gMcN7aWs9vN0z3c9S9ws01",
   vip: "https://buy.stripe.com/8x2dRb5C86jB95zb5O9ws02",
 };
 
-const ALAP_PDF_URL = "https://drive.google.com/uc?export=download&id=1SAR2O6Vk04VmkKXQqjm4FseLX9VC8dha";
-const NASSOLASI_KALAUZ_URL = "https://drive.google.com/uc?export=download&id=16_CUo3kIF85x9I3k1_tcSaJdKK2w4vm-";
-const SZOKASFORMALO_RENDSZER_URL = "https://drive.google.com/uc?export=download&id=1OFa8hl-F6BjvArgL-2_uRquUMYHpkS_l";
-const BEVASARLOLISTA_URL = "https://drive.google.com/uc?export=download&id=1QcZnDd0bC-l59P_T_ni9z0-a3uAN9ULw";
-const VIP_EDZESPROGRAM_URL = "https://drive.google.com/uc?export=download&id=1gJu3QrVK6pQTyK6S1i0XpysYLAvXdggf";
-const VIP_KOLLAGEN_RESET_URL = "https://drive.google.com/uc?export=download&id=1gVQINVQWpiDorCzLELczbxeQ8TIiHuKb";
-const VIP_SOS_PUFFADAS_URL = "https://drive.google.com/uc?export=download&id=1nb639k1yrMf_59XVZoMBSK9OhmdIZMte";
+// 7 DB FRISSÍTETT DIREKT LETÖLTÉSI LINK
+const ALAP_PDF_URL = "https://drive.google.com/uc?export=download&id=1FkvydVMN9LU5hSFa1ib6kVeYh5Nmxazq";
+const NASSOLASI_KALAUZ_URL = "https://drive.google.com/uc?export=download&id=10xkdMG9usiyfffr2Z4MwUdD6Z1wm3Dnd";
+const SZOKASFORMALO_RENDSZER_URL = "https://drive.google.com/uc?export=download&id=1BHgqESp4BSHB6p48OYmBG9V39rLqArUe";
+const BEVASARLOLISTA_URL = "https://drive.google.com/uc?export=download&id=1JO7UtDfRscfZCJb_wei1biIneb5TQQmj";
+const VIP_EDZESPROGRAM_URL = "https://drive.google.com/uc?export=download&id=1t0jzoQI1IthWdQrbVaQhrxSyv2fF0aKu";
+const VIP_KOLLAGEN_RESET_URL = "https://drive.google.com/uc?export=download&id=1EtnQtKoVQHweDYpQsFcsJuEfyml_BIU9";
+const VIP_SOS_PUFFADAS_URL = "https://drive.google.com/uc?export=download&id=16VRXRWDo5kn06EvPIJTOc5yfTvLabGCN";
 
-// PONTOSAN A DRIVE-BAN LÉVŐ 7 PDF + 1 WEBES KALKULÁTOR
+// PONTOSAN 7 PDF CSOMAGSTRUKTÚRA
 const PACKAGE_DOWNLOADS = {
   basic: {
     files: [
-      { title: "FitAnya Alapprogram – 30 Családi Gyorsrecept & Tenyér-szabály (PDF)", meta: "10 oldalas PDF · 4,2 MB", downloadUrl: ALAP_PDF_URL },
+      { title: "FitAnya Alapprogram – 30 Családi Gyorsrecept & Tenyér-szabály (PDF)", meta: "Teljes Kézikönyv · Nyomtatható PDF", downloadUrl: ALAP_PDF_URL },
     ],
     community: false,
     vip: false,
   },
   premium: {
     files: [
-      { title: "FitAnya Alapprogram – 30 Recept & Tenyér-szabály (PDF)", meta: "10 oldalas PDF · 4,2 MB", downloadUrl: ALAP_PDF_URL },
-      { title: "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)", meta: "PDF · 2,1 MB", downloadUrl: NASSOLASI_KALAUZ_URL },
-      { title: "4 Hetes FitAnya Szokásformáló Rendszer (PDF)", meta: "PDF · 3,0 MB", downloadUrl: SZOKASFORMALO_RENDSZER_URL },
-      { title: "Heti Mester-Bevásárlólista & 15 Perces Dobozolás (PDF)", meta: "PDF · 2,6 MB", downloadUrl: BEVASARLOLISTA_URL },
+      { title: "FitAnya Alapprogram – 30 Recept & Tenyér-szabály (PDF)", meta: "Teljes Kézikönyv · Nyomtatható PDF", downloadUrl: ALAP_PDF_URL },
+      { title: "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)", meta: "Lidl / Aldi / Spar Polctérkép · PDF", downloadUrl: NASSOLASI_KALAUZ_URL },
+      { title: "4 Hetes FitAnya Szokásformáló Rendszer (PDF)", meta: "Heti Protokollok & Habit Tracker · PDF", downloadUrl: SZOKASFORMALO_RENDSZER_URL },
+      { title: "Heti Mester-Bevásárlólista & 15 Perces Dobozolás (PDF)", meta: "Nyomtatható Sablon · PDF", downloadUrl: BEVASARLOLISTA_URL },
     ],
     community: true,
     vip: false,
   },
   vip: {
     files: [
-      { title: "FitAnya Alapprogram – 30 Recept & Tenyér-szabály (PDF)", meta: "10 oldalas PDF · 4,2 MB", downloadUrl: ALAP_PDF_URL },
-      { title: "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)", meta: "PDF · 2,1 MB", downloadUrl: NASSOLASI_KALAUZ_URL },
-      { title: "4 Hetes FitAnya Szokásformáló Rendszer (PDF)", meta: "PDF · 3,0 MB", downloadUrl: SZOKASFORMALO_RENDSZER_URL },
-      { title: "Heti Mester-Bevásárlólista & 15 Perces Dobozolás (PDF)", meta: "PDF · 2,6 MB", downloadUrl: BEVASARLOLISTA_URL },
-      { title: "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)", meta: "PDF · 2,8 MB", downloadUrl: VIP_EDZESPROGRAM_URL },
-      { title: "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)", meta: "PDF · 2,3 MB", downloadUrl: VIP_KOLLAGEN_RESET_URL },
-      { title: "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)", meta: "PDF · 2,4 MB", downloadUrl: VIP_SOS_PUFFADAS_URL },
+      { title: "FitAnya Alapprogram – 30 Recept & Tenyér-szabály (PDF)", meta: "Teljes Kézikönyv · Nyomtatható PDF", downloadUrl: ALAP_PDF_URL },
+      { title: "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)", meta: "Lidl / Aldi / Spar Polctérkép · PDF", downloadUrl: NASSOLASI_KALAUZ_URL },
+      { title: "4 Hetes FitAnya Szokásformáló Rendszer (PDF)", meta: "Heti Protokollok & Habit Tracker · PDF", downloadUrl: SZOKASFORMALO_RENDSZER_URL },
+      { title: "Heti Mester-Bevásárlólista & 15 Perces Dobozolás (PDF)", meta: "Nyomtatható Sablon · PDF", downloadUrl: BEVASARLOLISTA_URL },
+      { title: "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)", meta: "Eszközmentes Anyabarát Torna · PDF", downloadUrl: VIP_EDZESPROGRAM_URL },
+      { title: "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)", meta: "Anti-aging Protokoll · PDF", downloadUrl: VIP_KOLLAGEN_RESET_URL },
+      { title: "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)", meta: "Gyorssegély Vészhelyzetre · PDF", downloadUrl: VIP_SOS_PUFFADAS_URL },
     ],
     community: true,
     vip: true,
@@ -643,7 +644,6 @@ function FitAnyaLanding() {
   const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [downloadedFiles, setDownloadedFiles] = useState({});
 
-  // Legal Modal State
   const [activeLegalModal, setActiveLegalModal] = useState(null);
 
   const handleDownload = (key) => setDownloadedFiles((s) => ({ ...s, [key]: true }));
@@ -660,9 +660,11 @@ function FitAnyaLanding() {
   }, []);
 
   const handleStripeCheckout = () => {
-    const targetUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
-    if (targetUrl) {
-      window.location.href = targetUrl;
+    const baseUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
+    if (baseUrl) {
+      const encodedEmail = encodeURIComponent(orderForm.email.trim());
+      // Automatikus email kitöltés a Stripe Checkout felületén
+      window.location.href = `${baseUrl}?prefilled_email=${encodedEmail}`;
     }
   };
 
@@ -1002,9 +1004,12 @@ function FitAnyaLanding() {
             {/* 5. Szivárgás & Konyha */}
             {step === 4 && (
               <div className="mt-8 space-y-6">
-                <div>
-                  <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Utensils size={20} style={{ color: "#E07A5F" }} /> Kalóriaszivárgás</h2>
-                  <p className="text-xs mb-3" style={{ color: "#6B5A52" }}>Hányszor eszel a gyerek maradékából vagy csipegetsz a pultról?</p>
+                <div className="p-4 rounded-2xl bg-[#FFFDFB] border border-[#F0DCD4]">
+                  <div className="flex items-center justify-between mb-1">
+                    <h2 className="font-display font-semibold text-lg flex items-center gap-2"><Utensils size={18} style={{ color: "#E07A5F" }} /> 1. Kérdés: Kalóriaszivárgás</h2>
+                    {form.snacking ? <span className="text-xs font-bold text-[#7C9885] bg-green-50 px-2 py-0.5 rounded-md">Kiválasztva ✓</span> : <span className="text-xs font-semibold text-[#E07A5F] bg-orange-50 px-2 py-0.5 rounded-md">Válassz egyet</span>}
+                  </div>
+                  <p className="text-xs mb-3 text-[#6B5A52]">Hányszor eszel a gyerek maradékából vagy csipegetsz a pultról?</p>
                   <div className="space-y-2">
                     {[
                       { v: "szinte_soha", l: "Szinte soha" },
@@ -1027,9 +1032,12 @@ function FitAnyaLanding() {
                   </div>
                 </div>
 
-                <div>
-                  <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Clock size={20} style={{ color: "#E07A5F" }} /> Konyhai kapacitás</h2>
-                  <p className="text-xs mb-3" style={{ color: "#6B5A52" }}>Mennyi időd jut a konyhára egy átlagos napon?</p>
+                <div className="p-4 rounded-2xl bg-[#FFFDFB] border border-[#F0DCD4]">
+                  <div className="flex items-center justify-between mb-1">
+                    <h2 className="font-display font-semibold text-lg flex items-center gap-2"><Clock size={18} style={{ color: "#E07A5F" }} /> 2. Kérdés: Konyhai kapacitás</h2>
+                    {form.kitchen ? <span className="text-xs font-bold text-[#7C9885] bg-green-50 px-2 py-0.5 rounded-md">Kiválasztva ✓</span> : <span className="text-xs font-semibold text-[#E07A5F] bg-orange-50 px-2 py-0.5 rounded-md">Válassz egyet</span>}
+                  </div>
+                  <p className="text-xs mb-3 text-[#6B5A52]">Mennyi időd jut a konyhára egy átlagos napon?</p>
                   <div className="space-y-2">
                     {[
                       { v: "15perc", l: "Max. 15-20 perc gyors ételekre" },
