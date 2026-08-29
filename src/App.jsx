@@ -523,7 +523,7 @@ function OrderSuccessPanel({ orderForm, selectedPkg, packages, downloadedFiles, 
           <ShieldCheck size={20} style={{ color: "#7C9885" }} className="mb-2" />
           <p className="font-display font-semibold text-sm mb-1" style={{ color: "#2D3748" }}>14 napos garancia</p>
           <p className="text-xs leading-relaxed" style={{ color: "#8A7268" }}>
-            Ha nem elégedett, egyetlen e-mailre 100%-ban visszautaljuk a vételárat, kérdés nélkül.
+            Ha nem válik be, egyetlen e-mailre 100%-ban visszautaljuk a vételárat, kérdés nélkül.
           </p>
         </div>
         <div className="rounded-2xl p-5" style={{ background: "#FFFDFB" }}>
@@ -557,7 +557,7 @@ function FitAnyaLanding() {
   const [wizardDone, setWizardDone] = useState(false);
   const [form, setForm] = useState({
     age: "", height: "", weight: "", goalWeight: "",
-    sleep: "", snacking: "", kitchen: "",
+    sleep: "", snacking: "", kitchen: ""
   });
   const [gateEmail, setGateEmail] = useState("");
   const [gateSent, setGateSent] = useState(false);
@@ -568,6 +568,9 @@ function FitAnyaLanding() {
   const [orderError, setOrderError] = useState("");
   const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [downloadedFiles, setDownloadedFiles] = useState({});
+
+  // Legal Modal State
+  const [activeLegalModal, setActiveLegalModal] = useState(null);
 
   const handleDownload = (key) => setDownloadedFiles((s) => ({ ...s, [key]: true }));
 
@@ -1166,8 +1169,20 @@ function FitAnyaLanding() {
       <footer className="py-10 px-5 sm:px-8" style={{ background: "#FDFBF7" }}>
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm mb-4" style={{ color: "#8A7268" }}>
-            <a href="#" className="hover:underline">ÁSZF</a>
-            <a href="#" className="hover:underline">Adatkezelési Tájékoztató</a>
+            <button 
+              type="button"
+              onClick={() => setActiveLegalModal("aszf")} 
+              className="hover:underline hover:text-[#E07A5F] transition-colors"
+            >
+              ÁSZF
+            </button>
+            <button 
+              type="button"
+              onClick={() => setActiveLegalModal("adatkezeles")} 
+              className="hover:underline hover:text-[#E07A5F] transition-colors"
+            >
+              Adatkezelési Tájékoztató
+            </button>
           </div>
           <p className="text-xs leading-relaxed max-w-2xl mx-auto" style={{ color: "#B0A199" }}>
             A FitAnya Módszer tájékoztató jellegű életmód- és táplálkozási útmutató, nem minősül egyéni orvosi
@@ -1176,6 +1191,108 @@ function FitAnyaLanding() {
           <p className="text-xs mt-4" style={{ color: "#C4B5AC" }}>© 2026 FitAnya Módszer</p>
         </div>
       </footer>
+
+      {/* JOGI FELUGRÓ ABLAK (MODAL) */}
+      {activeLegalModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div 
+            className="bg-[#FFFDFB] max-w-2xl w-full max-h-[85vh] overflow-y-auto rounded-3xl p-6 sm:p-8 shadow-2xl relative border border-[#F0DCD4]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              type="button"
+              onClick={() => setActiveLegalModal(null)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Bezárás"
+            >
+              <X size={22} />
+            </button>
+
+            {activeLegalModal === "aszf" ? (
+              <div>
+                <h3 className="font-display font-semibold text-2xl mb-4 text-[#2D3748]">
+                  Általános Szerződési Feltételek (ÁSZF)
+                </h3>
+                <div className="text-sm text-[#4A5568] space-y-4 leading-relaxed">
+                  <div>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">1. Szolgáltató adatai</h4>
+                    <p>• <strong>Név:</strong> Barna Kolos</p>
+                    <p>• <strong>Székhely / Lakcím:</strong> 1138 Budapest, Párkány utca 22.</p>
+                    <p>• <strong>Adószám:</strong> 8492921269</p>
+                    <p>• <strong>E-mail:</strong> ugyfelszolgalat@fitanyamodszer.hu</p>
+                    <p>• <strong>Tárhely-szolgáltató:</strong> Cloudflare Inc. (101 Townsend St, San Francisco, CA 94107, USA)</p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">2. A termék jellege</h4>
+                    <p>A FitAnya Módszer weboldalon elérhető termékek nem fizikai adathordozón rögzített digitális adattartalmak (elektronikus úton letölthető PDF formátumú receptfüzetek, szokásformáló útmutatók és interaktív kalkulátor hozzáférés).</p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">3. Megrendelés, fizetés és teljesítés</h4>
+                    <p>A termékek vételárának kiegyenlítése a Stripe nemzetközi, SSL-titkosított bankkártyás felületén keresztül történik (Apple Pay és Google Pay támogatással). A sikeres fizetést követően a rendszer azonnal biztosítja a letöltési linkeket és elküldi a hozzáférési adatokat a megadott e-mail címre.</p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">4. Elállási jog és 14 napos pénzvisszafizetési garancia</h4>
+                    <p>• <strong>Jogszabályi háttér:</strong> A 45/2014. (II. 26.) Korm. rendelet 29. § (1) bekezdés m) pontja alapján a digitális adattartalom letöltésének megkezdésével a fogyasztó elveszíti a törvényes 14 napos elállási jogát.</p>
+                    <p>• <strong>Önkéntes elégedettségi garancia:</strong> A Szolgáltató saját döntése alapján <strong>14 napos 100%-os pénzvisszafizetési garanciát</strong> vállal minden megvásárolt csomagra. Ha a Vevő úgy érzi, a program nem nyújtott számára értéket, a vásárlástól számított 14 napon belül elegendő egy e-mailt küldenie a <em>ugyfelszolgalat@fitanyamodszer.hu</em> címre, és a teljes vételár visszatérítésre kerül.</p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">5. Egészségügyi és felelősségkizárási nyilatkozat</h4>
+                    <p>A FitAnya Módszer anyagai ismeretterjesztő és életmód-támogató célt szolgálnak. Nem minősülnek orvosi diagnózisnak, orvosi terápiának vagy személyre szabott klinikai dietetikai ellátásnak. Krónikus betegség vagy speciális élettani állapot esetén a program megkezdése előtt szakorvosi konzultáció javasolt.</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <h3 className="font-display font-semibold text-2xl mb-4 text-[#2D3748]">
+                  Adatkezelési Tájékoztató (GDPR)
+                </h3>
+                <div className="text-sm text-[#4A5568] space-y-4 leading-relaxed">
+                  <div>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">1. Az Adatkezelő</h4>
+                    <p>• <strong>Név:</strong> Barna Kolos</p>
+                    <p>• <strong>Cím:</strong> 1138 Budapest, Párkány utca 22.</p>
+                    <p>• <strong>Adószám:</strong> 8492921269</p>
+                    <p>• <strong>E-mail:</strong> ugyfelszolgalat@fitanyamodszer.hu</p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">2. A kezelt adatok köre és célja</h4>
+                    <p>• <strong>Megrendelési adatok (Név, E-mail cím):</strong> A digitális csomag kézbesítéséhez, a kapcsolattartáshoz és a számviteli kötelezettségek (számlakiállítás) teljesítéséhez. Jogalap: a szerződés teljesítése (GDPR 6. cikk (1) b)).</p>
+                    <p>• <strong>Audit kérdőív adatai (Életkor, magasság, testsúly, szokások):</strong> Kizárólag a látogató böngészőjében futnak a kalkulációk idejéig, adatbázisban nem kerülnek tartós tárolásra vagy profilalkotási célú felhasználásra.</p>
+                    <p>• <strong>Technikai adatok (IP-cím, naplófájlok):</strong> A szerverek biztonsága, stabilitása és DDoS védelme érdekében.</p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">3. Adatfeldolgozók</h4>
+                    <p>• <strong>Stripe Payments Europe, Ltd. (Írország):</strong> Bankkártyás fizetési tranzakciók lebonyolítása (kártyaadatokhoz a Szolgáltató nem fér hozzá).</p>
+                    <p>• <strong>Cloudflare Inc. (USA / EU):</strong> Tárhelyszolgáltatás, webes kiszolgálás és hálózati védelem.</p>
+                    <p>• <strong>Google Ireland Ltd. (Írország):</strong> PDF tananyagok biztonságos felhőtárhelye.</p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">4. Az érintettek jogai</h4>
+                    <p>A felhasználó bármikor jogosult kérelmezni személyes adatainak megtekintését, helyesbítését, törlését vagy kezelésének korlátozását a <em>ugyfelszolgalat@fitanyamodszer.hu</em> címen. Panasztételi jog: Nemzeti Adatvédelmi és Információszabadság Hatóság (NAIH — 1055 Budapest, Falk Miksa utca 9-11., www.naih.hu).</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-[#F0DCD4] text-right">
+              <button 
+                type="button"
+                onClick={() => setActiveLegalModal(null)}
+                className="font-display font-semibold text-sm px-6 py-2.5 rounded-xl text-white cta-btn"
+              >
+                Rendben, bezárom
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
