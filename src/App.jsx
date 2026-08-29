@@ -215,8 +215,6 @@ const PACKAGE_DOWNLOADS = {
     files: [
       { title: "FitAnya Alapprogram – 30 Családi Gyorsrecept & Tenyér-szabály (PDF)", meta: "Teljes Kézikönyv · Nyomtatható PDF", downloadUrl: ALAP_PDF_URL },
     ],
-    community: false,
-    vip: false,
   },
   premium: {
     files: [
@@ -225,8 +223,6 @@ const PACKAGE_DOWNLOADS = {
       { title: "4 Hetes FitAnya Szokásformáló Rendszer (PDF)", meta: "Heti Protokollok & Habit Tracker · PDF", downloadUrl: SZOKASFORMALO_RENDSZER_URL },
       { title: "Heti Mester-Bevásárlólista & 15 Perces Dobozolás (PDF)", meta: "Nyomtatható Sablon · PDF", downloadUrl: BEVASARLOLISTA_URL },
     ],
-    community: true,
-    vip: false,
   },
   vip: {
     files: [
@@ -238,7 +234,6 @@ const PACKAGE_DOWNLOADS = {
       { title: "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)", meta: "Anti-aging Protokoll · PDF", downloadUrl: VIP_KOLLAGEN_RESET_URL },
       { title: "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)", meta: "Gyorssegély Vészhelyzetre · PDF", downloadUrl: VIP_SOS_PUFFADAS_URL },
     ],
-    community: true,
     vip: true,
   },
 };
@@ -576,23 +571,6 @@ function OrderSuccessPanel({ orderForm, selectedPkg, packages, downloadedFiles, 
         </div>
       </div>
 
-      {downloads.community && (
-        <button
-          className="w-full inline-flex items-center justify-center gap-2 font-display font-semibold text-sm px-6 py-3.5 rounded-xl"
-          style={{ background: "#FFFDFB", border: "1.5px solid #E07A5F", color: "#E07A5F" }}
-        >
-          <Users size={17} /> Belépés a Zárt Anyuka Közösségbe <ExternalLink size={14} />
-        </button>
-      )}
-
-      <div className="rounded-2xl p-5 sm:p-6 flex items-start gap-3" style={{ background: "#FFFDFB" }}>
-        <Mail size={18} className="mt-0.5 shrink-0" style={{ color: "#E07A5F" }} />
-        <p className="text-sm" style={{ color: "#4A5568" }}>
-          A hozzáférést és a számlát elküldtük az alábbi e-mail címre is:{" "}
-          <strong style={{ color: "#2D3748" }}>{orderForm.email || "a megadott e-mail címre"}</strong>
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="rounded-2xl p-5" style={{ background: "#FFFDFB" }}>
           <ShieldCheck size={20} style={{ color: "#7C9885" }} className="mb-2" />
@@ -663,7 +641,6 @@ function FitAnyaLanding() {
     const baseUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
     if (baseUrl) {
       const encodedEmail = encodeURIComponent(orderForm.email.trim());
-      // Automatikus email kitöltés a Stripe Checkout felületén
       window.location.href = `${baseUrl}?prefilled_email=${encodedEmail}`;
     }
   };
@@ -729,7 +706,6 @@ function FitAnyaLanding() {
     }
   }, [orderSubmitted]);
 
-  // 6 lépéses professzionális audit
   const stepLabels = ["Biometria", "Szoptatás", "Aktivitás", "Alvás & Kortizol", "Szivárgás & Konyha", "Fő Fókusz"];
 
   const canProceed = useMemo(() => {
