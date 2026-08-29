@@ -35,6 +35,12 @@ import {
   Phone,
   Home,
   ExternalLink,
+  Zap,
+  CheckCheck,
+  XCircle,
+  Baby,
+  Activity,
+  Target,
 } from "lucide-react";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');`;
@@ -49,43 +55,94 @@ function formatHuDate(date) {
 }
 
 function computeAudit(data) {
-  const age = Number(data.age) || 0;
-  const height = Number(data.height) || 0;
-  const weight = Number(data.weight) || 0;
-  const goalWeight = Number(data.goalWeight) || 0;
+  const age = Number(data.age) || 30;
+  const height = Number(data.height) || 165;
+  const weight = Number(data.weight) || 70;
+  const goalWeight = Number(data.goalWeight) || 62;
 
+  // Mifflin-St Jeor alapanyagcsere
   const bmr = 10 * weight + 6.25 * height - 5 * age - 161;
-  const tdee = bmr * 1.35;
-  const targetKcal = tdee - 400;
+  
+  let activityMult = 1.3;
+  if (data.activity === "seta") activityMult = 1.4;
+  if (data.activity === "porgos") activityMult = 1.5;
+  
+  let tdee = bmr * activityMult;
 
-  const snackMap = { szinte_soha: 0, napi_1_2: 180, folyamatos: 340 };
+  // Szoptatási kalóriapótlék
+  let lactationBonus = 0;
+  if (data.nursing === "kizarolag") lactationBonus = 450;
+  if (data.nursing === "hozzataplal") lactationBonus = 250;
+
+  tdee += lactationBonus;
+
+  // Biztonságos napi kalóriakeret
+  let targetKcal = tdee - 400;
+  if (data.nursing === "kizarolag") {
+    targetKcal = Math.max(targetKcal, 1750);
+  } else {
+    targetKcal = Math.max(targetKcal, 1300);
+  }
+
+  // Csipegetési többlet
+  const snackMap = { szinte_soha: 0, napi_1_2: 210, folyamatos: 380 };
   const hiddenSurplus = snackMap[data.snacking] ?? 0;
 
+  // Időtartam kalkuláció
   const weightToLose = Math.max(weight - goalWeight, 0);
-  const weeksNeeded = weightToLose > 0 ? weightToLose / 0.6 : 0;
+  const weeklyRate = data.nursing === "kizarolag" ? 0.45 : 0.6;
+  const weeksNeeded = weightToLose > 0 ? weightToLose / weeklyRate : 0;
   const targetDate = new Date();
   targetDate.setDate(targetDate.getDate() + Math.round(weeksNeeded * 7));
 
-  let profile = "Stabil Energia Profil";
-  if (data.sleep === "kronikus" && data.snacking === "folyamatos") {
-    profile = "Alváshiányos Stresszevő Profil";
-  } else if (data.sleep === "kronikus") {
-    profile = "Kimerült, de Tudatos Profil";
-  } else if (data.snacking === "folyamatos") {
-    profile = "Rohanó Csipegető Profil";
-  } else if (data.sleep === "1-2") {
-    profile = "Éjszakai Ingadozó Profil";
+  // Tenyér-Makró adagok
+  const proteinGrams = Math.round(weight * 1.5);
+  const fatGrams = Math.round((targetKcal * 0.28) / 9);
+  const carbGrams = Math.round((targetKcal - (proteinGrams * 4 + fatGrams * 9)) / 4);
+
+  const palmProtein = Math.round(proteinGrams / 30);
+  const fistVeg = 3;
+  const cuppedCarb = Math.max(Math.round(carbGrams / 40), 2);
+  const thumbFat = Math.max(Math.round(fatGrams / 15), 2);
+
+  // Intelligens csomagajánló logika
+  let profile = "Családi Egyensúly Profil";
+  let recommendedPkg = "premium";
+  let pkgReason = "A te helyzetedben a legfontosabb a rohanó hétköznapok rendszerezése és a rejtett nassolási szivárgások azonnali megállítása.";
+
+  if (data.focus === "bor_puffadas" || data.focus === "torna_has") {
+    profile = "Regenerációs & Bőrfeszesítő Profil";
+    recommendedPkg = "vip";
+    pkgReason = "A szülés utáni kötőszöveti regeneráció, a feszes has és az SOS puffadásmentesítés miatt a 8 az 1-ben VIP csomag nyújtja a legteljesebb megoldást.";
+  } else if (data.snacking === "folyamatos" || data.kitchen === "15perc") {
+    profile = "Időhiányos Gyors-Megoldás Profil";
+    recommendedPkg = "premium";
+    pkgReason = "A 15 perces receptek, a bolti nassolási kalauz és a mester-bevásárlólista garantálja, hogy dupla főzés nélkül is elérd a célodat.";
+  } else if (weightToLose <= 4 && data.sleep === "atalussza") {
+    profile = "Könnyed Finomhangoló Profil";
+    recommendedPkg = "basic";
+    pkgReason = "Mivel kis súlyfeleslegről van szó és stabil az alvásod, az alap tenyér-szabály és a 30 gyorsrecept tökéletesen elegendő számodra.";
   }
 
   return {
     bmr: Math.round(bmr),
     tdee: Math.round(tdee),
-    targetKcal: Math.max(Math.round(targetKcal), 1200),
+    targetKcal: Math.round(targetKcal),
     hiddenSurplus,
     weeksNeeded: Math.round(weeksNeeded * 10) / 10,
     targetDateStr: weightToLose > 0 ? formatHuDate(targetDate) : "Már a célsúlyodnál jársz — irány a megtartás!",
     profile,
     weightToLose: Math.round(weightToLose * 10) / 10,
+    proteinGrams,
+    carbGrams,
+    fatGrams,
+    palmProtein,
+    fistVeg,
+    cuppedCarb,
+    thumbFat,
+    recommendedPkg,
+    pkgReason,
+    lactationBonus,
   };
 }
 
@@ -136,10 +193,11 @@ const MEAL_PLAN = {
   },
 };
 
+// IDE JÖNNEK AZ ÉLES STRIPE LINKJEID
 const STRIPE_PAYMENT_LINKS = {
-  basic: "https://buy.stripe.com/test_7sY00l4y4cHZ3Lf4Hq9ws00",
-  premium: "https://buy.stripe.com/test_4gMcN7aWs9vN0z3c9S9ws01",
-  vip: "https://buy.stripe.com/test_8x2dRb5C86jB95zb5O9ws02",
+  basic: "https://buy.stripe.com/7sY00l4y4cHZ3Lf4Hq9ws00",
+  premium: "https://buy.stripe.com/4gMcN7aWs9vN0z3c9S9ws01",
+  vip: "https://buy.stripe.com/8x2dRb5C86jB95zb5O9ws02",
 };
 
 const ALAP_PDF_URL = "https://drive.google.com/uc?export=download&id=1SAR2O6Vk04VmkKXQqjm4FseLX9VC8dha";
@@ -149,8 +207,8 @@ const BEVASARLOLISTA_URL = "https://drive.google.com/uc?export=download&id=1QcZn
 const VIP_EDZESPROGRAM_URL = "https://drive.google.com/uc?export=download&id=1gJu3QrVK6pQTyK6S1i0XpysYLAvXdggf";
 const VIP_KOLLAGEN_RESET_URL = "https://drive.google.com/uc?export=download&id=1gVQINVQWpiDorCzLELczbxeQ8TIiHuKb";
 const VIP_SOS_PUFFADAS_URL = "https://drive.google.com/uc?export=download&id=1nb639k1yrMf_59XVZoMBSK9OhmdIZMte";
-const VIP_TULELOKALAUZ_URL = "https://drive.google.com/uc?export=download&id=1iMpTZOXbQYQ6OxSp9TZCZ9R-gWc5xNjx";
 
+// PONTOSAN A DRIVE-BAN LÉVŐ 7 PDF + 1 WEBES KALKULÁTOR
 const PACKAGE_DOWNLOADS = {
   basic: {
     files: [
@@ -197,15 +255,15 @@ function SectionEyebrow({ children }) {
 
 function WaveConnector({ steps, activeIndex }) {
   return (
-    <div className="relative flex items-center justify-between w-full max-w-md mx-auto mb-2">
+    <div className="relative flex items-center justify-between w-full max-w-lg mx-auto mb-2">
       <svg
         className="absolute left-0 right-0 top-1/2 -translate-y-1/2 w-full"
         height="20"
-        viewBox="0 0 400 20"
+        viewBox="0 0 500 20"
         preserveAspectRatio="none"
       >
         <path
-          d="M0 10 Q 50 0, 100 10 T 200 10 T 300 10 T 400 10"
+          d="M0 10 Q 50 0, 100 10 T 200 10 T 300 10 T 400 10 T 500 10"
           fill="none"
           stroke="#F0C4B8"
           strokeWidth="2"
@@ -216,14 +274,14 @@ function WaveConnector({ steps, activeIndex }) {
       {steps.map((label, i) => (
         <div key={i} className="relative z-10 flex flex-col items-center gap-1.5" style={{ width: `${100 / steps.length}%` }}>
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-display"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold font-display"
             style={{
               background: i <= activeIndex ? "#E07A5F" : "#FDFBF7",
               color: i <= activeIndex ? "#FDFBF7" : "#B99189",
               border: `2px solid ${i <= activeIndex ? "#E07A5F" : "#F0C4B8"}`,
             }}
           >
-            {i < activeIndex ? <Check size={14} /> : i + 1}
+            {i < activeIndex ? <Check size={13} /> : i + 1}
           </div>
         </div>
       ))}
@@ -234,14 +292,14 @@ function WaveConnector({ steps, activeIndex }) {
 function KpiCard({ icon: Icon, label, value, sub, accent = "#E07A5F" }) {
   return (
     <div
-      className="rounded-2xl p-6 flex flex-col gap-2"
+      className="rounded-2xl p-5 sm:p-6 flex flex-col gap-2"
       style={{ background: "#FDFBF7", border: "1px solid #F0DCD4" }}
     >
       <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${accent}1A` }}>
         <Icon size={20} style={{ color: accent }} />
       </div>
       <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "#8A7268" }}>{label}</p>
-      <p className="font-display font-semibold text-3xl" style={{ color: "#2D3748", fontFamily: "'Space Grotesk', sans-serif" }}>
+      <p className="font-display font-semibold text-2xl sm:text-3xl" style={{ color: "#2D3748", fontFamily: "'Space Grotesk', sans-serif" }}>
         {value}
       </p>
       {sub && <p className="text-xs" style={{ color: "#8A7268" }}>{sub}</p>}
@@ -249,38 +307,55 @@ function KpiCard({ icon: Icon, label, value, sub, accent = "#E07A5F" }) {
   );
 }
 
-function PricingCard({ tier, selected, onSelect }) {
+function PricingCard({ tier, selected, isRecommended, onSelect }) {
   const isFeatured = tier.featured;
   const hasBadge = !!tier.badge;
   return (
     <div
       className={`relative rounded-3xl p-7 sm:p-8 flex flex-col ${isFeatured ? "sm:-translate-y-3" : ""}`}
       style={{
-        background: isFeatured ? "linear-gradient(180deg,#FFF9F5,#FDE8E1)" : "#FDFBF7",
-        border: isFeatured ? "2px solid #E07A5F" : hasBadge ? "1.5px solid #8A4B4F" : "1px solid #F0DCD4",
-        boxShadow: isFeatured
-          ? "0 24px 48px -20px rgba(224,122,95,0.45)"
+        background: isRecommended
+          ? "linear-gradient(180deg,#FFF6F2,#FDE0D6)"
+          : isFeatured
+          ? "linear-gradient(180deg,#FFF9F5,#FDE8E1)"
+          : "#FDFBF7",
+        border: isRecommended
+          ? "2.5px solid #C8624A"
+          : isFeatured
+          ? "2px solid #E07A5F"
           : hasBadge
-          ? "0 16px 34px -20px rgba(138,75,79,0.35)"
+          ? "1.5px solid #8A4B4F"
+          : "1px solid #F0DCD4",
+        boxShadow: isRecommended
+          ? "0 26px 52px -18px rgba(200,98,74,0.55)"
+          : isFeatured
+          ? "0 24px 48px -20px rgba(224,122,95,0.45)"
           : "0 10px 24px -16px rgba(45,55,72,0.15)",
       }}
     >
-      {isFeatured && (
+      {isRecommended ? (
+        <span
+          className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold font-display px-4 py-1.5 rounded-full whitespace-nowrap shadow-md"
+          style={{ background: "#C8624A", color: "#FFFDFB" }}
+        >
+          ★ NEKED AJÁNLOTT CSOMAG ★
+        </span>
+      ) : isFeatured ? (
         <span
           className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold font-display px-4 py-1.5 rounded-full whitespace-nowrap"
           style={{ background: "#E07A5F", color: "#FFF9F5" }}
         >
           Legnépszerűbb választás
         </span>
-      )}
-      {!isFeatured && hasBadge && (
+      ) : hasBadge ? (
         <span
           className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold font-display px-4 py-1.5 rounded-full whitespace-nowrap"
           style={{ background: "#8A4B4F", color: "#FDFBF7" }}
         >
           {tier.badge}
         </span>
-      )}
+      ) : null}
+
       <h3 className="font-display font-semibold text-xl mt-2" style={{ color: "#2D3748" }}>{tier.name}</h3>
       <p className="font-display font-bold text-3xl mt-2" style={{ color: "#E07A5F", fontFamily: "'Space Grotesk', sans-serif" }}>
         {tier.price.toLocaleString("hu-HU")} Ft
@@ -297,7 +372,7 @@ function PricingCard({ tier, selected, onSelect }) {
         onClick={() => onSelect(tier.id)}
         className="mt-7 w-full font-display font-bold text-sm px-6 py-3.5 rounded-xl inline-flex items-center justify-center gap-2 transition-transform"
         style={{
-          background: isFeatured ? "#E07A5F" : hasBadge ? "#8A4B4F" : "#2D3748",
+          background: isRecommended ? "#C8624A" : isFeatured ? "#E07A5F" : hasBadge ? "#8A4B4F" : "#2D3748",
           color: "#FDFBF7",
         }}
       >
@@ -556,7 +631,7 @@ function FitAnyaLanding() {
   const [wizardDone, setWizardDone] = useState(false);
   const [form, setForm] = useState({
     age: "", height: "", weight: "", goalWeight: "",
-    sleep: "", snacking: "", kitchen: ""
+    nursing: "", activity: "", sleep: "", snacking: "", kitchen: "", focus: ""
   });
   const [gateEmail, setGateEmail] = useState("");
   const [gateSent, setGateSent] = useState(false);
@@ -605,7 +680,10 @@ function FitAnyaLanding() {
     setOrderError("");
     setWizardDone(false);
     setStep(0);
-    setForm({ age: "", height: "", weight: "", goalWeight: "", sleep: "", snacking: "", kitchen: "" });
+    setForm({
+      age: "", height: "", weight: "", goalWeight: "",
+      nursing: "", activity: "", sleep: "", snacking: "", kitchen: "", focus: ""
+    });
     setDownloadedFiles({});
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -649,17 +727,26 @@ function FitAnyaLanding() {
     }
   }, [orderSubmitted]);
 
-  const stepLabels = ["Biometria", "Alvás", "Kalóriaszivárgás", "Konyha"];
+  // 6 lépéses professzionális audit
+  const stepLabels = ["Biometria", "Szoptatás", "Aktivitás", "Alvás & Kortizol", "Szivárgás & Konyha", "Fő Fókusz"];
 
   const canProceed = useMemo(() => {
     if (step === 0) return form.age && form.height && form.weight && form.goalWeight;
-    if (step === 1) return !!form.sleep;
-    if (step === 2) return !!form.snacking;
-    if (step === 3) return !!form.kitchen;
+    if (step === 1) return !!form.nursing;
+    if (step === 2) return !!form.activity;
+    if (step === 3) return !!form.sleep;
+    if (step === 4) return form.snacking && form.kitchen;
+    if (step === 5) return !!form.focus;
     return false;
   }, [step, form]);
 
   const results = useMemo(() => computeAudit(form), [form]);
+
+  useEffect(() => {
+    if (wizardDone && results.recommendedPkg) {
+      setSelectedPkg(results.recommendedPkg);
+    }
+  }, [wizardDone, results.recommendedPkg]);
 
   const packages = [
     {
@@ -693,7 +780,6 @@ function FitAnyaLanding() {
         "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)",
         "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)",
         "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)",
-        "Gyorséttermi, Rendelős & Nyaralási Túlélőkalauz (PDF)",
       ],
     },
   ];
@@ -701,15 +787,15 @@ function FitAnyaLanding() {
   const faqs = [
     {
       q: "Kell külön főznöm a családnak és a gyerekeknek?",
-      a: "Nem. A FitAnya Módszer arra épül, hogy ugyanazt az ételt eszed, mint a család — a tenyér-szabállyal csak a te adagodat igazítjuk hozzá a céljaidhoz, nem kell két menüt főzni.",
+      a: "Nem. A FitAnya Módszer lényege, hogy egyetlen fazékban készül el az étel (pl. pörkölt, bolognai, sült húsok). A tenyér-szabállyal csak a te tányérodra szedett arányokat igazítjuk a célodhoz, 20 másodperc alatt.",
     },
     {
-      q: "Muszáj grammra pontosan mérnem a kalóriákat a konyhamérlegen?",
-      a: "Nem, ez a lényeg: a tenyér-szabály vizuális becslést ad (tenyérnyi fehérje, ökölnyi zöldség, maréknyi szénhidrát), így mérleg és appban vezetett napló nélkül is tartható a keret.",
+      q: "Muszáj grammra pontosan mérnem az ételeket mérlegen?",
+      a: "Egyáltalán nem. A tenyér-szabály vizuális támpontot ad (tenyérnyi fehérje, ökölnyi rost, maréknyi szénhidrát), így konyhamérleg és applikációs kalóriabevitel nélkül is tartható a kívánt deficit.",
     },
     {
-      q: "Szoptatás alatt is alkalmazható a módszer?",
-      a: "A rendszer alapelvei — mérsékelt, nem koplaltató kalóriakeret és családbarát ételek — szoptatás alatt is követhetők, de a pontos kalóriaigényt ilyenkor mindig egyeztesd kezelőorvosoddal vagy dietetikusoddal.",
+      q: "Szoptatás alatt is biztonságosan alkalmazható?",
+      a: "Igen! A kalkulátorunk automatikusan hozzáad +250–450 kcal élettani kalóriapótlékot szoptató anyukáknak, így a fogyás kizárólag a zsírraktárakból történik, a tejtermelés és a tápanyagellátás teljes biztonsága mellett.",
     },
   ];
 
@@ -740,10 +826,10 @@ function FitAnyaLanding() {
           </h1>
           <p className="text-base sm:text-lg max-w-2xl" style={{ color: "#4A5568" }}>
             Tudományos alapú, családbarát rendszer kifejezetten időhiánnyal küzdő édesanyáknak.
-            Töltsd ki a 2 perces életmód-auditot, és nézd meg a személyre szabott tervedet!
+            Töltsd ki az élettani auditot, és nézd meg a személyre szabott Tenyér-Makró tervedet!
           </p>
           <button onClick={() => scrollTo(wizardRef)} className="cta-btn font-display font-semibold text-base sm:text-lg text-white px-7 py-4 rounded-2xl inline-flex items-center gap-2">
-            Ingyenes Személyes Anyuka-Audit Kitöltése <ArrowRight size={20} />
+            Ingyenes Élettani Anyuka-Audit Kitöltése <ArrowRight size={20} />
           </button>
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm" style={{ color: "#6B5A52" }}>
             <span className="inline-flex items-center gap-1.5"><ShieldCheck size={16} style={{ color: "#7C9885" }} /> Tudományosan igazolt élettani alapok</span>
@@ -753,15 +839,59 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* AUDIT WIZARD */}
+      {/* EGY FŐZÉS - KÉT TÁNYÉR ÖSSZEHASONLÍTÁS */}
+      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-12">
+        <div className="text-center mb-10">
+          <SectionEyebrow><Utensils size={14} /> Nincs dupla munka</SectionEyebrow>
+          <h2 className="font-display font-semibold text-2xl sm:text-3xl mt-3">Hogyan néz ki ez a vasárnapi asztalnál?</h2>
+          <p className="text-sm sm:text-base mt-2 max-w-xl mx-auto" style={{ color: "#4A5568" }}>
+            Nem kell kétfélét főznöd. Ugyanaz a Bolognai vagy Csirkés tészta készül el a fazékban — a tenyér-szabállyal csak a tányérodra szedés aránya változik 20 másodperc alatt.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="rounded-3xl p-6 sm:p-7 border" style={{ background: "#FFFDFB", borderColor: "#F0DCD4" }}>
+            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-red-100 text-red-800">
+              A Család / Gyerekek tányérja
+            </span>
+            <h3 className="font-display font-semibold text-lg mt-3 text-[#2D3748]">Klasszikus Bolognai tészta</h3>
+            <ul className="mt-4 space-y-2.5 text-sm text-[#4A5568]">
+              <li className="flex items-center gap-2">🍝 <strong>65% Szénhidrát:</strong> Nagy adag fehér tészta</li>
+              <li className="flex items-center gap-2">🥩 <strong>25% Fehérje:</strong> Húsos mártás</li>
+              <li className="flex items-center gap-2">🧀 <strong>10% Zsír:</strong> Vastag réteg sajt</li>
+            </ul>
+            <p className="mt-4 text-xs italic text-[#8A7268] bg-[#FDE8E1]/40 p-3 rounded-xl">
+              Nagy energiasűrűség, ami a gyerekek mozgásigényéhez ideális, de ülőmunka vagy babázás mellett zsírpárnaként raktározódik.
+            </p>
+          </div>
+
+          <div className="rounded-3xl p-6 sm:p-7 border-2" style={{ background: "#FFF9F5", borderColor: "#E07A5F" }}>
+            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-green-100 text-green-800">
+              A Te tányérod (FitAnya módszer)
+            </span>
+            <h3 className="font-display font-semibold text-lg mt-3 text-[#2D3748]">Ugyanaz a Bolognai – FitAnya arányban</h3>
+            <ul className="mt-4 space-y-2.5 text-sm text-[#4A5568]">
+              <li className="flex items-center gap-2">🖐️ <strong>Tenyérnyi fehérje:</strong> Dupla adag darálthúsos szósz</li>
+              <li className="flex items-center gap-2">✊ <strong>Ökölnyi rost:</strong> Rádobott bébispenót vagy reszelt cukkini</li>
+              <li className="flex items-center gap-2">🤲 <strong>Maréknyi tészta:</strong> Ízélmény megmarad, kalória felére esik</li>
+            </ul>
+            <p className="mt-4 text-xs font-semibold text-[#7C9885] bg-[#F0F5F1] p-3 rounded-xl">
+              ✅ Eredmény: Ugyanaz az íz, tele vagy 4 órán át, nulla bűntudat és heti 0,6 kg tiszta zsírfogyás.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 6 LÉPÉSES AUDIT WIZARD */}
       <section ref={wizardRef} className="max-w-2xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
         {!wizardDone ? (
           <div className="rounded-3xl p-6 sm:p-10" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4", boxShadow: "0 20px 48px -28px rgba(45,55,72,0.25)" }}>
             <p className="text-center text-xs uppercase tracking-wide font-semibold mb-5" style={{ color: "#B99189" }}>
-              Lépés {step + 1} / 4 — {stepLabels[step]}
+              Lépés {step + 1} / 6 — {stepLabels[step]}
             </p>
             <WaveConnector steps={stepLabels} activeIndex={step} />
 
+            {/* 1. Biometria */}
             {step === 0 && (
               <div className="grid grid-cols-2 gap-4 mt-8">
                 <h2 className="col-span-2 font-display font-semibold text-xl mb-1">Biometria és célok</h2>
@@ -785,15 +915,72 @@ function FitAnyaLanding() {
               </div>
             )}
 
+            {/* 2. Szoptatás */}
             {step === 1 && (
               <div className="mt-8">
-                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Moon size={20} style={{ color: "#E07A5F" }} /> Alvás &amp; hormonális terhelés</h2>
-                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>Hogyan alakul az alvásod az éjszaka folyamán?</p>
+                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Baby size={20} style={{ color: "#E07A5F" }} /> Szoptatási és anyai életszakasz</h2>
+                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>Szoptatsz jelenleg? (Ez alapján igazítjuk az anyatej-védő biztonsági kalóriatöbbletet)</p>
                 <div className="space-y-3">
                   {[
-                    { v: "atalussza", l: "Átalussza az éjszakát" },
-                    { v: "1-2", l: "1-2 ébredés" },
-                    { v: "kronikus", l: "Krónikus alváshiány (3+ ébredés a gyerekhez)" },
+                    { v: "nem", l: "Nem szoptatok / Nagyobb már a gyermek" },
+                    { v: "hozzataplal", l: "Igen, vegyes táplálás / hozzátáplálás mellett (+250 kcal/nap védelem)" },
+                    { v: "kizarolag", l: "Igen, kizárólagos szoptatás az első 6 hónapban (+450 kcal/nap védelem)" },
+                  ].map((o) => (
+                    <button
+                      key={o.v}
+                      onClick={() => setForm((s) => ({ ...s, nursing: o.v }))}
+                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium"
+                      style={{
+                        border: `1.5px solid ${form.nursing === o.v ? "#E07A5F" : "#F0DCD4"}`,
+                        background: form.nursing === o.v ? "#FDE8E1" : "#FFFDFB",
+                        color: "#2D3748",
+                      }}
+                    >
+                      {o.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 3. Aktivitás */}
+            {step === 2 && (
+              <div className="mt-8">
+                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Activity size={20} style={{ color: "#E07A5F" }} /> Napi mozgás és fizikai aktivitás</h2>
+                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>Hogyan telik a napod mozgás szempontjából?</p>
+                <div className="space-y-3">
+                  {[
+                    { v: "ulo", l: "Ülőmunka / Otthoni teendők, minimális séta" },
+                    { v: "seta", l: "Napi 1-2 babakocsis séta, aktív játszótér" },
+                    { v: "porgos", l: "Egész napos rohanás a gyerek(ek) után, magas lépésszám" },
+                  ].map((o) => (
+                    <button
+                      key={o.v}
+                      onClick={() => setForm((s) => ({ ...s, activity: o.v }))}
+                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium"
+                      style={{
+                        border: `1.5px solid ${form.activity === o.v ? "#E07A5F" : "#F0DCD4"}`,
+                        background: form.activity === o.v ? "#FDE8E1" : "#FFFDFB",
+                        color: "#2D3748",
+                      }}
+                    >
+                      {o.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 4. Alvás & Kortizol */}
+            {step === 3 && (
+              <div className="mt-8">
+                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Moon size={20} style={{ color: "#E07A5F" }} /> Alvás &amp; hormonális kimerültség</h2>
+                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>Hogyan alakul az éjszakai pihenésed?</p>
+                <div className="space-y-3">
+                  {[
+                    { v: "atalussza", l: "Átalussza az éjszakát / pihentető (6-8 óra)" },
+                    { v: "1-2", l: "1-2 ébredés a gyermekhez, enyhe nappali fáradtság" },
+                    { v: "kronikus", l: "Krónikus alváshiány (3+ ébredés, állandó kimerültség)" },
                   ].map((o) => (
                     <button
                       key={o.v}
@@ -812,50 +999,79 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {step === 2 && (
-              <div className="mt-8">
-                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Utensils size={20} style={{ color: "#E07A5F" }} /> A "rejtett kalóriaszivárgás"</h2>
-                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>Hányszor eszel a gyerek maradékából vagy csipegetsz a pultról napközben?</p>
-                <div className="space-y-3">
-                  {[
-                    { v: "szinte_soha", l: "Szinte soha" },
-                    { v: "napi_1_2", l: "Napi 1-2 alkalom" },
-                    { v: "folyamatos", l: "Folyamatosan a maradékot eszem és rohanva csipegetek" },
-                  ].map((o) => (
-                    <button
-                      key={o.v}
-                      onClick={() => setForm((s) => ({ ...s, snacking: o.v }))}
-                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium"
-                      style={{
-                        border: `1.5px solid ${form.snacking === o.v ? "#E07A5F" : "#F0DCD4"}`,
-                        background: form.snacking === o.v ? "#FDE8E1" : "#FFFDFB",
-                        color: "#2D3748",
-                      }}
-                    >
-                      {o.l}
-                    </button>
-                  ))}
+            {/* 5. Szivárgás & Konyha */}
+            {step === 4 && (
+              <div className="mt-8 space-y-6">
+                <div>
+                  <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Utensils size={20} style={{ color: "#E07A5F" }} /> Kalóriaszivárgás</h2>
+                  <p className="text-xs mb-3" style={{ color: "#6B5A52" }}>Hányszor eszel a gyerek maradékából vagy csipegetsz a pultról?</p>
+                  <div className="space-y-2">
+                    {[
+                      { v: "szinte_soha", l: "Szinte soha" },
+                      { v: "napi_1_2", l: "Napi 1-2 alkalommal" },
+                      { v: "folyamatos", l: "Folyamatosan csipegetek és a maradékot eszem" },
+                    ].map((o) => (
+                      <button
+                        key={o.v}
+                        onClick={() => setForm((s) => ({ ...s, snacking: o.v }))}
+                        className="option-btn w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium"
+                        style={{
+                          border: `1.5px solid ${form.snacking === o.v ? "#E07A5F" : "#F0DCD4"}`,
+                          background: form.snacking === o.v ? "#FDE8E1" : "#FFFDFB",
+                          color: "#2D3748",
+                        }}
+                      >
+                        {o.l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Clock size={20} style={{ color: "#E07A5F" }} /> Konyhai kapacitás</h2>
+                  <p className="text-xs mb-3" style={{ color: "#6B5A52" }}>Mennyi időd jut a konyhára egy átlagos napon?</p>
+                  <div className="space-y-2">
+                    {[
+                      { v: "15perc", l: "Max. 15-20 perc gyors ételekre" },
+                      { v: "csak_csaladnak", l: "Nincs külön időm, csak a családnak főzök" },
+                      { v: "hetvegen", l: "Hétvégén tudok előre dobozolni" },
+                    ].map((o) => (
+                      <button
+                        key={o.v}
+                        onClick={() => setForm((s) => ({ ...s, kitchen: o.v }))}
+                        className="option-btn w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium"
+                        style={{
+                          border: `1.5px solid ${form.kitchen === o.v ? "#E07A5F" : "#F0DCD4"}`,
+                          background: form.kitchen === o.v ? "#FDE8E1" : "#FFFDFB",
+                          color: "#2D3748",
+                        }}
+                      >
+                        {o.l}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
 
-            {step === 3 && (
+            {/* 6. Fő Fókusz */}
+            {step === 5 && (
               <div className="mt-8">
-                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Clock size={20} style={{ color: "#E07A5F" }} /> Konyhai kapacitás</h2>
-                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>Mennyi időd jut a konyhára egy átlagos napon?</p>
+                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Target size={20} style={{ color: "#E07A5F" }} /> Mi a legnagyobb személyes kihívásod?</h2>
+                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>Ez alapján választjuk ki a számodra legoptimálisabb protokollt:</p>
                 <div className="space-y-3">
                   {[
-                    { v: "15perc", l: "Max. 15 perc" },
-                    { v: "csak_csaladnak", l: "Nincs időm magamra, csak a családnak főzök" },
-                    { v: "hetvegen", l: "Hétvégén tudok előre készülni" },
+                    { v: "nassolas_ido", l: "Nassolás legyőzése, gyors családi receptek és időmenedzsment" },
+                    { v: "bor_puffadas", l: "Puffadás, emésztési nehézségek és szülés utáni bőrfeszesítés / kollagén" },
+                    { v: "torna_has", l: "Kötényhas / hasfal regeneráció és napi 10 perces csendes otthoni torna" },
                   ].map((o) => (
                     <button
                       key={o.v}
-                      onClick={() => setForm((s) => ({ ...s, kitchen: o.v }))}
+                      onClick={() => setForm((s) => ({ ...s, focus: o.v }))}
                       className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium"
                       style={{
-                        border: `1.5px solid ${form.kitchen === o.v ? "#E07A5F" : "#F0DCD4"}`,
-                        background: form.kitchen === o.v ? "#FDE8E1" : "#FFFDFB",
+                        border: `1.5px solid ${form.focus === o.v ? "#E07A5F" : "#F0DCD4"}`,
+                        background: form.focus === o.v ? "#FDE8E1" : "#FFFDFB",
                         color: "#2D3748",
                       }}
                     >
@@ -877,79 +1093,111 @@ function FitAnyaLanding() {
               <button
                 disabled={!canProceed}
                 onClick={() => {
-                  if (step < 3) setStep((s) => s + 1);
+                  if (step < 5) setStep((s) => s + 1);
                   else setWizardDone(true);
                 }}
                 className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl inline-flex items-center gap-2 disabled:opacity-40"
               >
-                {step < 3 ? "Tovább" : "Eredmény megtekintése"} <ChevronRight size={16} />
+                {step < 5 ? "Tovább" : "Diagnosztika & Terv megtekintése"} <ChevronRight size={16} />
               </button>
             </div>
           </div>
         ) : (
           <div>
             <div className="text-center mb-8">
-              <SectionEyebrow><Flame size={14} /> Az auditod elkészült</SectionEyebrow>
+              <SectionEyebrow><Flame size={14} /> Személyes Élettani Térkép</SectionEyebrow>
               <h2 className="font-display font-semibold text-2xl sm:text-3xl mt-3">A te profilod:</h2>
               <p className="font-display italic text-xl sm:text-2xl mt-1" style={{ color: "#E07A5F" }}>{results.profile}</p>
             </div>
 
+            {/* FŐ KPI KÁRTYÁK */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <KpiCard icon={Flame} label="Napi biztonságos kalóriakereted" value={`${results.targetKcal} kcal`} sub={`TDEE: ${results.tdee} kcal`} />
-              <KpiCard icon={Utensils} label="Rejtett kalóriatöbblet" value={`+${results.hiddenSurplus} kcal/nap`} sub="a csipegetésből" accent="#8A4B4F" />
-              <KpiCard icon={Calendar} label="Célsúly elérése" value={results.targetDateStr} sub={results.weightToLose > 0 ? `${results.weightToLose} kg leadása, heti 0,6 kg-os ütemben` : "Tartás fázis"} accent="#7C9885" />
+              <KpiCard
+                icon={Flame}
+                label="Biztonságos kalóriakereted"
+                value={`${results.targetKcal} kcal`}
+                sub={results.lactationBonus > 0 ? `+${results.lactationBonus} kcal szoptatási védelemmel` : `TDEE: ${results.tdee} kcal`}
+              />
+              <KpiCard
+                icon={Utensils}
+                label="Rejtett kalóriaszivárgás"
+                value={`+${results.hiddenSurplus} kcal/nap`}
+                sub="a falatozásokból és maradékokból"
+                accent="#8A4B4F"
+              />
+              <KpiCard
+                icon={Calendar}
+                label="Célsúly elérése"
+                value={results.targetDateStr}
+                sub={results.weightToLose > 0 ? `${results.weightToLose} kg leadása koplalás nélkül` : "Súlytartás fázis"}
+                accent="#7C9885"
+              />
             </div>
 
-            <div className="rounded-2xl p-6 sm:p-8 mb-6" style={{ background: "#FDE8E1", border: "1px solid #F0C4B8" }}>
-              <h3 className="font-display font-semibold text-lg mb-1">Kritikus hormonális éhség-zónák</h3>
-              <p className="text-sm mb-6" style={{ color: "#6B5A52" }}>
-                Nem a gyengeséged szól, ha ilyenkor éhes vagy — ez élettani jelenség, nem bűntudatra való ok.
+            {/* SZEMÉLYRE SZABOTT TENYÉR-MAKRÓ ADAGOLÓ */}
+            <div className="rounded-3xl p-6 sm:p-8 mb-6 bg-white border border-[#F0DCD4] shadow-sm">
+              <h3 className="font-display font-semibold text-lg sm:text-xl text-[#2D3748] mb-1">
+                Személyre Szabott Napi Tenyér-Adagod
+              </h3>
+              <p className="text-xs sm:text-sm text-[#6B5A52] mb-6">
+                Ezekből az arányokból állítsd össze a tányérod a napi étkezések során — konyhamérleg nélkül:
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="rounded-xl p-5" style={{ background: "#FDFBF7" }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sun size={18} style={{ color: "#E07A5F" }} />
-                    <span className="font-display font-semibold">16:30</span>
-                  </div>
-                  <p className="text-sm leading-relaxed" style={{ color: "#4A5568" }}>
-                    Ilyenkor a délutáni kortizolszint természetes hullámvölgyben van, ami fokozott édesség- és
-                    gyorsenergia-vágyat okoz — pont amikor a gyerek uzsonnázik melletted.
-                  </p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div className="p-4 rounded-2xl bg-[#FFF5F2] border border-[#F0DCD4]">
+                  <span className="text-2xl">🖐️</span>
+                  <p className="font-display font-bold text-lg text-[#2D3748] mt-1">{results.palmProtein} Tenyér</p>
+                  <p className="text-xs font-semibold text-[#8A4B4F]">Fehérje (~{results.proteinGrams}g)</p>
+                  <p className="text-[11px] text-[#8A7268] mt-1">Hús, hal, tojás, túró</p>
                 </div>
-                <div className="rounded-xl p-5" style={{ background: "#FDFBF7" }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Moon size={18} style={{ color: "#E07A5F" }} />
-                    <span className="font-display font-semibold">21:15</span>
-                  </div>
-                  <p className="text-sm leading-relaxed" style={{ color: "#4A5568" }}>
-                    A lefekvés előtti órákban a ghrelin nevű éhséghormon szintje megemelkedik a felgyülemlett
-                    napi fáradtság hatására — ezért kívánsz ilyenkor nassolnivalót, nem akaraterő kérdése.
-                  </p>
+                <div className="p-4 rounded-2xl bg-[#F0F5F1] border border-[#D5E5D8]">
+                  <span className="text-2xl">✊</span>
+                  <p className="font-display font-bold text-lg text-[#2D3748] mt-1">{results.fistVeg} Ököl</p>
+                  <p className="text-xs font-semibold text-[#7C9885]">Rost / Zöldség</p>
+                  <p className="text-[11px] text-[#8A7268] mt-1">Saláta, uborka, brokkoli</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#FFFDF5] border border-[#F2E6C8]">
+                  <span className="text-2xl">🤲</span>
+                  <p className="font-display font-bold text-lg text-[#2D3748] mt-1">{results.cuppedCarb} Marék</p>
+                  <p className="text-xs font-semibold text-[#B08D4F]">Szénhidrát (~{results.carbGrams}g)</p>
+                  <p className="text-[11px] text-[#8A7268] mt-1">Rizs, tészta, burgonya</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#FAF6F0] border border-[#E8DFD8]">
+                  <span className="text-2xl">👍</span>
+                  <p className="font-display font-bold text-lg text-[#2D3748] mt-1">{results.thumbFat} Hüvelykujj</p>
+                  <p className="text-xs font-semibold text-[#6B5A52]">Egészséges Zsír (~{results.fatGrams}g)</p>
+                  <p className="text-[11px] text-[#8A7268] mt-1">Olívaolaj, magvak, sajt</p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl p-6 sm:p-8 mb-8" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4" }}>
-              <h3 className="font-display font-semibold text-lg mb-4">A tenyér-szabály — mérleg helyett</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {[
-                  { icon: "🖐️", t: "Tenyérnyi fehérje", d: "hús, hal, tojás, túró" },
-                  { icon: "✊", t: "Ökölnyi zöldség", d: "bármilyen, szabadon" },
-                  { icon: "🤲", t: "Maréknyi szénhidrát", d: "rizs, tészta, kenyér" },
-                ].map((r, i) => (
-                  <div key={i} className="text-center rounded-xl p-5" style={{ background: "#FDE8E1" }}>
-                    <span className="text-3xl">{r.icon}</span>
-                    <p className="font-display font-semibold mt-2 text-sm">{r.t}</p>
-                    <p className="text-xs mt-1" style={{ color: "#6B5A52" }}>{r.d}</p>
-                  </div>
-                ))}
-              </div>
+            {/* NEKED AJÁNLOTT CSOMAG KIEMELÉS */}
+            <div className="rounded-3xl p-6 sm:p-8 mb-6 border-2 bg-gradient-to-br from-[#FFF9F5] to-[#FDE8E1] border-[#E07A5F] relative">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display px-3.5 py-1 rounded-full bg-[#E07A5F] text-white mb-3">
+                <Sparkles size={13} /> Algoritmus által kijelölt csomag
+              </span>
+              <h3 className="font-display font-semibold text-xl text-[#2D3748] mb-2">
+                Miért a <strong className="text-[#E07A5F]">{packages.find(p => p.id === results.recommendedPkg)?.name}</strong> a tökéletes választás számodra?
+              </h3>
+              <p className="text-sm text-[#4A5568] leading-relaxed mb-5">
+                {results.pkgReason}
+              </p>
+              <button
+                onClick={() => {
+                  setSelectedPkg(results.recommendedPkg);
+                  scrollTo(orderRef);
+                }}
+                className="cta-btn font-display font-semibold text-sm sm:text-base text-white px-7 py-3.5 rounded-xl inline-flex items-center gap-2"
+              >
+                Kiválasztom ezt a csomagot &amp; Megrendelem <ArrowRight size={18} />
+              </button>
             </div>
 
+            {/* E-MAIL KAPU */}
             {!gateSent ? (
               <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#2D3748" }}>
                 <Mail size={28} className="mx-auto mb-3" style={{ color: "#F9D5CE" }} />
-                <h3 className="font-display font-semibold text-lg text-white mb-1">Küldd el a 3 oldalas részletes profilomat PDF-ben</h3>
+                <h3 className="font-display font-semibold text-lg text-white mb-1">Küldd el a részletes élettani profilomat PDF-ben</h3>
                 <p className="text-sm mb-5" style={{ color: "#D8C6BE" }}>és aktiváld a mai kedvezményt a csomagokra!</p>
                 <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                   <input
@@ -975,12 +1223,6 @@ function FitAnyaLanding() {
                 <p className="text-sm mt-1" style={{ color: "#4A5568" }}>Nézd meg az e-mail fiókodat — köztük a spam mappát is.</p>
               </div>
             )}
-
-            <div className="text-center mt-8">
-              <button onClick={() => scrollTo(pricingRef)} className="cta-btn font-display font-semibold text-base text-white px-7 py-4 rounded-2xl inline-flex items-center gap-2">
-                Válasszak csomagot <ArrowRight size={18} />
-              </button>
-            </div>
           </div>
         )}
       </section>
@@ -1036,6 +1278,39 @@ function FitAnyaLanding() {
         </div>
       </section>
 
+      {/* KINEK VALÓ ÉS KINEK NEM VALÓ? */}
+      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-12">
+        <div className="text-center mb-10">
+          <SectionEyebrow><Zap size={14} /> Őszinte szűrő</SectionEyebrow>
+          <h2 className="font-display font-semibold text-2xl sm:text-3xl mt-3">Neked való a FitAnya Módszer?</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="rounded-3xl p-6 sm:p-8 bg-green-50/60 border border-green-200">
+            <h3 className="font-display font-semibold text-lg text-green-900 flex items-center gap-2 mb-4">
+              <CheckCheck className="text-green-600" /> IGEN, ha:
+            </h3>
+            <ul className="space-y-3 text-sm text-green-950">
+              <li className="flex items-start gap-2">✓ Nincs időd grammozni és kalóriát számolni minden falat után</li>
+              <li className="flex items-start gap-2">✓ Nem akarsz 2 külön menüt főzni a gyerekeknek és magadnak</li>
+              <li className="flex items-start gap-2">✓ Olyan rendszert keresel, ami alváshiány mellett is tartható</li>
+              <li className="flex items-start gap-2">✓ Szeretnél újra magabiztosan, feszengés nélkül tükörbe nézni</li>
+            </ul>
+          </div>
+
+          <div className="rounded-3xl p-6 sm:p-8 bg-red-50/60 border border-red-200">
+            <h3 className="font-display font-semibold text-lg text-red-900 flex items-center gap-2 mb-4">
+              <XCircle className="text-red-600" /> NEM, ha:
+            </h3>
+            <ul className="space-y-3 text-sm text-red-950">
+              <li className="flex items-start gap-2">✕ Csodateákat, zsírégető bogyókat vagy 3 napos koplalást keresel</li>
+              <li className="flex items-start gap-2">✕ Napi 2 órát akarsz konditeremben tölteni a család helyett</li>
+              <li className="flex items-start gap-2">✕ Nem vagy hajlandó ránézni a tányérod arányaira az asztalnál</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       {/* ÁRAZÁS */}
       <section ref={pricingRef} className="py-16 sm:py-24" style={{ background: "#FDE8E1" }}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
@@ -1049,9 +1324,36 @@ function FitAnyaLanding() {
                 key={p.id}
                 tier={p}
                 selected={selectedPkg}
+                isRecommended={wizardDone && results.recommendedPkg === p.id}
                 onSelect={(id) => { setSelectedPkg(id); scrollTo(orderRef); }}
               />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3 LÉPÉSES FOLYAMAT */}
+      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-12">
+        <div className="text-center mb-10">
+          <SectionEyebrow><Clock size={14} /> 0 másodperc várakozás</SectionEyebrow>
+          <h2 className="font-display font-semibold text-2xl sm:text-3xl mt-3">Mi történik a megrendelés után?</h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+          <div className="p-6 rounded-2xl bg-white border border-[#F0DCD4]">
+            <div className="w-12 h-12 rounded-full bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center font-bold text-lg mx-auto mb-3">1</div>
+            <h4 className="font-semibold text-base text-[#2D3748] mb-1">Biztonságos fizetés</h4>
+            <p className="text-xs text-[#6B5A52]">30 másodperc alatt bankkártyával vagy Apple/Google Pay-jel.</p>
+          </div>
+          <div className="p-6 rounded-2xl bg-white border border-[#F0DCD4]">
+            <div className="w-12 h-12 rounded-full bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center font-bold text-lg mx-auto mb-3">2</div>
+            <h4 className="font-semibold text-base text-[#2D3748] mb-1">Azonnali letöltés</h4>
+            <p className="text-xs text-[#6B5A52]">Azonnal megnyílik a letöltőfelület, nem kell postára vagy jóváhagyásra várnod.</p>
+          </div>
+          <div className="p-6 rounded-2xl bg-white border border-[#F0DCD4]">
+            <div className="w-12 h-12 rounded-full bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center font-bold text-lg mx-auto mb-3">3</div>
+            <h4 className="font-semibold text-base text-[#2D3748] mb-1">Azonnal használható</h4>
+            <p className="text-xs text-[#6B5A52]">Már a mai vacsoránál vagy a holnapi bevásárlásnál működik a Tenyér-szabály.</p>
           </div>
         </div>
       </section>
