@@ -178,7 +178,6 @@ const PACKAGE_DOWNLOADS = {
       { title: "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)", meta: "PDF · 2,8 MB", downloadUrl: VIP_EDZESPROGRAM_URL },
       { title: "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)", meta: "PDF · 2,3 MB", downloadUrl: VIP_KOLLAGEN_RESET_URL },
       { title: "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)", meta: "PDF · 2,4 MB", downloadUrl: VIP_SOS_PUFFADAS_URL },
-      { title: "Gyorséttermi, Rendelős & Nyaralási Túlélőkalauz (PDF)", meta: "PDF · 2,0 MB", downloadUrl: VIP_TULELOKALAUZ_URL },
     ],
     community: true,
     vip: true,
