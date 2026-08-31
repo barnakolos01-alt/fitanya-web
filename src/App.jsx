@@ -41,7 +41,11 @@ import {
   Baby,
   Activity,
   Target,
+  Loader2,
 } from "lucide-react";
+
+// A TE ÉLES GOOGLE APPS SCRIPT WEB APP LINKED:
+const GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzYnNbGqwXhX5AGhQ-1bwSZhLZM0e1LYMPN84XTFXGgysxuOnVvT-2_HwxY6xZlh1Bi/exec";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');`;
 
@@ -193,14 +197,12 @@ const MEAL_PLAN = {
   },
 };
 
-// ÉLES STRIPE FIZETÉSI LINKEK
 const STRIPE_PAYMENT_LINKS = {
   basic: "https://buy.stripe.com/7sY00l4y4cHZ3Lf4Hq9ws00",
   premium: "https://buy.stripe.com/4gMcN7aWs9vN0z3c9S9ws01",
   vip: "https://buy.stripe.com/8x2dRb5C86jB95zb5O9ws02",
 };
 
-// 7 DB FRISSÍTETT DIREKT LETÖLTÉSI LINK
 const ALAP_PDF_URL = "https://drive.google.com/uc?export=download&id=1FkvydVMN9LU5hSFa1ib6kVeYh5Nmxazq";
 const NASSOLASI_KALAUZ_URL = "https://drive.google.com/uc?export=download&id=10xkdMG9usiyfffr2Z4MwUdD6Z1wm3Dnd";
 const SZOKASFORMALO_RENDSZER_URL = "https://drive.google.com/uc?export=download&id=1BHgqESp4BSHB6p48OYmBG9V39rLqArUe";
@@ -209,7 +211,6 @@ const VIP_EDZESPROGRAM_URL = "https://drive.google.com/uc?export=download&id=1t0
 const VIP_KOLLAGEN_RESET_URL = "https://drive.google.com/uc?export=download&id=1EtnQtKoVQHweDYpQsFcsJuEfyml_BIU9";
 const VIP_SOS_PUFFADAS_URL = "https://drive.google.com/uc?export=download&id=16VRXRWDo5kn06EvPIJTOc5yfTvLabGCN";
 
-// PONTOSAN 7 PDF CSOMAGSTRUKTÚRA
 const PACKAGE_DOWNLOADS = {
   basic: {
     files: [
@@ -614,6 +615,7 @@ function FitAnyaLanding() {
   });
   const [gateEmail, setGateEmail] = useState("");
   const [gateSent, setGateSent] = useState(false);
+  const [isSendingGate, setIsSendingGate] = useState(false);
   const [selectedPkg, setSelectedPkg] = useState("premium");
   const [faqOpen, setFaqOpen] = useState(0);
 
@@ -726,6 +728,30 @@ function FitAnyaLanding() {
     }
   }, [wizardDone, results.recommendedPkg]);
 
+  const handleSendGateEmail = async () => {
+    if (!gateEmail || !gateEmail.includes("@")) return;
+    setIsSendingGate(true);
+    try {
+      const payload = {
+        email: gateEmail.trim(),
+        ...results,
+        ...form,
+      };
+      await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      setGateSent(true);
+    } catch (err) {
+      console.error(err);
+      setGateSent(true);
+    } finally {
+      setIsSendingGate(false);
+    }
+  };
+
   const packages = [
     {
       id: "basic",
@@ -817,7 +843,7 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* A 3 ALAPPILLÉR KÉPEKKEL ÉS IKONOKKAL */}
+      {/* A 3 ALAPPILLÉR */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
         <div className="text-center mb-10">
           <SectionEyebrow><Award size={14} /> Miért működik?</SectionEyebrow>
@@ -828,7 +854,6 @@ function FitAnyaLanding() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* 1. Pillér */}
           <div className="rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm flex flex-col">
             <div className="h-52 w-full overflow-hidden relative">
               <img 
@@ -850,7 +875,6 @@ function FitAnyaLanding() {
             </div>
           </div>
 
-          {/* 2. Pillér */}
           <div className="rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm flex flex-col">
             <div className="h-52 w-full overflow-hidden relative">
               <img 
@@ -872,7 +896,6 @@ function FitAnyaLanding() {
             </div>
           </div>
 
-          {/* 3. Pillér */}
           <div className="rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm flex flex-col">
             <div className="h-52 w-full overflow-hidden relative">
               <img 
@@ -1256,34 +1279,48 @@ function FitAnyaLanding() {
               </button>
             </div>
 
-            {/* E-MAIL KAPU */}
+            {/* E-MAIL KAPU — AUTOMATA KÜLDÉS ÉS GOOGLE SHEETS MENTÉS */}
             {!gateSent ? (
               <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#2D3748" }}>
                 <Mail size={28} className="mx-auto mb-3" style={{ color: "#F9D5CE" }} />
-                <h3 className="font-display font-semibold text-lg text-white mb-1">Küldd el a részletes élettani profilomat PDF-ben</h3>
-                <p className="text-sm mb-5" style={{ color: "#D8C6BE" }}>és aktiváld a mai kedvezményt a csomagokra!</p>
+                <h3 className="font-display font-semibold text-lg text-white mb-1">
+                  Küldd el a személyre szabott kalóriatervemet e-mailben!
+                </h3>
+                <p className="text-sm mb-5" style={{ color: "#D8C6BE" }}>
+                  Megkapod a pontos napi kalóriakeretedet és a Tenyér-Makró adagolási kalauzt közvetlenül a fiókodba.
+                </p>
                 <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                   <input
-                    type="text"
+                    type="email"
                     value={gateEmail}
                     onChange={(e) => setGateEmail(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleSendGateEmail(); }}
                     placeholder="email@cimed.hu"
                     className="flex-1 rounded-xl px-4 py-3 text-sm"
                   />
                   <button
                     type="button"
-                    onClick={() => setGateSent(true)}
-                    className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl whitespace-nowrap"
+                    disabled={isSendingGate || !gateEmail}
+                    onClick={handleSendGateEmail}
+                    className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl whitespace-nowrap inline-flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    Küldd el a PDF-et
+                    {isSendingGate ? (
+                      <><Loader2 size={16} className="animate-spin" /> Küldés...</>
+                    ) : (
+                      "Küldd el az anyagot"
+                    )}
                   </button>
                 </div>
               </div>
             ) : (
               <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#F0F5F1", border: "1px solid #7C9885" }}>
                 <CheckCircle2 size={26} className="mx-auto mb-2" style={{ color: "#7C9885" }} />
-                <p className="font-display font-semibold" style={{ color: "#2D3748" }}>Elküldtük a profilodat és a kedvezményt!</p>
-                <p className="text-sm mt-1" style={{ color: "#4A5568" }}>Nézd meg az e-mail fiókodat — köztük a spam mappát is.</p>
+                <p className="font-display font-semibold" style={{ color: "#2D3748" }}>
+                  Elküldtük a személyes kalóriatervedet!
+                </p>
+                <p className="text-sm mt-1" style={{ color: "#4A5568" }}>
+                  Nézd meg az e-mail fiókodat — a levelet a pontos makróarányaiddal elküldtük.
+                </p>
               </div>
             )}
           </div>
@@ -1341,7 +1378,7 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* KINEK VALÓ ÉS KINEK NEM VALÓ? KÉPPEL */}
+      {/* KINEK VALÓ ÉS KINEK NEM VALÓ? */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
         <div className="text-center mb-10">
           <SectionEyebrow><Zap size={14} /> Őszinte szűrő</SectionEyebrow>
@@ -1349,7 +1386,6 @@ function FitAnyaLanding() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          {/* Természetes életkép a bal oldalon */}
           <div className="lg:col-span-4 rounded-3xl overflow-hidden shadow-sm border border-[#F0DCD4] min-h-[300px] lg:min-h-full">
             <img 
               src="/anya.jpg" 
@@ -1359,7 +1395,6 @@ function FitAnyaLanding() {
             />
           </div>
 
-          {/* Igen / Nem kártyák a jobb oldalon */}
           <div className="lg:col-span-8 flex flex-col sm:flex-row gap-6">
             <div className="flex-1 rounded-3xl p-6 sm:p-7 bg-green-50/60 border border-green-200 flex flex-col justify-between">
               <div>
