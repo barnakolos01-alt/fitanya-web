@@ -807,7 +807,7 @@ function FitAnyaLanding() {
             Töltsd ki az élettani auditot, és nézd meg a személyre szabott Tenyér-Makró tervedet!
           </p>
           <button onClick={() => scrollTo(wizardRef)} className="cta-btn font-display font-semibold text-base sm:text-lg text-white px-7 py-4 rounded-2xl inline-flex items-center gap-2">
-            Ingyenes Élettani Anyuka-Audit Kitöltése <ArrowRight size={20} />
+            Számold ki a napi kalóriakereted! (1 perc) <ArrowRight size={20} />
           </button>
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm" style={{ color: "#6B5A52" }}>
             <span className="inline-flex items-center gap-1.5"><ShieldCheck size={16} style={{ color: "#7C9885" }} /> Tudományosan igazolt élettani alapok</span>
