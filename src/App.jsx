@@ -42,6 +42,7 @@ import {
   Activity,
   Target,
   Loader2,
+  HelpCircle,
 } from "lucide-react";
 
 // AZ ÉLES GOOGLE APPS SCRIPT WEBHOOK URL:
@@ -400,31 +401,6 @@ function FaqItem({ q, a, open, onToggle }) {
       {open && (
         <p className="pb-5 text-sm leading-relaxed" style={{ color: "#4A5568" }}>{a}</p>
       )}
-    </div>
-  );
-}
-
-function TestimonialCard({ name, role, text }) {
-  return (
-    <div className="rounded-2xl p-6" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4" }}>
-      <div className="flex items-center gap-3 mb-3">
-        <div
-          className="w-11 h-11 rounded-full flex items-center justify-center font-display font-semibold"
-          style={{ background: "#F9D5CE", color: "#8A4B4F" }}
-        >
-          {name.split(" ").map((n) => n[0]).join("")}
-        </div>
-        <div>
-          <p className="font-display font-semibold text-sm" style={{ color: "#2D3748" }}>{name}</p>
-          <p className="text-xs" style={{ color: "#8A7268" }}>{role}</p>
-        </div>
-      </div>
-      <div className="flex gap-0.5 mb-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Star key={i} size={15} fill="#E07A5F" color="#E07A5F" />
-        ))}
-      </div>
-      <p className="text-sm leading-relaxed" style={{ color: "#4A5568" }}>„{text}"</p>
     </div>
   );
 }
@@ -806,6 +782,10 @@ function FitAnyaLanding() {
       q: "Szoptatás alatt is biztonságosan alkalmazható?",
       a: "Igen! A kalkulátorunk automatikusan hozzáad +250–450 kcal élettani kalóriapótlékot szoptató anyukáknak, így a fogyás kizárólag a zsírraktárakból történik, a tejtermelés és a tápanyagellátás teljes biztonsága mellett.",
     },
+    {
+      q: "Mi történik a fizetés után? Hogyan kapom meg az anyagokat?",
+      a: "A bankkártyás vagy Apple/Google Pay fizetés után azonnal megnyílik a letöltési felület a telefonodon, és a hozzáférést e-mailben is elküldjük. Nincs várakozás vagy szállítási idő.",
+    },
   ];
 
   return (
@@ -870,7 +850,7 @@ function FitAnyaLanding() {
             <div className="h-52 w-full overflow-hidden relative">
               <img 
                 src="/edzes.jpg" 
-                alt="15 perces otthoni edzés szülés után" 
+                alt="15 perces otthoni edzés" 
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
@@ -953,7 +933,7 @@ function FitAnyaLanding() {
               <li className="flex items-center gap-2">🧀 <strong>10% Zsír:</strong> Vastag réteg sajt</li>
             </ul>
             <p className="mt-4 text-xs italic text-[#8A7268] bg-[#FDE8E1]/40 p-3 rounded-xl">
-              Nagy energiasűrűség, ami a gyerekek mozgásigényéhez ideális, de ülőmunka vagy hétköznapi rutin mellett könnyen raktározódik.
+              Nagy energiasűrűség, ami a mozgásban lévő családnak ideális, de ülőmunka vagy hétköznapi rutin mellett könnyen raktározódik.
             </p>
           </div>
 
@@ -1507,18 +1487,64 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* VÉLEMÉNYEK */}
+      {/* 3 TIPIKUS ÉLETHELYZET (KAMU VÉLEMÉNYEK HELYETT) */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-16 sm:py-24">
         <div className="text-center mb-12">
-          <SectionEyebrow>Nők és Édesanyák mondták</SectionEyebrow>
-          <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-3">Nem elmélet — valódi eredmények</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-14">
-          <TestimonialCard name="Szabó Réka" role="2 gyermekes édesanya, Pécs" text="Először nem hittem, hogy tud működni koplalás nélkül. 9 hét alatt 5 kilót adtam le úgy, hogy közben ugyanazt ettem, mint a család." />
-          <TestimonialCard name="Farkas Dóra" role="kismama, Budapest" text="A tenyér-szabály volt a fordulópont — végre nem kellett mérlegelnem semmit, csak ránéztem a tányéromra." />
-          <TestimonialCard name="Molnár Eszter" role="háromgyermekes édesanya, Miskolc" text="A 21 órás nassolási hullámot végre megértettem, nem küzdök ellene feleslegesen, hanem beépítettem a napirendbe." />
+          <SectionEyebrow><HelpCircle size={14} /> Valós Hétköznapok</SectionEyebrow>
+          <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-3">3 tipikus helyzet, amit azonnal megoldunk</h2>
+          <p className="text-sm sm:text-base mt-2 max-w-xl mx-auto" style={{ color: "#4A5568" }}>
+            Nem kell megváltoztatnod a családod életét ahhoz, hogy te magad újra energikus és fitt legyél.
+          </p>
         </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-14">
+          <div className="rounded-2xl p-6 flex flex-col justify-between" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4" }}>
+            <div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-orange-100/70 text-[#E07A5F] text-xl">
+                🍝
+              </div>
+              <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">„A család mást enne, mint én”</h3>
+              <p className="text-sm text-[#4A5568] leading-relaxed">
+                Nincs több kétfelé főzés és duplán mosogatás. Egyetlen fazékban készül el a normális étel, a te tányérodra pedig 20 másodperc alatt a megfelelő arány kerül.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#F0DCD4] text-xs font-semibold text-[#E07A5F]">
+              ✓ 30 Családi Gyorsrecept az alapcsomagban
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-6 flex flex-col justify-between" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4" }}>
+            <div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-rose-100/70 text-[#8A4B4F] text-xl">
+                🌙
+              </div>
+              <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">„Este 9-kor rám tör a nassolási vágy”</h3>
+              <p className="text-sm text-[#4A5568] leading-relaxed">
+                A tiltás helyett okos cseréket kapsz: a bolti címkeolvasó megmutatja a Lidl/Aldi/Spar polcain azokat a finomságokat, amik nem borítják fel a deficitet.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#F0DCD4] text-xs font-semibold text-[#8A4B4F]">
+              ✓ Bolti Nassolási Kalauz a Prémium csomagban
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-6 flex flex-col justify-between" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4" }}>
+            <div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-emerald-100/70 text-[#7C9885] text-xl">
+                ⚖️
+              </div>
+              <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">„Nincs időm grammozni a mérlegen”</h3>
+              <p className="text-sm text-[#4A5568] leading-relaxed">
+                A tenyered mérete pontosan arányos a tested tápanyagigényével. Bárhol, vendégségben vagy étteremben is egy pillantás alatt beállítod az adagodat.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#F0DCD4] text-xs font-semibold text-[#7C9885]">
+              ✓ Tenyér-Makró Útmutató minden csomagban
+            </div>
+          </div>
+        </div>
+
+        {/* 14 NAPOS GARANCIA */}
         <div className="rounded-2xl p-8 sm:p-10 text-center mb-14" style={{ background: "#FDFBF7", border: "2px solid #7C9885" }}>
           <ShieldCheck size={32} className="mx-auto mb-3" style={{ color: "#7C9885" }} />
           <h3 className="font-display font-semibold text-xl mb-1">14 Napos Kérdés Nélküli Pénzvisszafizetési Garancia</h3>
