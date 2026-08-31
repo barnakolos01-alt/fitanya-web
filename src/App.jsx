@@ -817,6 +817,85 @@ function FitAnyaLanding() {
         </div>
       </section>
 
+      {/* A 3 ALAPPILLÉR KÉPEKKEL ÉS IKONOKKAL */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
+        <div className="text-center mb-10">
+          <SectionEyebrow><Award size={14} /> Miért működik?</SectionEyebrow>
+          <h2 className="font-display font-semibold text-2xl sm:text-4xl mt-3">A FitAnya Módszer 3 Alappillére</h2>
+          <p className="text-sm sm:text-base mt-2 max-w-xl mx-auto" style={{ color: "#4A5568" }}>
+            Nem drasztikus diétákról vagy kimerítő edzésekről szól. Három egyszerű, egymásra épülő szokás, amit a legsűrűbb napirendbe is beilleszthetsz.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* 1. Pillér */}
+          <div className="rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm flex flex-col">
+            <div className="h-52 w-full overflow-hidden relative">
+              <img 
+                src="/edzes.jpg" 
+                alt="15 perces otthoni edzés szülés után" 
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                <Clock size={20} className="text-[#E07A5F]" />
+              </div>
+            </div>
+            <div className="p-6 flex flex-col flex-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#E07A5F] mb-1">1. Pillér</span>
+              <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">15 Perces Csendes Mozgás</h3>
+              <p className="text-sm text-[#4A5568] leading-relaxed">
+                Nincs szükség kondibérletre vagy ugrálásra. Kifejezetten a szülés utáni hasfal és a törzsizmok kíméletes, de hatékony megerősítésére fókuszálunk, amíg a baba alszik.
+              </p>
+            </div>
+          </div>
+
+          {/* 2. Pillér */}
+          <div className="rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm flex flex-col">
+            <div className="h-52 w-full overflow-hidden relative">
+              <img 
+                src="/etrend.jpg" 
+                alt="Gyors és egészséges családi ételek" 
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                <Utensils size={20} className="text-[#8A4B4F]" />
+              </div>
+            </div>
+            <div className="p-6 flex flex-col flex-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#8A4B4F] mb-1">2. Pillér</span>
+              <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">Egy Főzés — Tenyér-szabály</h3>
+              <p className="text-sm text-[#4A5568] leading-relaxed">
+                Nincs kétfelé főzés. A család kedvenc ételeit készíted el, csupán a saját tányérodra szedett makróarányokat állítod be 20 másodperc alatt a tenyered segítségével.
+              </p>
+            </div>
+          </div>
+
+          {/* 3. Pillér */}
+          <div className="rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm flex flex-col">
+            <div className="h-52 w-full overflow-hidden relative">
+              <img 
+                src="/energia.jpg" 
+                alt="Hormonális egyensúly és napi energiaszint" 
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                <Sun size={20} className="text-[#7C9885]" />
+              </div>
+            </div>
+            <div className="p-6 flex flex-col flex-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#7C9885] mb-1">3. Pillér</span>
+              <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">Hormon-Reset &amp; Energia</h3>
+              <p className="text-sm text-[#4A5568] leading-relaxed">
+                A krónikus alváshiány és a stressz miatt megemelkedett kortizolszintet célzott tápanyagokkal és mikro-pihenőkkel ellensúlyozzuk, megelőzve az esti falásrohamokat.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* EGY FŐZÉS - KÉT TÁNYÉR ÖSSZEHASONLÍTÁS */}
       <section className="max-w-5xl mx-auto px-5 sm:px-8 py-12">
         <div className="text-center mb-10">
@@ -1262,35 +1341,52 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* KINEK VALÓ ÉS KINEK NEM VALÓ? */}
-      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-12">
+      {/* KINEK VALÓ ÉS KINEK NEM VALÓ? KÉPPEL */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
         <div className="text-center mb-10">
           <SectionEyebrow><Zap size={14} /> Őszinte szűrő</SectionEyebrow>
           <h2 className="font-display font-semibold text-2xl sm:text-3xl mt-3">Neked való a FitAnya Módszer?</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-3xl p-6 sm:p-8 bg-green-50/60 border border-green-200">
-            <h3 className="font-display font-semibold text-lg text-green-900 flex items-center gap-2 mb-4">
-              <CheckCheck className="text-green-600" /> IGEN, ha:
-            </h3>
-            <ul className="space-y-3 text-sm text-green-950">
-              <li className="flex items-start gap-2">✓ Nincs időd grammozni és kalóriát számolni minden falat után</li>
-              <li className="flex items-start gap-2">✓ Nem akarsz 2 külön menüt főzni a gyerekeknek és magadnak</li>
-              <li className="flex items-start gap-2">✓ Olyan rendszert keresel, ami alváshiány mellett is tartható</li>
-              <li className="flex items-start gap-2">✓ Szeretnél újra magabiztosan, feszengés nélkül tükörbe nézni</li>
-            </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* Természetes életkép a bal oldalon */}
+          <div className="lg:col-span-4 rounded-3xl overflow-hidden shadow-sm border border-[#F0DCD4] min-h-[300px] lg:min-h-full">
+            <img 
+              src="/anya.jpg" 
+              alt="Anyuka hidratáció és egészséges életmód" 
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
           </div>
 
-          <div className="rounded-3xl p-6 sm:p-8 bg-red-50/60 border border-red-200">
-            <h3 className="font-display font-semibold text-lg text-red-900 flex items-center gap-2 mb-4">
-              <XCircle className="text-red-600" /> NEM, ha:
-            </h3>
-            <ul className="space-y-3 text-sm text-red-950">
-              <li className="flex items-start gap-2">✕ Csodateákat, zsírégető bogyókat vagy 3 napos koplalást keresel</li>
-              <li className="flex items-start gap-2">✕ Napi 2 órát akarsz konditeremben tölteni a család helyett</li>
-              <li className="flex items-start gap-2">✕ Nem vagy hajlandó ránézni a tányérod arányaira az asztalnál</li>
-            </ul>
+          {/* Igen / Nem kártyák a jobb oldalon */}
+          <div className="lg:col-span-8 flex flex-col sm:flex-row gap-6">
+            <div className="flex-1 rounded-3xl p-6 sm:p-7 bg-green-50/60 border border-green-200 flex flex-col justify-between">
+              <div>
+                <h3 className="font-display font-semibold text-lg text-green-900 flex items-center gap-2 mb-4">
+                  <CheckCheck className="text-green-600 shrink-0" /> IGEN, ha:
+                </h3>
+                <ul className="space-y-3 text-sm text-green-950">
+                  <li className="flex items-start gap-2">✓ Nincs időd grammozni és kalóriát számolni minden falat után</li>
+                  <li className="flex items-start gap-2">✓ Nem akarsz 2 külön menüt főzni a gyerekeknek és magadnak</li>
+                  <li className="flex items-start gap-2">✓ Olyan rendszert keresel, ami alváshiány mellett is tartható</li>
+                  <li className="flex items-start gap-2">✓ Szeretnél újra magabiztosan, feszengés nélkül tükörbe nézni</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex-1 rounded-3xl p-6 sm:p-7 bg-red-50/60 border border-red-200 flex flex-col justify-between">
+              <div>
+                <h3 className="font-display font-semibold text-lg text-red-900 flex items-center gap-2 mb-4">
+                  <XCircle className="text-red-600 shrink-0" /> NEM, ha:
+                </h3>
+                <ul className="space-y-3 text-sm text-red-950">
+                  <li className="flex items-start gap-2">✕ Csodateákat, zsírégető bogyókat vagy 3 napos koplalást keresel</li>
+                  <li className="flex items-start gap-2">✕ Napi 2 órát akarsz konditeremben tölteni a család helyett</li>
+                  <li className="flex items-start gap-2">✕ Nem vagy hajlandó ránézni a tányérod arányaira az asztalnál</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1455,14 +1551,14 @@ function FitAnyaLanding() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm mb-4" style={{ color: "#8A7268" }}>
             <button 
-              type="button"
+              type="button" 
               onClick={() => setActiveLegalModal("aszf")} 
               className="hover:underline hover:text-[#E07A5F] transition-colors"
             >
               ÁSZF
             </button>
             <button 
-              type="button"
+              type="button" 
               onClick={() => setActiveLegalModal("adatkezeles")} 
               className="hover:underline hover:text-[#E07A5F] transition-colors"
             >
@@ -1485,8 +1581,8 @@ function FitAnyaLanding() {
             onClick={(e) => e.stopPropagation()}
           >
             <button 
-              type="button"
-              onClick={() => setActiveLegalModal(null)}
+              type="button" 
+              onClick={() => setActiveLegalModal(null)} 
               className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 p-2 rounded-full hover:bg-gray-100 transition-colors"
               aria-label="Bezárás"
             >
@@ -1568,8 +1664,8 @@ function FitAnyaLanding() {
 
             <div className="mt-6 pt-4 border-t border-[#F0DCD4] text-right">
               <button 
-                type="button"
-                onClick={() => setActiveLegalModal(null)}
+                type="button" 
+                onClick={() => setActiveLegalModal(null)} 
                 className="font-display font-semibold text-sm px-6 py-2.5 rounded-xl text-white cta-btn"
               >
                 Rendben, bezárom
