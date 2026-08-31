@@ -833,7 +833,7 @@ function FitAnyaLanding() {
             Töltsd ki az élettani auditot, és nézd meg a személyre szabott Tenyér-Makró tervedet!
           </p>
           
-          {/* FRISSÍTETT, EGYÉRTELMŰ CTA GOMB */}
+          {/* CTA GOMB */}
           <button 
             onClick={() => scrollTo(wizardRef)} 
             className="cta-btn font-display font-semibold text-base sm:text-lg text-white px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2.5 shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer"
@@ -841,10 +841,11 @@ function FitAnyaLanding() {
             Kattints ide a teszt kitöltéséhez &amp; kalóriaszámoláshoz <ArrowRight size={20} />
           </button>
 
+          {/* BIZALMI SÁV – VALÓS, ÁTFOGÓ ÉRTÉKEK */}
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm" style={{ color: "#6B5A52" }}>
             <span className="inline-flex items-center gap-1.5"><ShieldCheck size={16} style={{ color: "#7C9885" }} /> Tudományosan igazolt élettani alapok</span>
             <span className="inline-flex items-center gap-1.5"><Heart size={16} style={{ color: "#7C9885" }} /> 100% Pénzvisszafizetési Garancia</span>
-            <span className="inline-flex items-center gap-1.5"><Star size={16} style={{ color: "#7C9885" }} /> Több mint 2 400 elégedett édesanya</span>
+            <span className="inline-flex items-center gap-1.5"><Zap size={16} style={{ color: "#E07A5F" }} /> Külön főzés és koplalás nélkül</span>
           </div>
         </div>
       </section>
