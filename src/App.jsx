@@ -44,7 +44,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-// AZ ÚJ ÉLES GOOGLE APPS SCRIPT WEB APP LINKED:
+// AZ ÉLES GOOGLE APPS SCRIPT WEBHOOK URL:
 const GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzYnNbGqwXhX5AGhQ-1bwSZhLZM0e1LYMPN84XTFXGgysxuOnVvT-2_HwxY6xZIh1Bi/exec";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');`;
@@ -367,7 +367,7 @@ function PricingCard({ tier, selected, isRecommended, onSelect }) {
       </ul>
       <button
         onClick={() => onSelect(tier.id)}
-        className="mt-7 w-full font-display font-bold text-sm px-6 py-3.5 rounded-xl inline-flex items-center justify-center gap-2 transition-transform"
+        className="mt-7 w-full font-display font-bold text-sm px-6 py-3.5 rounded-xl inline-flex items-center justify-center gap-2 transition-transform cursor-pointer"
         style={{
           background: isRecommended ? "#C8624A" : isFeatured ? "#E07A5F" : hasBadge ? "#8A4B4F" : "#2D3748",
           color: "#FDFBF7",
@@ -384,7 +384,7 @@ function FaqItem({ q, a, open, onToggle }) {
     <div className="border-b" style={{ borderColor: "#F0DCD4" }}>
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between text-left py-5 gap-4"
+        className="w-full flex items-center justify-between text-left py-5 gap-4 cursor-pointer"
       >
         <span className="font-display font-medium text-base sm:text-lg" style={{ color: "#2D3748" }}>{q}</span>
         <ChevronDown
@@ -458,7 +458,7 @@ function MealSwapCard({ mealKey, meal, selectedIndex, isOpen, onToggleDropdown, 
 
       <button
         onClick={() => onToggleDropdown(mealKey)}
-        className="mt-auto w-full inline-flex items-center justify-center gap-2 text-sm font-display font-semibold px-4 py-2.5 rounded-xl"
+        className="mt-auto w-full inline-flex items-center justify-center gap-2 text-sm font-display font-semibold px-4 py-2.5 rounded-xl cursor-pointer"
         style={{ border: "1.5px solid #E07A5F", color: "#E07A5F", background: isOpen ? "#FDE8E1" : "transparent" }}
       >
         <RefreshCw size={15} /> Kaja cseréje
@@ -476,7 +476,7 @@ function MealSwapCard({ mealKey, meal, selectedIndex, isOpen, onToggleDropdown, 
             <button
               key={i}
               onClick={() => onSelect(mealKey, i)}
-              className="w-full text-left px-2.5 py-2.5 rounded-xl flex items-center justify-between gap-3"
+              className="w-full text-left px-2.5 py-2.5 rounded-xl flex items-center justify-between gap-3 cursor-pointer"
               style={{ background: i === selectedIndex ? "#FDE8E1" : "transparent" }}
             >
               <span className="text-sm" style={{ color: "#2D3748" }}>
@@ -592,7 +592,7 @@ function OrderSuccessPanel({ orderForm, selectedPkg, packages, downloadedFiles, 
       <div className="text-center pt-2">
         <button
           onClick={onRestart}
-          className="inline-flex items-center gap-2 font-display font-semibold text-sm px-6 py-3 rounded-xl"
+          className="inline-flex items-center gap-2 font-display font-semibold text-sm px-6 py-3 rounded-xl cursor-pointer"
           style={{ background: "transparent", border: "1.5px solid #D8C6BE", color: "#D8C6BE" }}
         >
           <Home size={16} /> Vissza a főoldalra
@@ -832,9 +832,15 @@ function FitAnyaLanding() {
             Tudományos alapú, családbarát rendszer kifejezetten időhiánnyal küzdő édesanyáknak.
             Töltsd ki az élettani auditot, és nézd meg a személyre szabott Tenyér-Makró tervedet!
           </p>
-          <button onClick={() => scrollTo(wizardRef)} className="cta-btn font-display font-semibold text-base sm:text-lg text-white px-7 py-4 rounded-2xl inline-flex items-center gap-2">
-            Számold ki a napi kalóriakereted! (1 perc) <ArrowRight size={20} />
+          
+          {/* FRISSÍTETT, EGYÉRTELMŰ CTA GOMB */}
+          <button 
+            onClick={() => scrollTo(wizardRef)} 
+            className="cta-btn font-display font-semibold text-base sm:text-lg text-white px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2.5 shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+          >
+            Kattints ide a teszt kitöltéséhez &amp; kalóriaszámoláshoz <ArrowRight size={20} />
           </button>
+
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm" style={{ color: "#6B5A52" }}>
             <span className="inline-flex items-center gap-1.5"><ShieldCheck size={16} style={{ color: "#7C9885" }} /> Tudományosan igazolt élettani alapok</span>
             <span className="inline-flex items-center gap-1.5"><Heart size={16} style={{ color: "#7C9885" }} /> 100% Pénzvisszafizetési Garancia</span>
@@ -1009,7 +1015,7 @@ function FitAnyaLanding() {
                     <button
                       key={o.v}
                       onClick={() => setForm((s) => ({ ...s, nursing: o.v }))}
-                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium"
+                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium cursor-pointer"
                       style={{
                         border: `1.5px solid ${form.nursing === o.v ? "#E07A5F" : "#F0DCD4"}`,
                         background: form.nursing === o.v ? "#FDE8E1" : "#FFFDFB",
@@ -1037,7 +1043,7 @@ function FitAnyaLanding() {
                     <button
                       key={o.v}
                       onClick={() => setForm((s) => ({ ...s, activity: o.v }))}
-                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium"
+                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium cursor-pointer"
                       style={{
                         border: `1.5px solid ${form.activity === o.v ? "#E07A5F" : "#F0DCD4"}`,
                         background: form.activity === o.v ? "#FDE8E1" : "#FFFDFB",
@@ -1065,7 +1071,7 @@ function FitAnyaLanding() {
                     <button
                       key={o.v}
                       onClick={() => setForm((s) => ({ ...s, sleep: o.v }))}
-                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium"
+                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium cursor-pointer"
                       style={{
                         border: `1.5px solid ${form.sleep === o.v ? "#E07A5F" : "#F0DCD4"}`,
                         background: form.sleep === o.v ? "#FDE8E1" : "#FFFDFB",
@@ -1097,7 +1103,7 @@ function FitAnyaLanding() {
                       <button
                         key={o.v}
                         onClick={() => setForm((s) => ({ ...s, snacking: o.v }))}
-                        className="option-btn w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium"
+                        className="option-btn w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer"
                         style={{
                           border: `1.5px solid ${form.snacking === o.v ? "#E07A5F" : "#F0DCD4"}`,
                           background: form.snacking === o.v ? "#FDE8E1" : "#FFFDFB",
@@ -1125,7 +1131,7 @@ function FitAnyaLanding() {
                       <button
                         key={o.v}
                         onClick={() => setForm((s) => ({ ...s, kitchen: o.v }))}
-                        className="option-btn w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium"
+                        className="option-btn w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer"
                         style={{
                           border: `1.5px solid ${form.kitchen === o.v ? "#E07A5F" : "#F0DCD4"}`,
                           background: form.kitchen === o.v ? "#FDE8E1" : "#FFFDFB",
@@ -1154,7 +1160,7 @@ function FitAnyaLanding() {
                     <button
                       key={o.v}
                       onClick={() => setForm((s) => ({ ...s, focus: o.v }))}
-                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium"
+                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium cursor-pointer"
                       style={{
                         border: `1.5px solid ${form.focus === o.v ? "#E07A5F" : "#F0DCD4"}`,
                         background: form.focus === o.v ? "#FDE8E1" : "#FFFDFB",
@@ -1171,7 +1177,7 @@ function FitAnyaLanding() {
             <div className="flex items-center justify-between mt-8">
               <button
                 onClick={() => setStep((s) => Math.max(0, s - 1))}
-                className="text-sm font-semibold px-4 py-2.5"
+                className="text-sm font-semibold px-4 py-2.5 cursor-pointer"
                 style={{ color: step === 0 ? "#D8C6BE" : "#8A7268", visibility: step === 0 ? "hidden" : "visible" }}
               >
                 Vissza
@@ -1182,7 +1188,7 @@ function FitAnyaLanding() {
                   if (step < 5) setStep((s) => s + 1);
                   else setWizardDone(true);
                 }}
-                className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl inline-flex items-center gap-2 disabled:opacity-40"
+                className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl inline-flex items-center gap-2 disabled:opacity-40 cursor-pointer"
               >
                 {step < 5 ? "Tovább" : "Diagnosztika & Terv megtekintése"} <ChevronRight size={16} />
               </button>
@@ -1273,7 +1279,7 @@ function FitAnyaLanding() {
                   setSelectedPkg(results.recommendedPkg);
                   scrollTo(orderRef);
                 }}
-                className="cta-btn font-display font-semibold text-sm sm:text-base text-white px-7 py-3.5 rounded-xl inline-flex items-center gap-2"
+                className="cta-btn font-display font-semibold text-sm sm:text-base text-white px-7 py-3.5 rounded-xl inline-flex items-center gap-2 cursor-pointer"
               >
                 Kiválasztom ezt a csomagot &amp; Megrendelem <ArrowRight size={18} />
               </button>
@@ -1302,7 +1308,7 @@ function FitAnyaLanding() {
                     type="button"
                     disabled={isSendingGate || !gateEmail}
                     onClick={handleSendGateEmail}
-                    className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl whitespace-nowrap inline-flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl whitespace-nowrap inline-flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                   >
                     {isSendingGate ? (
                       <><Loader2 size={16} className="animate-spin" /> Küldés...</>
@@ -1547,7 +1553,7 @@ function FitAnyaLanding() {
                 <div>
                   <label className="text-sm font-medium mb-1 block" style={{ color: "#4A5568" }}>Csomag</label>
                   <select value={selectedPkg} onChange={(e) => setSelectedPkg(e.target.value)}
-                    className="w-full rounded-xl px-4 py-3 text-sm" style={{ border: "1px solid #F0DCD4" }}>
+                    className="w-full rounded-xl px-4 py-3 text-sm cursor-pointer" style={{ border: "1px solid #F0DCD4" }}>
                     {packages.map((p) => (
                       <option key={p.id} value={p.id}>{p.name} — {p.price.toLocaleString("hu-HU")} Ft</option>
                     ))}
@@ -1558,7 +1564,7 @@ function FitAnyaLanding() {
               <button
                 type="button"
                 onClick={handleOrderSubmit}
-                className="cta-btn w-full font-display font-semibold text-base text-white px-8 py-4 rounded-2xl mt-7 inline-flex items-center justify-center gap-2"
+                className="cta-btn w-full font-display font-semibold text-base text-white px-8 py-4 rounded-2xl mt-7 inline-flex items-center justify-center gap-2 cursor-pointer"
               >
                 Biztonságos Fizetés a Stripe-on — {(packages.find((p) => p.id === selectedPkg)?.price ?? 0).toLocaleString("hu-HU")} Ft <ArrowRight size={18} />
               </button>
@@ -1588,14 +1594,14 @@ function FitAnyaLanding() {
             <button 
               type="button" 
               onClick={() => setActiveLegalModal("aszf")} 
-              className="hover:underline hover:text-[#E07A5F] transition-colors"
+              className="hover:underline hover:text-[#E07A5F] transition-colors cursor-pointer"
             >
               ÁSZF
             </button>
             <button 
               type="button" 
               onClick={() => setActiveLegalModal("adatkezeles")} 
-              className="hover:underline hover:text-[#E07A5F] transition-colors"
+              className="hover:underline hover:text-[#E07A5F] transition-colors cursor-pointer"
             >
               Adatkezelési Tájékoztató
             </button>
@@ -1618,7 +1624,7 @@ function FitAnyaLanding() {
             <button 
               type="button" 
               onClick={() => setActiveLegalModal(null)} 
-              className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
               aria-label="Bezárás"
             >
               <X size={22} />
@@ -1701,7 +1707,7 @@ function FitAnyaLanding() {
               <button 
                 type="button" 
                 onClick={() => setActiveLegalModal(null)} 
-                className="font-display font-semibold text-sm px-6 py-2.5 rounded-xl text-white cta-btn"
+                className="font-display font-semibold text-sm px-6 py-2.5 rounded-xl text-white cta-btn cursor-pointer"
               >
                 Rendben, bezárom
               </button>
