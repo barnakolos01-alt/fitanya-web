@@ -117,7 +117,7 @@ function computeAudit(data) {
   if (data.focus === "bor_puffadas" || data.focus === "torna_has") {
     profile = "Regenerációs & Bőrfeszesítő Profil";
     recommendedPkg = "vip";
-    pkgReason = "A szülés utáni kötőszöveti regeneráció, a feszes has és az SOS puffadásmentesítés miatt a 7 az 1-ben VIP csomag nyújtja a legteljesebb megoldást.";
+    pkgReason = "A szöveti regeneráció, a feszesebb hasfal és az SOS puffadásmentesítés miatt a 7 az 1-ben VIP csomag nyújtja a legteljesebb megoldást.";
   } else if (data.snacking === "folyamatos" || data.kitchen === "15perc") {
     profile = "Időhiányos Gyors-Megoldás Profil";
     recommendedPkg = "premium";
@@ -357,6 +357,10 @@ function PricingCard({ tier, selected, isRecommended, onSelect }) {
       <p className="font-display font-bold text-3xl mt-2" style={{ color: "#E07A5F", fontFamily: "'Space Grotesk', sans-serif" }}>
         {tier.price.toLocaleString("hu-HU")} Ft
       </p>
+      <p className="text-xs font-medium mt-1" style={{ color: "#8A7268" }}>
+        Egyszeri fizetés • Nincs havidíj
+      </p>
+
       <ul className="mt-5 space-y-3 flex-1">
         {tier.features.map((f, i) => (
           <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "#4A5568" }}>
@@ -373,7 +377,7 @@ function PricingCard({ tier, selected, isRecommended, onSelect }) {
           color: "#FDFBF7",
         }}
       >
-        {selected === tier.id ? "Kiválasztva" : "Kiválasztom"} <ArrowRight size={16} />
+        {selected === tier.id ? "Kiválasztva" : "Kérem a csomagot"} <ArrowRight size={16} />
       </button>
     </div>
   );
@@ -708,7 +712,8 @@ function FitAnyaLanding() {
     }
   }, [orderSubmitted]);
 
-  const stepLabels = ["Biometria", "Szoptatás", "Aktivitás", "Alvás & Kortizol", "Szivárgás & Konyha", "Fő Fókusz"];
+  // Optimalizált, befogadóbb lépéscímkék
+  const stepLabels = ["Alapadatok", "Élethelyzet", "Aktivitás", "Alvás & Stressz", "Konyha & Szokások", "Fő Fókusz"];
 
   const canProceed = useMemo(() => {
     if (step === 0) return form.age && form.height && form.weight && form.goalWeight;
@@ -829,7 +834,7 @@ function FitAnyaLanding() {
             kalóriamérleg, koplalás és bűntudat nélkül.
           </h1>
           <p className="text-base sm:text-lg max-w-2xl" style={{ color: "#4A5568" }}>
-            Tudományos alapú, családbarát rendszer kifejezetten időhiánnyal küzdő édesanyáknak.
+            Tudományos alapú, családbarát rendszer kifejezetten időhiánnyal küzdő nőknek és édesanyáknak.
             Töltsd ki az élettani auditot, és nézd meg a személyre szabott Tenyér-Makró tervedet!
           </p>
           
@@ -841,7 +846,7 @@ function FitAnyaLanding() {
             Kattints ide a teszt kitöltéséhez &amp; kalóriaszámoláshoz <ArrowRight size={20} />
           </button>
 
-          {/* BIZALMI SÁV – VALÓS, ÁTFOGÓ ÉRTÉKEK */}
+          {/* BIZALMI SÁV */}
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm" style={{ color: "#6B5A52" }}>
             <span className="inline-flex items-center gap-1.5"><ShieldCheck size={16} style={{ color: "#7C9885" }} /> Tudományosan igazolt élettani alapok</span>
             <span className="inline-flex items-center gap-1.5"><Heart size={16} style={{ color: "#7C9885" }} /> 100% Pénzvisszafizetési Garancia</span>
@@ -877,7 +882,7 @@ function FitAnyaLanding() {
               <span className="text-xs font-bold uppercase tracking-wider text-[#E07A5F] mb-1">1. Pillér</span>
               <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">15 Perces Csendes Mozgás</h3>
               <p className="text-sm text-[#4A5568] leading-relaxed">
-                Nincs szükség kondibérletre vagy ugrálásra. Kifejezetten a szülés utáni hasfal és a törzsizmok kíméletes, de hatékony megerősítésére fókuszálunk, amíg a baba alszik.
+                Nincs szükség kondibérletre vagy ugrálásra. Kifejezetten a hasfal és a törzsizmok kíméletes, de hatékony megerősítésére fókuszálunk.
               </p>
             </div>
           </div>
@@ -919,7 +924,7 @@ function FitAnyaLanding() {
               <span className="text-xs font-bold uppercase tracking-wider text-[#7C9885] mb-1">3. Pillér</span>
               <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">Hormon-Reset &amp; Energia</h3>
               <p className="text-sm text-[#4A5568] leading-relaxed">
-                A krónikus alváshiány és a stressz miatt megemelkedett kortizolszintet célzott tápanyagokkal és mikro-pihenőkkel ellensúlyozzuk, megelőzve az esti falásrohamokat.
+                A kimerültség és a stressz miatti kortizolszintet célzott tápanyagokkal és mikro-pihenőkkel ellensúlyozzuk, megelőzve az esti falásrohamokat.
               </p>
             </div>
           </div>
@@ -948,7 +953,7 @@ function FitAnyaLanding() {
               <li className="flex items-center gap-2">🧀 <strong>10% Zsír:</strong> Vastag réteg sajt</li>
             </ul>
             <p className="mt-4 text-xs italic text-[#8A7268] bg-[#FDE8E1]/40 p-3 rounded-xl">
-              Nagy energiasűrűség, ami a gyerekek mozgásigényéhez ideális, de ülőmunka vagy babázás mellett zsírpárnaként raktározódik.
+              Nagy energiasűrűség, ami a gyerekek mozgásigényéhez ideális, de ülőmunka vagy hétköznapi rutin mellett könnyen raktározódik.
             </p>
           </div>
 
@@ -978,10 +983,10 @@ function FitAnyaLanding() {
             </p>
             <WaveConnector steps={stepLabels} activeIndex={step} />
 
-            {/* 1. Biometria */}
+            {/* 1. Alapadatok */}
             {step === 0 && (
               <div className="grid grid-cols-2 gap-4 mt-8">
-                <h2 className="col-span-2 font-display font-semibold text-xl mb-1">Biometria és célok</h2>
+                <h2 className="col-span-2 font-display font-semibold text-xl mb-1">Személyes adatok és célkitűzés</h2>
                 {[
                   { key: "age", label: "Életkor (év)" },
                   { key: "height", label: "Magasság (cm)" },
@@ -1002,16 +1007,20 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 2. Szoptatás */}
+            {/* 2. Élethelyzet & Életszakasz */}
             {step === 1 && (
               <div className="mt-8">
-                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Baby size={20} style={{ color: "#E07A5F" }} /> Szoptatási és anyai életszakasz</h2>
-                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>Szoptatsz jelenleg? (Ez alapján igazítjuk az anyatej-védő biztonsági kalóriatöbbletet)</p>
+                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
+                  <Baby size={20} style={{ color: "#E07A5F" }} /> Milyen anyai / női életszakaszban vagy most?
+                </h2>
+                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>
+                  Ez alapján állítjuk be a pontos anyagcsere- és kalóriakorrekciót:
+                </p>
                 <div className="space-y-3">
                   {[
-                    { v: "nem", l: "Nem szoptatok / Nagyobb már a gyermek" },
-                    { v: "hozzataplal", l: "Igen, vegyes táplálás / hozzátáplálás mellett (+250 kcal/nap védelem)" },
-                    { v: "kizarolag", l: "Igen, kizárólagos szoptatás az első 6 hónapban (+450 kcal/nap védelem)" },
+                    { v: "nem", l: "Nem szoptatok / Nagyobb gyermek(ek) vagy önálló életszakasz (Fókusz: zsírégetés & feszesítés)" },
+                    { v: "hozzataplal", l: "Szoptatok hozzátáplálás mellett (+250 kcal/nap védelem)" },
+                    { v: "kizarolag", l: "Kizárólagos szoptatás kisbaba mellett (+450 kcal/nap védelem)" },
                   ].map((o) => (
                     <button
                       key={o.v}
@@ -1033,13 +1042,17 @@ function FitAnyaLanding() {
             {/* 3. Aktivitás */}
             {step === 2 && (
               <div className="mt-8">
-                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Activity size={20} style={{ color: "#E07A5F" }} /> Napi mozgás és fizikai aktivitás</h2>
-                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>Hogyan telik a napod mozgás szempontjából?</p>
+                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
+                  <Activity size={20} style={{ color: "#E07A5F" }} /> Napi mozgás és fizikai aktivitás
+                </h2>
+                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>
+                  Hogyan telik egy átlagos napod mozgás szempontjából?
+                </p>
                 <div className="space-y-3">
                   {[
-                    { v: "ulo", l: "Ülőmunka / Otthoni teendők, minimális séta" },
-                    { v: "seta", l: "Napi 1-2 babakocsis séta, aktív játszótér" },
-                    { v: "porgos", l: "Egész napos rohanás a gyerek(ek) után, magas lépésszám" },
+                    { v: "ulo", l: "Ülőmunka / Irodai napok, minimális napi lépésszám" },
+                    { v: "seta", l: "Átlagos mozgás (napi séta, bevásárlás, játszótér, házimunka)" },
+                    { v: "porgos", l: "Egész napos pörgés és talpalás (munka + család, magas lépésszám)" },
                   ].map((o) => (
                     <button
                       key={o.v}
@@ -1058,16 +1071,20 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 4. Alvás & Kortizol */}
+            {/* 4. Alvás & Stressz */}
             {step === 3 && (
               <div className="mt-8">
-                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Moon size={20} style={{ color: "#E07A5F" }} /> Alvás &amp; hormonális kimerültség</h2>
-                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>Hogyan alakul az éjszakai pihenésed?</p>
+                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
+                  <Moon size={20} style={{ color: "#E07A5F" }} /> Alvás &amp; hormonális kimerültség
+                </h2>
+                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>
+                  Hogyan alakul az éjszakai pihenésed és energiaszinted?
+                </p>
                 <div className="space-y-3">
                   {[
-                    { v: "atalussza", l: "Átalussza az éjszakát / pihentető (6-8 óra)" },
-                    { v: "1-2", l: "1-2 ébredés a gyermekhez, enyhe nappali fáradtság" },
-                    { v: "kronikus", l: "Krónikus alváshiány (3+ ébredés, állandó kimerültség)" },
+                    { v: "atalussza", l: "Átaluszom az éjszakát / pihentető alvás (6-8 óra)" },
+                    { v: "1-2", l: "Megszakított alvás (1-2 ébredés gyerek, stressz vagy teendők miatt)" },
+                    { v: "kronikus", l: "Krónikus kimerültség (rendszertelen, rossz alvás, állandó fáradtság)" },
                   ].map((o) => (
                     <button
                       key={o.v}
@@ -1086,20 +1103,24 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 5. Szivárgás & Konyha */}
+            {/* 5. Konyha & Szokások */}
             {step === 4 && (
               <div className="mt-8 space-y-6">
                 <div className="p-4 rounded-2xl bg-[#FFFDFB] border border-[#F0DCD4]">
                   <div className="flex items-center justify-between mb-1">
-                    <h2 className="font-display font-semibold text-lg flex items-center gap-2"><Utensils size={18} style={{ color: "#E07A5F" }} /> 1. Kérdés: Kalóriaszivárgás</h2>
+                    <h2 className="font-display font-semibold text-lg flex items-center gap-2">
+                      <Utensils size={18} style={{ color: "#E07A5F" }} /> 1. Kérdés: Kalóriaszivárgás
+                    </h2>
                     {form.snacking ? <span className="text-xs font-bold text-[#7C9885] bg-green-50 px-2 py-0.5 rounded-md">Kiválasztva ✓</span> : <span className="text-xs font-semibold text-[#E07A5F] bg-orange-50 px-2 py-0.5 rounded-md">Válassz egyet</span>}
                   </div>
-                  <p className="text-xs mb-3 text-[#6B5A52]">Hányszor eszel a gyerek maradékából vagy csipegetsz a pultról?</p>
+                  <p className="text-xs mb-3 text-[#6B5A52]">
+                    Milyen gyakran csúszik be csipegetés, stresszevés vagy a családi maradékok elfogyasztása?
+                  </p>
                   <div className="space-y-2">
                     {[
-                      { v: "szinte_soha", l: "Szinte soha" },
-                      { v: "napi_1_2", l: "Napi 1-2 alkalommal" },
-                      { v: "folyamatos", l: "Folyamatosan csipegetek és a maradékot eszem" },
+                      { v: "szinte_soha", l: "Szinte soha, tartom a főétkezéseket" },
+                      { v: "napi_1_2", l: "Napi 1-2 alkalommal becsúszik a pultról vagy a tányérokról" },
+                      { v: "folyamatos", l: "Gyakran csipegetek napközben, és én eszem meg a maradékokat" },
                     ].map((o) => (
                       <button
                         key={o.v}
@@ -1119,15 +1140,17 @@ function FitAnyaLanding() {
 
                 <div className="p-4 rounded-2xl bg-[#FFFDFB] border border-[#F0DCD4]">
                   <div className="flex items-center justify-between mb-1">
-                    <h2 className="font-display font-semibold text-lg flex items-center gap-2"><Clock size={18} style={{ color: "#E07A5F" }} /> 2. Kérdés: Konyhai kapacitás</h2>
+                    <h2 className="font-display font-semibold text-lg flex items-center gap-2">
+                      <Clock size={18} style={{ color: "#E07A5F" }} /> 2. Kérdés: Konyhai kapacitás
+                    </h2>
                     {form.kitchen ? <span className="text-xs font-bold text-[#7C9885] bg-green-50 px-2 py-0.5 rounded-md">Kiválasztva ✓</span> : <span className="text-xs font-semibold text-[#E07A5F] bg-orange-50 px-2 py-0.5 rounded-md">Válassz egyet</span>}
                   </div>
-                  <p className="text-xs mb-3 text-[#6B5A52]">Mennyi időd jut a konyhára egy átlagos napon?</p>
+                  <p className="text-xs mb-3 text-[#6B5A52]">Mennyi időd jut a főzésre egy átlagos napon?</p>
                   <div className="space-y-2">
                     {[
                       { v: "15perc", l: "Max. 15-20 perc gyors ételekre" },
-                      { v: "csak_csaladnak", l: "Nincs külön időm, csak a családnak főzök" },
-                      { v: "hetvegen", l: "Hétvégén tudok előre dobozolni" },
+                      { v: "csak_csaladnak", l: "Nincs külön időm magamra, csak a családnak főzök" },
+                      { v: "hetvegen", l: "Inkább hétvégén szeretek előre dobozolni / előkészülni" },
                     ].map((o) => (
                       <button
                         key={o.v}
@@ -1150,13 +1173,17 @@ function FitAnyaLanding() {
             {/* 6. Fő Fókusz */}
             {step === 5 && (
               <div className="mt-8">
-                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2"><Target size={20} style={{ color: "#E07A5F" }} /> Mi a legnagyobb személyes kihívásod?</h2>
-                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>Ez alapján választjuk ki a számodra legoptimálisabb protokollt:</p>
+                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
+                  <Target size={20} style={{ color: "#E07A5F" }} /> Mi a legnagyobb személyes kihívásod?
+                </h2>
+                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>
+                  Ez alapján választjuk ki a számodra legoptimálisabb protokollt:
+                </p>
                 <div className="space-y-3">
                   {[
-                    { v: "nassolas_ido", l: "Nassolás legyőzése, gyors családi receptek és időmenedzsment" },
-                    { v: "bor_puffadas", l: "Puffadás, emésztési nehézségek és szülés utáni bőrfeszesítés / kollagén" },
-                    { v: "torna_has", l: "Kötényhas / hasfal regeneráció és napi 10 perces csendes otthoni torna" },
+                    { v: "nassolas_ido", l: "Nassolási vágy leküzdése, gyors családi receptek és időspórolás" },
+                    { v: "bor_puffadas", l: "Puffadásmentesítés, lassuló anyagcsere felpörgetése és bőrfeszesítés" },
+                    { v: "torna_has", l: "Hasfal / hasi zsírréteg célzott formálása és 10 perces otthoni torna" },
                   ].map((o) => (
                     <button
                       key={o.v}
@@ -1410,8 +1437,8 @@ function FitAnyaLanding() {
                 </h3>
                 <ul className="space-y-3 text-sm text-green-950">
                   <li className="flex items-start gap-2">✓ Nincs időd grammozni és kalóriát számolni minden falat után</li>
-                  <li className="flex items-start gap-2">✓ Nem akarsz 2 külön menüt főzni a gyerekeknek és magadnak</li>
-                  <li className="flex items-start gap-2">✓ Olyan rendszert keresel, ami alváshiány mellett is tartható</li>
+                  <li className="flex items-start gap-2">✓ Nem akarsz 2 külön menüt főzni a családnak és magadnak</li>
+                  <li className="flex items-start gap-2">✓ Olyan rendszert keresel, ami alváshiány és stressz mellett is tartható</li>
                   <li className="flex items-start gap-2">✓ Szeretnél újra magabiztosan, feszengés nélkül tükörbe nézni</li>
                 </ul>
               </div>
@@ -1483,11 +1510,11 @@ function FitAnyaLanding() {
       {/* VÉLEMÉNYEK */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-16 sm:py-24">
         <div className="text-center mb-12">
-          <SectionEyebrow>Anyukák mondták</SectionEyebrow>
+          <SectionEyebrow>Nők és Édesanyák mondták</SectionEyebrow>
           <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-3">Nem elmélet — valódi eredmények</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-14">
-          <TestimonialCard name="Szabó Réka" role="2 gyermekes anyuka, Pécs" text="Először nem hittem, hogy tud működni koplalás nélkül. 9 hét alatt 5 kilót adtam le úgy, hogy közben ugyanazt ettem, mint a család." />
+          <TestimonialCard name="Szabó Réka" role="2 gyermekes édesanya, Pécs" text="Először nem hittem, hogy tud működni koplalás nélkül. 9 hét alatt 5 kilót adtam le úgy, hogy közben ugyanazt ettem, mint a család." />
           <TestimonialCard name="Farkas Dóra" role="kismama, Budapest" text="A tenyér-szabály volt a fordulópont — végre nem kellett mérlegelnem semmit, csak ránéztem a tányéromra." />
           <TestimonialCard name="Molnár Eszter" role="háromgyermekes édesanya, Miskolc" text="A 21 órás nassolási hullámot végre megértettem, nem küzdök ellene feleslegesen, hanem beépítettem a napirendbe." />
         </div>
