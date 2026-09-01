@@ -1768,32 +1768,42 @@ function FitAnyaLanding() {
                 <div className="text-sm text-[#4A5568] space-y-4 leading-relaxed">
                   <div>
                     <h4 className="font-semibold text-[#2D3748] mb-1">1. Szolgáltató adatai</h4>
-                    <p>• <strong>Név:</strong> Barna Kolos</p>
-                    <p>• <strong>Székhely / Lakcím:</strong> 1138 Budapest, Párkány utca 22.</p>
+                    <p>• <strong>Név:</strong> Barna Kolos E.V.</p>
+                    <p>• <strong>Székhely:</strong> 1138 Budapest, Párkány utca 22.</p>
                     <p>• <strong>Adószám:</strong> 8492921269</p>
                     <p>• <strong>E-mail:</strong> ugyfelszolgalat@fitanyamodszer.hu</p>
                     <p>• <strong>Tárhely-szolgáltató:</strong> Cloudflare Inc. (101 Townsend St, San Francisco, CA 94107, USA)</p>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-[#2D3748] mb-1">2. A termék jellege</h4>
-                    <p>A FitAnya Módszer weboldalon elérhető termékek nem fizikai adathordozón rögzített digitális adattartalmak (elektronikus úton letölthető PDF formátumú receptfüzetek, szokásformáló útmutatók és interaktív kalkulátor hozzáférés).</p>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">2. A termék jellege és árak</h4>
+                    <p>A weboldalon megvásárolható termékek nem fizikai adathordozón rögzített digitális adattartalmak (letölthető PDF kézikönyvek, étrend- és receptfüzetek, kalkulátor hozzáférés). A feltüntetett árak forintban (HUF) értendők, bruttó összegek (alanyi adómentesek).</p>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-[#2D3748] mb-1">3. Megrendelés, fizetés és teljesítés</h4>
-                    <p>A termékek vételárának kiegyenlítése a Stripe nemzetközi, SSL-titkosított bankkártyás felületén keresztül történik (Apple Pay és Google Pay támogatással). A sikeres fizetést követően a rendszer azonnal biztosítja a letöltési linkeket és elküldi a hozzáférési adatokat a megadott e-mail címre.</p>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">3. Megrendelés, fizetés és kézbesítés</h4>
+                    <p>A fizetés a Stripe nemzetközi, titkosított rendszerén keresztül történik (bankkártya, Apple Pay, Google Pay). A sikeres fizetést követően a hozzáférés és a letöltési linkek azonnal megjelennek a felületen, valamint automatikusan kiküldésre kerülnek a megadott e-mail címre. A szerződés elektronikus úton megkötött, magyar nyelvű szerződésnek minősül.</p>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-[#2D3748] mb-1">4. Elállási jog és 14 napos pénzvisszafizetési garancia</h4>
-                    <p>• <strong>Jogszabályi háttér:</strong> A 45/2014. (II. 26.) Korm. rendelet 29. § (1) bekezdés m) pontja alapján a digitális adattartalom letöltésének megkezdésével a fogyasztó elveszíti a törvényes 14 napos elállási jogát.</p>
-                    <p>• <strong>Önkéntes elégedettségi garancia:</strong> A Szolgáltató saját döntése alapján <strong>14 napos 100%-os pénzvisszafizetési garanciát</strong> vállal minden megvásárolt csomagra. Ha a Vevő úgy érzi, a program nem nyújtott számára értéket, a vásárlástól számított 14 napon belül elegendő egy e-mailt küldenie a <em>ugyfelszolgalat@fitanyamodszer.hu</em> címre, és a teljes vételár visszatérítésre kerül.</p>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">4. Elállási jog és 14 napos elégedettségi garancia</h4>
+                    <p>• <strong>Jogszabályi háttér:</strong> A 45/2014. (II. 26.) Korm. rendelet 29. § (1) m) pontja alapján a digitális adattartalom letöltésének megkezdésével a vásárló lemond a törvényes elállási jogról.</p>
+                    <p>• <strong>100% Pénzvisszafizetési Garancia:</strong> A Szolgáltató önkéntes <strong>14 napos pénzvisszafizetési garanciát</strong> vállal. Ha a vásárló nem elégedett, a vásárlástól számított 14 napon belül a <em>ugyfelszolgalat@fitanyamodszer.hu</em> címre küldött e-mailben kérheti a teljes vételár visszatérítését indoklás nélkül.</p>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-[#2D3748] mb-1">5. Egészségügyi és felelősségkizárási nyilatkozat</h4>
-                    <p>A FitAnya Módszer anyagai ismeretterjesztő és életmód-támogató célt szolgálnak. Nem minősülnek orvosi diagnózisnak, orvosi terápiának vagy személyre szabott klinikai dietetikai ellátásnak. Krónikus betegség vagy speciális élettani állapot esetén a program megkezdése előtt szakorvosi konzultáció javasolt.</p>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">5. Szerzői jogok és felhasználási feltételek</h4>
+                    <p>A letölthető anyagok, receptek, táblázatok és szövegek Barna Kolos szellemi tulajdonát képezik. A megvásárolt anyagok kizárólag személyes használatra jogosítanak fel. Tilos a tartalmak bármilyen formában történő másolása, megosztása, nyilvános közzététele vagy kereskedelmi célú továbbértékesítése.</p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">6. Egészségügyi és felelősségkizárási nyilatkozat</h4>
+                    <p>A FitAnya Módszer tájékoztató jellegű életmód- és táplálkozási útmutató, nem minősül orvosi diagnózisnak vagy személyre szabott klinikai terápiának. Krónikus betegség, gyógyszeres kezelés vagy speciális élettani állapot esetén a program alkalmazása előtt szakorvosi konzultáció javasolt.</p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-[#2D3748] mb-1">7. Panaszkezelés és jogorvoslat</h4>
+                    <p>Panasz esetén a vásárló az <em>ugyfelszolgalat@fitanyamodszer.hu</em> címen élhet kifogással. Fogyasztói jogvita esetén a <strong>Budapesti Békéltető Testülethez</strong> (1016 Budapest, Krisztina krt. 99., bekelteto.testulet@bkik.hu) vagy az illetékes Fogyasztóvédelmi Hatósághoz fordulhat.</p>
                   </div>
                 </div>
               </div>
