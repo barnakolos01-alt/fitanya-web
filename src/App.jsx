@@ -626,8 +626,6 @@ function FitAnyaLanding() {
   const [downloadedFiles, setDownloadedFiles] = useState({});
 
   const [activeLegalModal, setActiveLegalModal] = useState(null);
-  
-  // ÚJ: Mobilos lebegő gomb állapota
   const [showStickyBar, setShowStickyBar] = useState(false);
 
   const handleDownload = (key) => setDownloadedFiles((s) => ({ ...s, [key]: true }));
@@ -652,7 +650,7 @@ function FitAnyaLanding() {
     }
   }, []);
 
-  // ÚJ: Görgetésfigyelő a lebegő gombhoz
+  // Görgetésfigyelő a mobilos lebegő sávhoz
   useEffect(() => {
     const handleScroll = () => {
       if (orderSubmitted) {
@@ -663,7 +661,6 @@ function FitAnyaLanding() {
       const scrollY = window.scrollY;
       let hideBar = false;
 
-      // Ha a csomagok vagy rendelés szekció látható, elrejtjük a gombot, hogy ne takarja ki a CTA-kat
       const checkVisibility = (ref) => {
         if (ref.current) {
           const rect = ref.current.getBoundingClientRect();
@@ -1038,7 +1035,6 @@ function FitAnyaLanding() {
           </div>
         </div>
 
-        {/* ÚJ KÖZTES HORGONY 1. */}
         <div className="text-center mt-10">
           <button
             onClick={() => scrollTo(pricingRef)}
@@ -1058,7 +1054,7 @@ function FitAnyaLanding() {
             </p>
             <WaveConnector steps={stepLabels} activeIndex={step} />
 
-            {/* 1. Alapadatok (MOBILON NUMERIKUS BILLENTYŰZET OPTIMALIZÁLVA) */}
+            {/* 1. Alapadatok */}
             {step === 0 && (
               <div className="grid grid-cols-2 gap-4 mt-8">
                 <h2 className="col-span-2 font-display font-semibold text-xl mb-1">Személyes adatok és célkitűzés</h2>
@@ -1084,7 +1080,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 2. Élethelyzet & Életszakasz */}
+            {/* 2. Élethelyzet */}
             {step === 1 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1405,15 +1401,15 @@ function FitAnyaLanding() {
               </button>
             </div>
 
-            {/* E-MAIL KAPU — ÉRTÉKNÖVELT LEAD MAGNET */}
+            {/* E-MAIL KAPU — FINOMHANGOLT LEAD MAGNET */}
             {!gateSent ? (
               <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#2D3748" }}>
                 <Mail size={28} className="mx-auto mb-3" style={{ color: "#F9D5CE" }} />
                 <h3 className="font-display font-semibold text-lg text-white mb-1">
-                  Kérem a heti Tenyér-Makró Mintaétrendet és a Bolti Bevásárlólistát PDF-ben!
+                  Kérem a Heti Mester-Bevásárlólistát &amp; 15 Perces Dobozolási Kisokost PDF-ben!
                 </h3>
                 <p className="text-sm mb-5" style={{ color: "#D8C6BE" }}>
-                  A pontos napi kalóriakereted mellé azonnal elküldjük a letölthető családi mintaétrendet és a Lidl / Aldi / Spar bevásárlólistát is ingyen a fiókodba.
+                  A személyes napi kalóriaterved mellé azonnal elküldjük a Lidl / Aldi / Spar zónatérképet és a 15 perces hétvégi előkészítési útmutatót ingyen az e-mail fiókodba.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                   <input
@@ -1433,7 +1429,7 @@ function FitAnyaLanding() {
                     {isSendingGate ? (
                       <><Loader2 size={16} className="animate-spin" /> Küldés...</>
                     ) : (
-                      "Kérem a PDF Mintaétrendet"
+                      "Kérem a PDF Anyagokat"
                     )}
                   </button>
                 </div>
@@ -1442,10 +1438,10 @@ function FitAnyaLanding() {
               <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#F0F5F1", border: "1px solid #7C9885" }}>
                 <CheckCircle2 size={26} className="mx-auto mb-2" style={{ color: "#7C9885" }} />
                 <p className="font-display font-semibold" style={{ color: "#2D3748" }}>
-                  Elküldtük a mintaétrendet és a kalóriatervedet!
+                  Elküldtük a Mester-Bevásárlólistát és a kalóriatervedet!
                 </p>
                 <p className="text-sm mt-1" style={{ color: "#4A5568" }}>
-                  Nézd meg az e-mail fiókodat — a letöltési linket a heti mintaétrenddel és a bevásárlólistával elküldtük.
+                  Nézd meg az e-mail fiókodat — a letöltési linket a 15 perces dobozolási útmutatóval már elküldtük.
                 </p>
               </div>
             )}
@@ -1503,7 +1499,6 @@ function FitAnyaLanding() {
           </div>
         </div>
 
-        {/* ÚJ KÖZTES HORGONY 2. */}
         <div className="text-center mt-10">
           <button
             onClick={() => scrollTo(pricingRef)}
@@ -1795,7 +1790,7 @@ function FitAnyaLanding() {
         </div>
       </footer>
 
-      {/* ÚJ: MOBIL LEBEGŐ SÁV (STICKY BOTTOM CTA) */}
+      {/* MOBIL LEBEGŐ SÁV (STICKY BOTTOM CTA) */}
       {showStickyBar && (
         <div
           className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-white/95 backdrop-blur-md border-t border-[#F0DCD4] px-5 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom duration-300"
