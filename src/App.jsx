@@ -1235,7 +1235,7 @@ function FitAnyaLanding() {
             </div>
 
             {/* SZEMÉLYRE SZABOTT TENYÉR-MAKRÓ ADAGOLÓ */}
-            <div className="rounded-3xl p-6 sm:p-8 mb-6 bg-white border border-[#F0DCD4] shadow-sm">
+            <div className="rounded-3xl p-6 sm:p-8 mb-4 bg-white border border-[#F0DCD4] shadow-sm">
               <h3 className="font-display font-semibold text-lg sm:text-xl text-[#2D3748] mb-1">
                 Személyre Szabott Napi Tenyér-Adagod
               </h3>
@@ -1271,6 +1271,21 @@ function FitAnyaLanding() {
               </div>
             </div>
 
+            {/* HÍD BANNER: SZÁMOKBÓL GYAKORLAT */}
+            <div className="rounded-2xl p-5 mb-6 bg-[#FFF9F5] border border-[#F0DCD4] flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#FDE8E1] text-[#E07A5F] mt-0.5">
+                <Zap size={20} />
+              </div>
+              <div>
+                <p className="font-display font-semibold text-sm sm:text-base text-[#2D3748]">
+                  A számaidat már ismered — de hogyan lesz ebből valódi vacsora?
+                </p>
+                <p className="text-xs sm:text-sm text-[#4A5568] mt-1 leading-relaxed">
+                  Egy dolog ismerni a keretedet, és egy másik dolog a kimerítő hétköznapokban konyhamérleg nélkül, a családnak ugyanabból a fazékból főzni. Ebben segít a FitAnya programcsomag:
+                </p>
+              </div>
+            </div>
+
             {/* NEKED AJÁNLOTT CSOMAG KIEMELÉS */}
             <div className="rounded-3xl p-6 sm:p-8 mb-6 border-2 bg-gradient-to-br from-[#FFF9F5] to-[#FDE8E1] border-[#E07A5F] relative">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display px-3.5 py-1 rounded-full bg-[#E07A5F] text-white mb-3">
@@ -1289,19 +1304,19 @@ function FitAnyaLanding() {
                 }}
                 className="cta-btn font-display font-semibold text-sm sm:text-base text-white px-7 py-3.5 rounded-xl inline-flex items-center gap-2 cursor-pointer"
               >
-                Kiválasztom ezt a csomagot &amp; Megrendelem <ArrowRight size={18} />
+                Megnézem a csomag tartalmát és a recepteket <ArrowRight size={18} />
               </button>
             </div>
 
-            {/* E-MAIL KAPU — AUTOMATA KÜLDÉS ÉS GOOGLE SHEETS MENTÉS */}
+            {/* E-MAIL KAPU — ÉRTÉKNÖVELT LEAD MAGNET */}
             {!gateSent ? (
               <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#2D3748" }}>
                 <Mail size={28} className="mx-auto mb-3" style={{ color: "#F9D5CE" }} />
                 <h3 className="font-display font-semibold text-lg text-white mb-1">
-                  Küldd el a személyre szabott kalóriatervemet e-mailben!
+                  Kérem a heti Tenyér-Makró Mintaétrendet és a Bolti Bevásárlólistát PDF-ben!
                 </h3>
                 <p className="text-sm mb-5" style={{ color: "#D8C6BE" }}>
-                  Megkapod a pontos napi kalóriakeretedet és a Tenyér-Makró adagolási kalauzt közvetlenül a fiókodba.
+                  A pontos napi kalóriakereted mellé azonnal elküldjük a letölthető családi mintaétrendet és a Lidl / Aldi / Spar bevásárlólistát is ingyen a fiókodba.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                   <input
@@ -1321,7 +1336,7 @@ function FitAnyaLanding() {
                     {isSendingGate ? (
                       <><Loader2 size={16} className="animate-spin" /> Küldés...</>
                     ) : (
-                      "Küldd el az anyagot"
+                      "Kérem a PDF Mintaétrendet"
                     )}
                   </button>
                 </div>
@@ -1330,10 +1345,10 @@ function FitAnyaLanding() {
               <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#F0F5F1", border: "1px solid #7C9885" }}>
                 <CheckCircle2 size={26} className="mx-auto mb-2" style={{ color: "#7C9885" }} />
                 <p className="font-display font-semibold" style={{ color: "#2D3748" }}>
-                  Elküldtük a személyes kalóriatervedet!
+                  Elküldtük a mintaétrendet és a kalóriatervedet!
                 </p>
                 <p className="text-sm mt-1" style={{ color: "#4A5568" }}>
-                  Nézd meg az e-mail fiókodat — a levelet a pontos makróarányaiddal elküldtük.
+                  Nézd meg az e-mail fiókodat — a letöltési linket a heti mintaétrenddel és a bevásárlólistával elküldtük.
                 </p>
               </div>
             )}
@@ -1487,7 +1502,7 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* 3 TIPIKUS ÉLETHELYZET (KAMU VÉLEMÉNYEK HELYETT) */}
+      {/* 3 TIPIKUS ÉLETHELYZET */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-16 sm:py-24">
         <div className="text-center mb-12">
           <SectionEyebrow><HelpCircle size={14} /> Valós Hétköznapok</SectionEyebrow>
