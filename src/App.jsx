@@ -803,7 +803,7 @@ function FitAnyaLanding() {
         .option-btn { transition: all .15s ease; }
       `}</style>
 
-      {/* HERO (Dead click felesleges felső pill gomb eltávolítva) */}
+      {/* HERO */}
       <section className="relative overflow-hidden" style={{ background: "linear-gradient(180deg,#FDE8E1 0%, #FDFBF7 70%)" }}>
         <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-16 pb-14 sm:pt-24 sm:pb-20 text-center flex flex-col items-center gap-6">
           <h1 className="font-display font-medium leading-[1.1] text-3xl sm:text-5xl max-w-3xl" style={{ color: "#2D3748" }}>
@@ -848,7 +848,7 @@ function FitAnyaLanding() {
             <div className="h-52 w-full overflow-hidden relative">
               <img 
                 src="/edzes.jpg" 
-                alt="15 perces otthoni edzés" 
+                alt="10 perces otthoni edzés" 
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
@@ -858,7 +858,7 @@ function FitAnyaLanding() {
             </div>
             <div className="p-6 flex flex-col flex-1">
               <span className="text-xs font-bold uppercase tracking-wider text-[#E07A5F] mb-1">1. Pillér</span>
-              <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">15 Perces Csendes Mozgás</h3>
+              <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">10 Perces Csendes Mozgás</h3>
               <p className="text-sm text-[#4A5568] leading-relaxed">
                 Nincs szükség kondibérletre vagy ugrálásra. Kifejezetten a hasfal és a törzsizmok kíméletes, de hatékony megerősítésére fókuszálunk.
               </p>
