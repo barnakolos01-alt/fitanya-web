@@ -438,35 +438,57 @@ function MealSwapCard({ mealKey, meal, selectedIndex, isOpen, onToggleDropdown, 
 
       <button
         onClick={() => onToggleDropdown(mealKey)}
-        className="mt-auto w-full inline-flex items-center justify-center gap-2 text-sm font-display font-semibold px-4 py-2.5 rounded-xl cursor-pointer"
+        className="mt-auto w-full inline-flex items-center justify-center gap-2 text-sm font-display font-semibold px-4 py-2.5 rounded-xl cursor-pointer relative z-20"
         style={{ border: "1.5px solid #E07A5F", color: "#E07A5F", background: isOpen ? "#FDE8E1" : "transparent" }}
       >
         <RefreshCw size={15} /> Kaja cseréje
       </button>
 
       {isOpen && (
-        <div
-          className="absolute left-3 right-3 top-full mt-2 rounded-2xl p-2 z-20"
-          style={{ background: "#FFFDFB", border: "1px solid #F0DCD4", boxShadow: "0 18px 40px -16px rgba(45,55,72,0.35)" }}
-        >
-          <p className="text-[11px] font-semibold uppercase tracking-wide px-2 pt-1.5 pb-2" style={{ color: "#B99189" }}>
-            Azonos makróértékű alternatívák
-          </p>
-          {meal.options.map((opt, i) => (
-            <button
-              key={i}
-              onClick={() => onSelect(mealKey, i)}
-              className="w-full text-left px-2.5 py-2.5 rounded-xl flex items-center justify-between gap-3 cursor-pointer"
-              style={{ background: i === selectedIndex ? "#FDE8E1" : "transparent" }}
-            >
-              <span className="text-sm" style={{ color: "#2D3748" }}>
-                {opt.name}
-                {i === selectedIndex && <span className="ml-2 text-[11px] font-semibold" style={{ color: "#E07A5F" }}>(jelenlegi)</span>}
-              </span>
-              <span className="text-xs font-semibold shrink-0" style={{ color: "#8A7268" }}>{opt.kcal} kcal</span>
-            </button>
-          ))}
-        </div>
+        <>
+          {/* LÁTHATATLAN TELJES KÉPERNYŐS RÉTEG: HA BÁRHOVÁ MÁSHOVA KATTINT, AZONNAL BEZÁRJA */}
+          <div
+            className="fixed inset-0 z-20 cursor-default"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleDropdown(null);
+            }}
+          />
+
+          {/* FELUGRÓ VÁLASZTÓ LISTA */}
+          <div
+            className="absolute left-3 right-3 top-full mt-2 rounded-2xl p-2 z-30"
+            style={{ background: "#FFFDFB", border: "1px solid #F0DCD4", boxShadow: "0 18px 40px -16px rgba(45,55,72,0.35)" }}
+          >
+            <div className="flex items-center justify-between px-2 pt-1.5 pb-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "#B99189" }}>
+                Azonos makróértékű alternatívák
+              </p>
+              <button
+                type="button"
+                onClick={() => onToggleDropdown(null)}
+                className="text-gray-400 hover:text-gray-600 p-0.5 rounded cursor-pointer"
+                aria-label="Bezárás"
+              >
+                <X size={14} />
+              </button>
+            </div>
+            {meal.options.map((opt, i) => (
+              <button
+                key={i}
+                onClick={() => onSelect(mealKey, i)}
+                className="w-full text-left px-2.5 py-2.5 rounded-xl flex items-center justify-between gap-3 cursor-pointer"
+                style={{ background: i === selectedIndex ? "#FDE8E1" : "transparent" }}
+              >
+                <span className="text-sm" style={{ color: "#2D3748" }}>
+                  {opt.name}
+                  {i === selectedIndex && <span className="ml-2 text-[11px] font-semibold" style={{ color: "#E07A5F" }}>(jelenlegi)</span>}
+                </span>
+                <span className="text-xs font-semibold shrink-0" style={{ color: "#8A7268" }}>{opt.kcal} kcal</span>
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
@@ -1441,7 +1463,7 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* ÁRAZÁS (FELCSERÉLVE: KÖZVETLENÜL AZ ÉTRENDTERVEZŐ UTÁN) */}
+      {/* ÁRAZÁS */}
       <section ref={pricingRef} className="py-16 sm:py-24" style={{ background: "#FDE8E1" }}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           <div className="text-center mb-14">
@@ -1462,7 +1484,7 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* KINEK VALÓ ÉS KINEK NEM VALÓ? (FELCSERÉLVE: A CSOMAGOK ALÁ) */}
+      {/* KINEK VALÓ ÉS KINEK NEM VALÓ? */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
         <div className="text-center mb-10">
           <SectionEyebrow><Zap size={14} /> Őszinte szűrő</SectionEyebrow>
