@@ -446,7 +446,6 @@ function MealSwapCard({ mealKey, meal, selectedIndex, isOpen, onToggleDropdown, 
 
       {isOpen && (
         <>
-          {/* LÁTHATATLAN TELJES KÉPERNYŐS RÉTEG: HA BÁRHOVÁ MÁSHOVA KATTINT, AZONNAL BEZÁRJA */}
           <div
             className="fixed inset-0 z-20 cursor-default"
             onClick={(e) => {
@@ -455,7 +454,6 @@ function MealSwapCard({ mealKey, meal, selectedIndex, isOpen, onToggleDropdown, 
             }}
           />
 
-          {/* FELUGRÓ VÁLASZTÓ LISTA */}
           <div
             className="absolute left-3 right-3 top-full mt-2 rounded-2xl p-2 z-30"
             style={{ background: "#FFFDFB", border: "1px solid #F0DCD4", boxShadow: "0 18px 40px -16px rgba(45,55,72,0.35)" }}
@@ -628,6 +626,9 @@ function FitAnyaLanding() {
   const [downloadedFiles, setDownloadedFiles] = useState({});
 
   const [activeLegalModal, setActiveLegalModal] = useState(null);
+  
+  // ÚJ: Mobilos lebegő gomb állapota
+  const [showStickyBar, setShowStickyBar] = useState(false);
 
   const handleDownload = (key) => setDownloadedFiles((s) => ({ ...s, [key]: true }));
 
@@ -639,36 +640,71 @@ function FitAnyaLanding() {
         setSelectedPkg(pkgParam);
       }
 
-      // --- META PIXEL: VÁSÁRLÁS (PURCHASE) MÉRÉSE ---
+      // Meta Pixel Vásárlás Mérése
       if (window.fbq) {
         let price = 7990;
         if (pkgParam === "basic") price = 4990;
         if (pkgParam === "vip") price = 12990;
         window.fbq("track", "Purchase", { value: price, currency: "HUF" });
       }
-      // ----------------------------------------------
 
       setOrderSubmitted(true);
     }
   }, []);
+
+  // ÚJ: Görgetésfigyelő a lebegő gombhoz
+  useEffect(() => {
+    const handleScroll = () => {
+      if (orderSubmitted) {
+        setShowStickyBar(false);
+        return;
+      }
+      
+      const scrollY = window.scrollY;
+      let hideBar = false;
+
+      // Ha a csomagok vagy rendelés szekció látható, elrejtjük a gombot, hogy ne takarja ki a CTA-kat
+      const checkVisibility = (ref) => {
+        if (ref.current) {
+          const rect = ref.current.getBoundingClientRect();
+          if (rect.top <= window.innerHeight && rect.bottom >= 0) {
+            return true;
+          }
+        }
+        return false;
+      };
+
+      if (checkVisibility(pricingRef) || checkVisibility(orderRef)) {
+        hideBar = true;
+      }
+
+      if (scrollY > 400 && !hideBar) {
+        setShowStickyBar(true);
+      } else {
+        setShowStickyBar(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [orderSubmitted]);
 
   const handleStripeCheckout = () => {
     const baseUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
     if (baseUrl) {
       setIsCheckingOut(true);
 
-      // --- META PIXEL: FIZETÉS KEZDEMÉNYEZÉSE (INITIATECHECKOUT) ---
+      // Meta Pixel Fizetés kezdeményezése
       if (window.fbq) {
         let price = 7990;
         if (selectedPkg === "basic") price = 4990;
         if (selectedPkg === "vip") price = 12990;
         window.fbq("track", "InitiateCheckout", { value: price, currency: "HUF" });
       }
-      // ------------------------------------------------------------
 
       const encodedEmail = encodeURIComponent(orderForm.email.trim());
       window.location.href = `${baseUrl}?prefilled_email=${encodedEmail}`;
-      setTimeout(() => setIsCheckingOut(false), 5000); // Védőháló
+      setTimeout(() => setIsCheckingOut(false), 5000); 
     }
   };
 
@@ -757,7 +793,6 @@ function FitAnyaLanding() {
     if (!gateEmail || !gateEmail.includes("@")) return;
     setIsSendingGate(true);
     
-    // E-mail szinkronizálása a lenti fizetési űrlapba, hogy ne kelljen újra beírni
     setOrderForm((prev) => ({ ...prev, email: gateEmail.trim() }));
     
     try {
@@ -773,11 +808,9 @@ function FitAnyaLanding() {
         body: JSON.stringify(payload),
       });
 
-      // --- META PIXEL: FELIRATKOZÁS (LEAD) MÉRÉSE ---
       if (window.fbq) {
         window.fbq("track", "Lead");
       }
-      // ----------------------------------------------
 
       setGateSent(true);
     } catch (err) {
@@ -872,7 +905,6 @@ function FitAnyaLanding() {
             Töltsd ki az élettani auditot, és nézd meg a személyre szabott Tenyér-Makró tervedet!
           </p>
           
-          {/* CTA GOMB */}
           <button 
             onClick={() => scrollTo(wizardRef)} 
             className="cta-btn font-display font-semibold text-base sm:text-lg text-white px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2.5 shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer"
@@ -880,7 +912,6 @@ function FitAnyaLanding() {
             Kattints ide a teszt kitöltéséhez &amp; kalóriaszámoláshoz <ArrowRight size={20} />
           </button>
 
-          {/* BIZALMI SÁV */}
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm" style={{ color: "#6B5A52" }}>
             <span className="inline-flex items-center gap-1.5"><ShieldCheck size={16} style={{ color: "#7C9885" }} /> Tudományosan igazolt élettani alapok</span>
             <span className="inline-flex items-center gap-1.5"><Heart size={16} style={{ color: "#7C9885" }} /> 100% Pénzvisszafizetési Garancia</span>
@@ -1005,6 +1036,16 @@ function FitAnyaLanding() {
               ✅ Eredmény: Ugyanaz az íz, tele vagy 4 órán át, nulla bűntudat és heti 0,6 kg tiszta zsírfogyás.
             </p>
           </div>
+        </div>
+
+        {/* ÚJ KÖZTES HORGONY 1. */}
+        <div className="text-center mt-10">
+          <button
+            onClick={() => scrollTo(pricingRef)}
+            className="font-display font-semibold text-sm sm:text-base px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2 border-2 border-[#E07A5F] text-[#E07A5F] bg-white hover:bg-[#FDE8E1] transition-colors cursor-pointer"
+          >
+            Megnézem a csomagokat és az árakat <ArrowRight size={18} />
+          </button>
         </div>
       </section>
 
@@ -1461,6 +1502,16 @@ function FitAnyaLanding() {
             </div>
           </div>
         </div>
+
+        {/* ÚJ KÖZTES HORGONY 2. */}
+        <div className="text-center mt-10">
+          <button
+            onClick={() => scrollTo(pricingRef)}
+            className="cta-btn font-display font-semibold text-sm sm:text-base text-white px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2 shadow-md cursor-pointer hover:scale-105 transition-transform"
+          >
+            Kérem a teljes 30 receptes heti menüt és a csomagokat <ArrowRight size={18} />
+          </button>
+        </div>
       </section>
 
       {/* ÁRAZÁS */}
@@ -1743,6 +1794,25 @@ function FitAnyaLanding() {
           <p className="text-xs mt-4" style={{ color: "#C4B5AC" }}>© 2026 FitAnya Módszer</p>
         </div>
       </footer>
+
+      {/* ÚJ: MOBIL LEBEGŐ SÁV (STICKY BOTTOM CTA) */}
+      {showStickyBar && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-white/95 backdrop-blur-md border-t border-[#F0DCD4] px-5 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom duration-300"
+          style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
+        >
+          <div className="flex flex-col">
+            <span className="font-display font-bold text-sm text-[#2D3748]">FitAnya Módszer</span>
+            <span className="text-[11px] font-semibold text-[#E07A5F]">4 990 Ft-tól • 14 nap garancia</span>
+          </div>
+          <button
+            onClick={() => scrollTo(pricingRef)}
+            className="cta-btn font-display font-bold text-sm text-white px-5 py-3 rounded-xl inline-flex items-center gap-1.5 shadow-md cursor-pointer shrink-0"
+          >
+            Csomagok <ArrowRight size={16} />
+          </button>
+        </div>
+      )}
 
       {/* JOGI FELUGRÓ ABLAK (MODAL) */}
       {activeLegalModal && (
