@@ -688,7 +688,6 @@ function FitAnyaLanding() {
     }
   }, [orderSubmitted]);
 
-  // Optimalizált, befogadóbb lépéscímkék
   const stepLabels = ["Alapadatok", "Élethelyzet", "Aktivitás", "Alvás & Stressz", "Konyha & Szokások", "Fő Fókusz"];
 
   const canProceed = useMemo(() => {
@@ -804,10 +803,9 @@ function FitAnyaLanding() {
         .option-btn { transition: all .15s ease; }
       `}</style>
 
-      {/* HERO */}
+      {/* HERO (Dead click felesleges felső pill gomb eltávolítva) */}
       <section className="relative overflow-hidden" style={{ background: "linear-gradient(180deg,#FDE8E1 0%, #FDFBF7 70%)" }}>
         <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-16 pb-14 sm:pt-24 sm:pb-20 text-center flex flex-col items-center gap-6">
-          <SectionEyebrow><Sparkles size={14} /> FitAnya Módszer</SectionEyebrow>
           <h1 className="font-display font-medium leading-[1.1] text-3xl sm:text-5xl max-w-3xl" style={{ color: "#2D3748" }}>
             Fogyj le heti 0,5–0,7 kilót úgy, hogy{" "}
             <em style={{ color: "#E07A5F", fontStyle: "italic" }}>ugyanazt eszed</em>, mint a család —
