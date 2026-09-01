@@ -1405,7 +1405,28 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* KINEK VALÓ ÉS KINEK NEM VALÓ? */}
+      {/* ÁRAZÁS (FELCSERÉLVE: KÖZVETLENÜL AZ ÉTRENDTERVEZŐ UTÁN) */}
+      <section ref={pricingRef} className="py-16 sm:py-24" style={{ background: "#FDE8E1" }}>
+        <div className="max-w-6xl mx-auto px-5 sm:px-8">
+          <div className="text-center mb-14">
+            <SectionEyebrow>Csomagok</SectionEyebrow>
+            <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-3">Válaszd ki, meddig szeretnél eljutni</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-5 items-start">
+            {packages.map((p) => (
+              <PricingCard
+                key={p.id}
+                tier={p}
+                selected={selectedPkg}
+                isRecommended={wizardDone && results.recommendedPkg === p.id}
+                onSelect={(id) => { setSelectedPkg(id); scrollTo(orderRef); }}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* KINEK VALÓ ÉS KINEK NEM VALÓ? (FELCSERÉLVE: A CSOMAGOK ALÁ) */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
         <div className="text-center mb-10">
           <SectionEyebrow><Zap size={14} /> Őszinte szűrő</SectionEyebrow>
@@ -1449,27 +1470,6 @@ function FitAnyaLanding() {
                 </ul>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ÁRAZÁS */}
-      <section ref={pricingRef} className="py-16 sm:py-24" style={{ background: "#FDE8E1" }}>
-        <div className="max-w-6xl mx-auto px-5 sm:px-8">
-          <div className="text-center mb-14">
-            <SectionEyebrow>Csomagok</SectionEyebrow>
-            <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-3">Válaszd ki, meddig szeretnél eljutni</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-5 items-start">
-            {packages.map((p) => (
-              <PricingCard
-                key={p.id}
-                tier={p}
-                selected={selectedPkg}
-                isRecommended={wizardDone && results.recommendedPkg === p.id}
-                onSelect={(id) => { setSelectedPkg(id); scrollTo(orderRef); }}
-              />
-            ))}
           </div>
         </div>
       </section>
