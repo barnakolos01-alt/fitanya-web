@@ -616,6 +616,16 @@ function FitAnyaLanding() {
       if (pkgParam && PACKAGE_DOWNLOADS[pkgParam]) {
         setSelectedPkg(pkgParam);
       }
+
+      // --- META PIXEL: VÁSÁRLÁS (PURCHASE) MÉRÉSE ---
+      if (window.fbq) {
+        let price = 7990;
+        if (pkgParam === "basic") price = 4990;
+        if (pkgParam === "vip") price = 12990;
+        window.fbq("track", "Purchase", { value: price, currency: "HUF" });
+      }
+      // ----------------------------------------------
+
       setOrderSubmitted(true);
     }
   }, []);
@@ -624,6 +634,16 @@ function FitAnyaLanding() {
     const baseUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
     if (baseUrl) {
       setIsCheckingOut(true);
+
+      // --- META PIXEL: FIZETÉS KEZDEMÉNYEZÉSE (INITIATECHECKOUT) ---
+      if (window.fbq) {
+        let price = 7990;
+        if (selectedPkg === "basic") price = 4990;
+        if (selectedPkg === "vip") price = 12990;
+        window.fbq("track", "InitiateCheckout", { value: price, currency: "HUF" });
+      }
+      // ------------------------------------------------------------
+
       const encodedEmail = encodeURIComponent(orderForm.email.trim());
       window.location.href = `${baseUrl}?prefilled_email=${encodedEmail}`;
       setTimeout(() => setIsCheckingOut(false), 5000); // Védőháló
@@ -730,6 +750,13 @@ function FitAnyaLanding() {
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       });
+
+      // --- META PIXEL: FELIRATKOZÁS (LEAD) MÉRÉSE ---
+      if (window.fbq) {
+        window.fbq("track", "Lead");
+      }
+      // ----------------------------------------------
+
       setGateSent(true);
     } catch (err) {
       console.error(err);
