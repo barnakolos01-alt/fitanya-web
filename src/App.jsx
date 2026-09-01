@@ -602,6 +602,7 @@ function FitAnyaLanding() {
   const [orderForm, setOrderForm] = useState({ name: "", email: "" });
   const [orderError, setOrderError] = useState("");
   const [orderSubmitted, setOrderSubmitted] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [downloadedFiles, setDownloadedFiles] = useState({});
 
   const [activeLegalModal, setActiveLegalModal] = useState(null);
@@ -622,8 +623,10 @@ function FitAnyaLanding() {
   const handleStripeCheckout = () => {
     const baseUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
     if (baseUrl) {
+      setIsCheckingOut(true);
       const encodedEmail = encodeURIComponent(orderForm.email.trim());
       window.location.href = `${baseUrl}?prefilled_email=${encodedEmail}`;
+      setTimeout(() => setIsCheckingOut(false), 5000); // Védőháló
     }
   };
 
@@ -711,6 +714,10 @@ function FitAnyaLanding() {
   const handleSendGateEmail = async () => {
     if (!gateEmail || !gateEmail.includes("@")) return;
     setIsSendingGate(true);
+    
+    // E-mail szinkronizálása a lenti fizetési űrlapba, hogy ne kelljen újra beírni
+    setOrderForm((prev) => ({ ...prev, email: gateEmail.trim() }));
+    
     try {
       const payload = {
         email: gateEmail.trim(),
@@ -961,7 +968,7 @@ function FitAnyaLanding() {
             </p>
             <WaveConnector steps={stepLabels} activeIndex={step} />
 
-            {/* 1. Alapadatok */}
+            {/* 1. Alapadatok (MOBILON NUMERIKUS BILLENTYŰZET OPTIMALIZÁLVA) */}
             {step === 0 && (
               <div className="grid grid-cols-2 gap-4 mt-8">
                 <h2 className="col-span-2 font-display font-semibold text-xl mb-1">Személyes adatok és célkitűzés</h2>
@@ -975,6 +982,8 @@ function FitAnyaLanding() {
                     <label className="text-sm font-medium mb-1 block" style={{ color: "#4A5568" }}>{f.label}</label>
                     <input
                       type="number"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       value={form[f.key]}
                       onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
                       className="w-full rounded-xl px-4 py-3 text-sm"
@@ -1630,10 +1639,15 @@ function FitAnyaLanding() {
 
               <button
                 type="button"
+                disabled={isCheckingOut}
                 onClick={handleOrderSubmit}
-                className="cta-btn w-full font-display font-semibold text-base text-white px-8 py-4 rounded-2xl mt-7 inline-flex items-center justify-center gap-2 cursor-pointer"
+                className="cta-btn w-full font-display font-semibold text-base text-white px-8 py-4 rounded-2xl mt-7 inline-flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer"
               >
-                Biztonságos Fizetés a Stripe-on — {(packages.find((p) => p.id === selectedPkg)?.price ?? 0).toLocaleString("hu-HU")} Ft <ArrowRight size={18} />
+                {isCheckingOut ? (
+                  <><Loader2 size={18} className="animate-spin" /> Átirányítás a fizetéshez...</>
+                ) : (
+                  <>Biztonságos Fizetés a Stripe-on — {(packages.find((p) => p.id === selectedPkg)?.price ?? 0).toLocaleString("hu-HU")} Ft <ArrowRight size={18} /></>
+                )}
               </button>
               <div className="flex items-center justify-center gap-4 mt-4 flex-wrap">
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: "#8A7268" }}>
