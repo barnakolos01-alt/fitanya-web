@@ -1,44 +1,1041 @@
 <!DOCTYPE html>
 <html lang="hu">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FitAnya Módszer — Életmód és Fogyás Anyukáknak</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>FitAnya Módszer — Fogyás koplalás és kétfelé főzés nélkül</title>
+  <meta name="description" content="Fenntartható, tenyér-szabály alapú életmódprogram édesanyáknak. Egyetlen családi fazékból, konyhamérleg nélkül.">
 
-    <!-- Meta Pixel Code -->
-    <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '2470376073485072');
-      fbq('track', 'PageView');
-    </script>
-    <!-- End Meta Pixel Code -->
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Microsoft Clarity -->
-    <script type="text/javascript">
-      (function(c,l,a,r,i,t,y){
-          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "yau3jk6e9z");
-    </script>
-  </head>
-  <body class="bg-[#FDFBF7]">
-    <!-- Meta Pixel (Noscript) -->
-    <noscript>
-      <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=2470376073485072&ev=PageView&noscript=1"
-      />
-    </noscript>
+  <style>
+    :root {
+      --primary: #D96B43;
+      --primary-hover: #C25832;
+      --primary-light: #FFF0EB;
+      --accent: #2A9D8F;
+      --bg: #FDFBF7;
+      --card-bg: #FFFFFF;
+      --text: #2D3142;
+      --text-muted: #6B7280;
+      --border: #F0E8E2;
+      --shadow-sm: 0 4px 12px rgba(217, 107, 67, 0.08);
+      --shadow-md: 0 10px 30px rgba(45, 49, 66, 0.08);
+      --shadow-lg: 0 20px 40px rgba(217, 107, 67, 0.15);
+      --radius: 18px;
+    }
 
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 90px; /* Lebegő alsó sáv helye mobilon */
+    }
+
+    @media (min-width: 769px) {
+      body {
+        padding-bottom: 0;
+      }
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* HEADER */
+    header {
+      padding: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: var(--primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      padding: 8px 18px;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 40px 0 60px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 6px 16px;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .hero h1 span {
+      color: var(--primary);
+      position: relative;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 30px;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      padding: 16px 32px;
+      border-radius: 50px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-secondary {
+      background: #FFF;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      padding: 16px 28px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text);
+    }
+
+    /* KALKULÁTOR */
+    .calculator-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 35px 25px;
+      margin: 40px 0;
+      box-shadow: var(--shadow-md);
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .section-title h2 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .section-title p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px;
+      margin-bottom: 25px;
+    }
+
+    .calc-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .calc-group label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .calc-group input, .calc-group select {
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .calc-group input:focus, .calc-group select:focus {
+      border-color: var(--primary);
+    }
+
+    .calc-result-box {
+      background: var(--primary-light);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .calc-calories {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.1;
+    }
+
+    .calc-sub {
+      font-size: 0.9rem;
+      color: var(--text);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    /* KÖZTES HORGONY SÁV */
+    .inbetween-cta {
+      text-align: center;
+      margin: 25px 0 10px;
+    }
+
+    .inbetween-cta .btn-primary {
+      width: 100%;
+      max-width: 420px;
+      padding: 14px 24px;
+      font-size: 1rem;
+    }
+
+    /* INTERAKTÍV ÉTELCSERÉLŐ KÁRTYÁK */
+    .meals-container {
+      margin: 60px 0;
+    }
+
+    .meals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
+      margin-top: 25px;
+    }
+
+    .meal-card {
+      background: #FFF;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 240px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .meal-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .meal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+    }
+
+    .meal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      line-height: 1.35;
+      min-height: 48px;
+    }
+
+    .macro-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 18px;
+    }
+
+    .macro-pill {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .btn-swap {
+      width: 100%;
+      background: #FFF;
+      border: 1.5px solid var(--primary);
+      color: var(--primary);
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-swap:hover {
+      background: var(--primary);
+      color: #FFF;
+    }
+
+    /* 3 PILLÉR */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 50px 0;
+    }
+
+    .pillar-card {
+      background: #FFF;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    .pillar-icon {
+      font-size: 2rem;
+      margin-bottom: 14px;
+      display: inline-block;
+    }
+
+    .pillar-card h3 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .pillar-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* CSOMAGOK SZEKCIÓ */
+    .pricing-section {
+      padding: 60px 0;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+      align-items: stretch;
+    }
+
+    .price-card {
+      background: #FFF;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: transform 0.2s;
+    }
+
+    .price-card.featured {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-lg);
+      transform: scale(1.02);
+    }
+
+    @media (max-width: 768px) {
+      .price-card.featured {
+        transform: scale(1);
+      }
+    }
+
+    .featured-badge {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: #FFF;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 50px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .price-name {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .price-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      min-height: 40px;
+      margin-bottom: 16px;
+    }
+
+    .price-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .price-value span {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .feature-list {
+      list-style: none;
+      margin-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .feature-list li {
+      font-size: 0.9rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .feature-list li svg {
+      flex-shrink: 0;
+      margin-top: 3px;
+      color: var(--accent);
+    }
+
+    .feature-list li.muted {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    /* GYIK */
+    .faq-section {
+      max-width: 800px;
+      margin: 60px auto;
+    }
+
+    .faq-item {
+      background: #FFF;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .faq-question {
+      padding: 18px 22px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .faq-answer {
+      padding: 0 22px 18px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      display: none;
+    }
+
+    .faq-item.active .faq-answer {
+      display: block;
+    }
+
+    /* MOBIL LEBEGŐ GOMB (STICKY BOTTOM BAR) */
+    .mobile-sticky-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .mobile-sticky-bar.visible {
+      transform: translateY(0);
+    }
+
+    .sticky-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sticky-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .sticky-price {
+      font-size: 0.75rem;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .mobile-sticky-bar .btn-primary {
+      padding: 12px 20px;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 769px) {
+      .mobile-sticky-bar {
+        display: none !important;
+      }
+    }
+
+    /* LÁBLÉC */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="container">
+    <header>
+      <a href="#" class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+        FitAnya
+      </a>
+      <a href="#csomagok" class="nav-btn">Csomagok</a>
+    </header>
+  </div>
+
+  <!-- HERO SZEKCIÓ -->
+  <section class="hero container" id="hero">
+    <div class="badge">✨ Fenntartható életmód anyukáknak</div>
+    <h1>Fogyj le éhezés nélkül, <span>ugyanabból a fazékból</span>, amit a család is eszik!</h1>
+    <p>Nincs külön főzőcskézés, nincsenek bonyolult receptek és felejtsd el a konyhamérleget. A FitAnya Tenyér-szabállyal végre úgy éred el az álomalakod, hogy az életed nem alakul át diétás börtönné.</p>
+    <div class="hero-ctas">
+      <a href="#csomagok" class="btn-primary">
+        Csomagok megtekintése
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+      <a href="#kalkulator" class="btn-secondary">Számold ki az igényed</a>
+    </div>
+  </section>
+
+  <div class="container">
+    <!-- KALKULÁTOR SZEKCIÓ -->
+    <section class="calculator-section" id="kalkulator">
+      <div class="section-title">
+        <h2>Számold ki a napi kalóriakereted!</h2>
+        <p>Add meg az adataidat a becsült fogyási célszámhoz:</p>
+      </div>
+
+      <div class="calc-grid">
+        <div class="calc-group">
+          <label>Életkor (év)</label>
+          <input type="number" id="calcAge" value="32" min="18" max="70">
+        </div>
+        <div class="calc-group">
+          <label>Jelenlegi testsúly (kg)</label>
+          <input type="number" id="calcWeight" value="72" min="40" max="150">
+        </div>
+        <div class="calc-group">
+          <label>Magasság (cm)</label>
+          <input type="number" id="calcHeight" value="168" min="140" max="200">
+        </div>
+        <div class="calc-group">
+          <label>Aktivitási szint</label>
+          <select id="calcActivity">
+            <option value="1.2">Ülőmunka / Kevés mozgás</option>
+            <option value="1.375" selected>Átlagos anyuka-tempó (séta, gyerek után szaladás)</option>
+            <option value="1.55">Aktív (rendszeres heti 2-3 edzés)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="calc-result-box">
+        <div class="calc-calories" id="calcOutput">1 680 kcal</div>
+        <div class="calc-sub">Ajánlott napi fogyási energiakeret (biztonságos ~0.5 kg/hét tempó)</div>
+      </div>
+
+      <!-- KÖZTES HORGONY CTA -->
+      <div class="inbetween-cta">
+        <a href="#csomagok" class="btn-primary">
+          Kérem a személyre szabott csomagomat ➔
+        </a>
+      </div>
+    </section>
+
+    <!-- ÉTELCSERÉLŐ SZEKCIÓ -->
+    <section class="meals-container">
+      <div class="section-title">
+        <h2>Így néz ki egy tartható nap</h2>
+        <p>Kattints a csere gombra és nézd meg, milyen változatosan ehetsz:</p>
+      </div>
+
+      <div class="meals-grid">
+        <!-- Reggeli -->
+        <div class="meal-card" id="card-0">
+          <div>
+            <div class="meal-header">
+              <span>☕ Reggeli</span>
+              <span id="meal-time-0">7:30</span>
+            </div>
+            <div class="meal-title" id="meal-title-0">Zabkása tejjel, banánnal és fahéjjal</div>
+            <div class="macro-pills">
+              <span class="macro-pill" id="meal-cal-0">🔥 360 kcal</span>
+              <span class="macro-pill" id="meal-p-0">🥩 16g F</span>
+              <span class="macro-pill" id="meal-c-0">🌾 55g CH</span>
+              <span class="macro-pill" id="meal-f-0">🥑 9g ZS</span>
+            </div>
+          </div>
+          <button class="btn-swap" onclick="swapMeal(0)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Kaja cseréje
+          </button>
+        </div>
+
+        <!-- Ebéd -->
+        <div class="meal-card" id="card-1">
+          <div>
+            <div class="meal-header">
+              <span>🍲 Ebéd</span>
+              <span id="meal-time-1">12:30</span>
+            </div>
+            <div class="meal-title" id="meal-title-1">Csirkemellfilé barna rizzsel és párolt brokkolival</div>
+            <div class="macro-pills">
+              <span class="macro-pill" id="meal-cal-1">🔥 560 kcal</span>
+              <span class="macro-pill" id="meal-p-1">🥩 42g F</span>
+              <span class="macro-pill" id="meal-c-1">🌾 58g CH</span>
+              <span class="macro-pill" id="meal-f-1">🥑 15g ZS</span>
+            </div>
+          </div>
+          <button class="btn-swap" onclick="swapMeal(1)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Kaja cseréje
+          </button>
+        </div>
+
+        <!-- Vacsora -->
+        <div class="meal-card" id="card-2">
+          <div>
+            <div class="meal-header">
+              <span>🥗 Vacsora</span>
+              <span id="meal-time-2">18:30</span>
+            </div>
+            <div class="meal-title" id="meal-title-2">Sült lazacfilé párolt zöldségekkel</div>
+            <div class="macro-pills">
+              <span class="macro-pill" id="meal-cal-2">🔥 460 kcal</span>
+              <span class="macro-pill" id="meal-p-2">🥩 34g F</span>
+              <span class="macro-pill" id="meal-c-2">🌾 22g CH</span>
+              <span class="macro-pill" id="meal-f-2">🥑 24g ZS</span>
+            </div>
+          </div>
+          <button class="btn-swap" onclick="swapMeal(2)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Kaja cseréje
+          </button>
+        </div>
+
+        <!-- Nasi -->
+        <div class="meal-card" id="card-3">
+          <div>
+            <div class="meal-header">
+              <span>🍪 Nasi</span>
+              <span id="meal-time-3">16:00</span>
+            </div>
+            <div class="meal-title" id="meal-title-3">Alma mogyoróvajjal</div>
+            <div class="macro-pills">
+              <span class="macro-pill" id="meal-cal-3">🔥 190 kcal</span>
+              <span class="macro-pill" id="meal-p-3">🥩 6g F</span>
+              <span class="macro-pill" id="meal-c-3">🌾 22g CH</span>
+              <span class="macro-pill" id="meal-f-3">🥑 9g ZS</span>
+            </div>
+          </div>
+          <button class="btn-swap" onclick="swapMeal(3)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Kaja cseréje
+          </button>
+        </div>
+      </div>
+
+      <!-- KÖZTES HORGONY CTA 2 -->
+      <div class="inbetween-cta" style="margin-top: 35px;">
+        <a href="#csomagok" class="btn-primary">
+          Kérem a teljes 30 receptes heti menüt ➔
+        </a>
+      </div>
+    </section>
+
+    <!-- 3 PILLÉR -->
+    <div class="pillars-grid">
+      <div class="pillar-card">
+        <div class="pillar-icon">🍳</div>
+        <h3>Nincs kétfelé főzés</h3>
+        <p>A család ugyanazt a bolognait, brassóit és húslevest eszi, mint te. Te csak az arányokat állítod be a tenyered segítségével.</p>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">⚖️</div>
+        <h3>0 g Konyhamérleg</h3>
+        <p>Elég a mérlegen grammozásból. A saját kezed mérete pontosan megmutatja a fehérje-, szénhidrát- és zsíradagodat.</p>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">⚡</div>
+        <h3>15 perces receptek</h3>
+        <p>Valódi, rohanós hétköznapokra tervezve. Olcsó, bárhol beszerezhető alapanyagok, minimális mosogatással.</p>
+      </div>
+    </div>
+
+    <!-- CSOMAGOK / ÁRAZÁS SZEKCIÓ -->
+    <section class="pricing-section" id="csomagok">
+      <div class="section-title">
+        <h2>Válaszd ki a neked való csomagot!</h2>
+        <p>Egyszeri befektetés, örökös hozzáférés. Nincs havidíj, nincs rejtett költség.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- ALAP -->
+        <div class="price-card">
+          <div>
+            <div class="price-name">Alapcsomag</div>
+            <div class="price-desc">A tiszta alapok a sikeres induláshoz.</div>
+            <div class="price-value">4 990 Ft <span>/ egyszeri</span></div>
+            <ul class="feature-list">
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> FitAnya Tenyér-szabály Alapkönyv (PDF)</li>
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Digitális Makró- & Kalóriakalkulátor</li>
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> 15 Alap Receptkártya</li>
+              <li class="muted">✕ Teljes 30 Családi Gyorsrecept gyűjtemény</li>
+              <li class="muted">✕ SOS Puffadásmentesítő & Hormon Protokoll</li>
+            </ul>
+          </div>
+          <a href="#" class="btn-secondary" style="text-align: center;">Alapcsomag választása</a>
+        </div>
+
+        <!-- PRÉMIUM (KIEMELT) -->
+        <div class="price-card featured">
+          <div class="featured-badge">⭐ Legnépszerűbb választás</div>
+          <div>
+            <div class="price-name">Prémium Csomag</div>
+            <div class="price-desc">A teljes, bevált rendszer az egész családnak.</div>
+            <div class="price-value">7 990 Ft <span>/ egyszeri</span></div>
+            <ul class="feature-list">
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> <strong>Minden, ami az Alapcsomagban van</strong></li>
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> 30 Családi Gyorsrecept (1 közös fazék)</li>
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> 4 Hétre Kész Heti Étrendtervező</li>
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Mester Bevásárlólista & Kamra Kisokos</li>
+              <li class="muted">✕ Bőrfeszesítő & Hasfal Regeneráló Torna</li>
+            </ul>
+          </div>
+          <a href="#" class="btn-primary">Prémium Csomag Kérése</a>
+        </div>
+
+        <!-- VIP -->
+        <div class="price-card">
+          <div>
+            <div class="price-name">VIP Csomag</div>
+            <div class="price-desc">Maximális támogatás a teljes testi megújuláshoz.</div>
+            <div class="price-value">12 990 Ft <span>/ egyszeri</span></div>
+            <ul class="feature-list">
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> <strong>Minden a Prémium csomagból</strong></li>
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> 10 Perces Otthoni Hasfal- & Bőrfeszesítő Torna</li>
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> SOS Puffadásmentesítő Protokoll</li>
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Kollagén & Hormon-Reset Útmutató</li>
+              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Exkluzív Ünnepi & Vendégség Túlélőkészlet</li>
+            </ul>
+          </div>
+          <a href="#" class="btn-secondary" style="text-align: center;">VIP Csomag választása</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- GYIK SZEKCIÓ -->
+    <section class="faq-section" id="gyik">
+      <div class="section-title">
+        <h2>Gyakori Kérdések</h2>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Kell külön főznöm a családnak?
+          <span>+</span>
+        </div>
+        <div class="faq-answer">
+          Egyáltalán nem! A FitAnya Módszer lényege pontosan az, hogy nem kell kétfelé főznöd. Ugyanazt a normális ételt eszed, amit a férjed és a gyerekek, csak a tányérodon az arányokat állítod be a tenyér-szabály szerint.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Muszáj grammra pontosan mérnem az ételeket a mérlegen?
+          <span>+</span>
+        </div>
+        <div class="faq-answer">
+          Nem. A módszer vizuális tenyérmérést használ (tenyérnyi fehérje, ökölnyi zöldség, maréknyi szénhidrát, hüvelykujjnyi zsír). Ezzel 90%-os pontosságot érsz el felesleges stressz és konyhai méricskélés nélkül.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Hogyan kapom meg a programot a fizetés után?
+          <span>+</span>
+        </div>
+        <div class="faq-answer">
+          A sikeres bankkártyás fizetést követően a rendszer azonnal átirányít a letöltési oldalra, valamint e-mailben is megkapod az összes letölthető PDF-et és kalkulátor linket.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Mi történik, ha nem válik be? Van garancia?
+          <span>+</span>
+        </div>
+        <div class="faq-answer">
+          Igen! 14 napos 100%-os pénzvisszafizetési garanciát vállalunk. Ha úgy érzed, hogy a módszer nem illeszthető be az életedbe, csak írj egy e-mailt, és kérdés nélkül visszautaljuk a vételárat.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- MOBIL LEBEGŐ GOMB (STICKY BOTTOM CTA) -->
+  <div class="mobile-sticky-bar" id="mobileStickyBar">
+    <div class="sticky-info">
+      <span class="sticky-title">FitAnya Módszer</span>
+      <span class="sticky-price">4 990 Ft-tól • 14 nap garancia</span>
+    </div>
+    <a href="#csomagok" class="btn-primary">
+      Csomagok ➔
+    </a>
+  </div>
+
+  <!-- LÁBLÉC -->
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="#">ÁSZF</a>
+        <a href="#">Adatkezelési Tájékoztató</a>
+        <a href="#">Kapcsolat</a>
+      </div>
+      <p>© 2026 FitAnya. Minden jog fenntartva. A digitális adattartalmakra a 45/2014. (II. 26.) Korm. rendelet szabályai vonatkoznak.</p>
+    </div>
+  </footer>
+
+  <!-- INTERAKTÍV JAVASCRIPT -->
+  <script>
+    // 1. KALKULÁTOR MŰKÖDÉSE
+    const ageIn = document.getElementById('calcAge');
+    const weightIn = document.getElementById('calcWeight');
+    const heightIn = document.getElementById('calcHeight');
+    const actIn = document.getElementById('calcActivity');
+    const outCal = document.getElementById('calcOutput');
+
+    function calculateCalories() {
+      const a = parseFloat(ageIn.value) || 30;
+      const w = parseFloat(weightIn.value) || 70;
+      const h = parseFloat(heightIn.value) || 165;
+      const act = parseFloat(actIn.value) || 1.375;
+
+      // Mifflin-St Jeor Női BMR
+      const bmr = (10 * w) + (6.25 * h) - (5 * a) - 161;
+      const tdee = bmr * act;
+      const target = Math.round(tdee - 450); // 450 kcal deficit
+
+      outCal.textContent = target.toLocaleString('hu-HU') + ' kcal';
+    }
+
+    [ageIn, weightIn, heightIn, actIn].forEach(el => el.addEventListener('input', calculateCalories));
+
+    // 2. ÉTELCSERÉLŐ ADATOK ÉS MŰKÖDÉS
+    const mealDatabase = [
+      // Reggelik
+      [
+        { title: "Zabkása tejjel, banánnal és fahéjjal", cal: 360, p: 16, c: 55, f: 9, time: "7:30" },
+        { title: "Tojásrántotta (3 tojás) zöldségekkel és pirítóssal", cal: 390, p: 24, c: 25, f: 20, time: "7:30" },
+        { title: "Görög joghurt bogyós gyümölccsel és mandulával", cal: 320, p: 22, c: 30, f: 12, time: "7:30" },
+        { title: "Sonkás-sajtos teljes kiőrlésű melegszendvics paprikával", cal: 370, p: 25, c: 35, f: 14, time: "7:30" }
+      ],
+      // Ebédek
+      [
+        { title: "Csirkemellfilé barna rizzsel és párolt brokkolival", cal: 560, p: 42, c: 58, f: 15, time: "12:30" },
+        { title: "Bolognai spagetti darált pulykahúsból durum tésztával", cal: 580, p: 45, c: 65, f: 16, time: "12:30" },
+        { title: "Családi csirkés brassói air fryerben sült burgonyával", cal: 540, p: 40, c: 50, f: 18, time: "12:30" },
+        { title: "Sertéskaraj zöldbabos-gombás raguval és bulgurral", cal: 570, p: 44, c: 52, f: 19, time: "12:30" }
+      ],
+      // Vacsorák
+      [
+        { title: "Sült lazacfilé párolt zöldségekkel", cal: 460, p: 34, c: 22, f: 24, time: "18:30" },
+        { title: "Túrókrém tonhallal, zöldségekkel és puffasztott rizzsel", cal: 410, p: 38, c: 28, f: 12, time: "18:30" },
+        { title: "Grillezett csirkemell fetás görög salátával", cal: 440, p: 36, c: 18, f: 22, time: "18:30" },
+        { title: "Cukkinis tócsni tejfölös csirkecsíkokkal", cal: 450, p: 35, c: 26, f: 20, time: "18:30" }
+      ],
+      // Nasik
+      [
+        { title: "Alma mogyoróvajjal", cal: 190, p: 6, c: 22, f: 9, time: "16:00" },
+        { title: "1 adag protein puding bogyós gyümölccsel", cal: 170, p: 20, c: 14, f: 3, time: "16:00" },
+        { title: "Korpovit keksz pulykamellsonkával és uborkával", cal: 180, p: 12, c: 20, f: 4, time: "16:00" },
+        { title: "Egy marék mandula és 2 kocka 70%-os étcsoki", cal: 210, p: 5, c: 15, f: 15, time: "16:00" }
+      ]
+    ];
+
+    let currentMealIndices = [0, 0, 0, 0];
+
+    function swapMeal(typeIndex) {
+      currentMealIndices[typeIndex] = (currentMealIndices[typeIndex] + 1) % mealDatabase[typeIndex].length;
+      const meal = mealDatabase[typeIndex][currentMealIndices[typeIndex]];
+
+      document.getElementById(`meal-title-${typeIndex}`).textContent = meal.title;
+      document.getElementById(`meal-cal-${typeIndex}`).textContent = `🔥 ${meal.cal} kcal`;
+      document.getElementById(`meal-p-${typeIndex}`).textContent = `🥩 ${meal.p}g F`;
+      document.getElementById(`meal-c-${typeIndex}`).textContent = `🌾 ${meal.c}g CH`;
+      document.getElementById(`meal-f-${typeIndex}`).textContent = `🥑 ${meal.f}g ZS`;
+    }
+
+    // 3. GYIK LENYITÓ LOGIKA
+    function toggleFaq(el) {
+      const parent = el.parentElement;
+      parent.classList.toggle('active');
+      const span = el.querySelector('span');
+      span.textContent = parent.classList.contains('active') ? '−' : '+';
+    }
+
+    // 4. MOBIL LEBEGŐ SÁV MEGJELENÍTÉSI LOGIKA (SCROLL LISTENER)
+    window.addEventListener('scroll', () => {
+      const stickyBar = document.getElementById('mobileStickyBar');
+      const pricingSection = document.getElementById('csomagok');
+      const scrollPos = window.scrollY;
+      
+      // Amikor elérjük a csomagokat, rejtse el, hogy ne takarja ki a gombokat
+      const pricingTop = pricingSection.offsetTop - 200;
+      const pricingBottom = pricingTop + pricingSection.offsetHeight;
+
+      if (scrollPos > 380 && (scrollPos < pricingTop || scrollPos > pricingBottom)) {
+        stickyBar.classList.add('visible');
+      } else {
+        stickyBar.classList.remove('visible');
+      }
+    });
+  </script>
+</body>
 </html>
