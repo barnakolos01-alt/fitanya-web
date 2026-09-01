@@ -446,7 +446,7 @@ function MealSwapCard({ mealKey, meal, selectedIndex, isOpen, onToggleDropdown, 
 
       {isOpen && (
         <>
-          {/* LÁTHATATLAN TELJES KÉPERNYŐS RÉTEG */}
+          {/* LÁTHATATLAN TELJES KÉPERNYŐS RÉTEG: HA BÁRHOVÁ MÁSHOVA KATTINT, AZONNAL BEZÁRJA */}
           <div
             className="fixed inset-0 z-20 cursor-default"
             onClick={(e) => {
@@ -757,7 +757,7 @@ function FitAnyaLanding() {
     if (!gateEmail || !gateEmail.includes("@")) return;
     setIsSendingGate(true);
     
-    // E-mail szinkronizálása a lenti fizetési űrlapba
+    // E-mail szinkronizálása a lenti fizetési űrlapba, hogy ne kelljen újra beírni
     setOrderForm((prev) => ({ ...prev, email: gateEmail.trim() }));
     
     try {
@@ -1017,7 +1017,7 @@ function FitAnyaLanding() {
             </p>
             <WaveConnector steps={stepLabels} activeIndex={step} />
 
-            {/* 1. Alapadatok */}
+            {/* 1. Alapadatok (MOBILON NUMERIKUS BILLENTYŰZET OPTIMALIZÁLVA) */}
             {step === 0 && (
               <div className="grid grid-cols-2 gap-4 mt-8">
                 <h2 className="col-span-2 font-display font-semibold text-xl mb-1">Személyes adatok és célkitűzés</h2>
