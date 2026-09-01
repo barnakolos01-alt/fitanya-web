@@ -628,6 +628,7 @@ function FitAnyaLanding() {
   const [downloadedFiles, setDownloadedFiles] = useState({});
 
   const [activeLegalModal, setActiveLegalModal] = useState(null);
+  const [showStickyBar, setShowStickyBar] = useState(false);
 
   const handleDownload = (key) => setDownloadedFiles((s) => ({ ...s, [key]: true }));
 
@@ -651,6 +652,31 @@ function FitAnyaLanding() {
       setOrderSubmitted(true);
     }
   }, []);
+
+  // --- MOBIL LEBEGŐ GOMB GÖRGETÉS FIGYELÉSE ---
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const orderEl = orderRef.current;
+      let isAtOrderOrPricing = false;
+
+      if (orderEl) {
+        const rect = orderEl.getBoundingClientRect();
+        if (rect.top <= window.innerHeight && rect.bottom >= 0) {
+          isAtOrderOrPricing = true;
+        }
+      }
+
+      if (scrollY > 400 && !isAtOrderOrPricing && !orderSubmitted) {
+        setShowStickyBar(true);
+      } else {
+        setShowStickyBar(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [orderSubmitted]);
 
   const handleStripeCheckout = () => {
     const baseUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
@@ -844,7 +870,7 @@ function FitAnyaLanding() {
   ];
 
   return (
-    <div style={{ fontFamily: "'Work Sans', sans-serif", background: "#FDFBF7", color: "#2D3748" }} className="w-full min-h-screen">
+    <div style={{ fontFamily: "'Work Sans', sans-serif", background: "#FDFBF7", color: "#2D3748" }} className="w-full min-h-screen pb-20 sm:pb-0">
       <style>{`
         ${FONT_IMPORT}
         .font-display { font-family: 'Fraunces', serif; }
@@ -872,13 +898,21 @@ function FitAnyaLanding() {
             Töltsd ki az élettani auditot, és nézd meg a személyre szabott Tenyér-Makró tervedet!
           </p>
           
-          {/* CTA GOMB */}
-          <button 
-            onClick={() => scrollTo(wizardRef)} 
-            className="cta-btn font-display font-semibold text-base sm:text-lg text-white px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2.5 shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-          >
-            Kattints ide a teszt kitöltéséhez &amp; kalóriaszámoláshoz <ArrowRight size={20} />
-          </button>
+          {/* CTA GOMBOK */}
+          <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+            <button 
+              onClick={() => scrollTo(wizardRef)} 
+              className="cta-btn font-display font-semibold text-base sm:text-lg text-white px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2.5 shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+            >
+              Kattints ide a teszt kitöltéséhez &amp; kalóriaszámoláshoz <ArrowRight size={20} />
+            </button>
+            <button
+              onClick={() => scrollTo(pricingRef)}
+              className="font-display font-semibold text-sm sm:text-base px-6 py-3.5 rounded-2xl inline-flex items-center justify-center gap-1.5 border border-[#E07A5F] text-[#E07A5F] bg-white/70 hover:bg-[#FDE8E1] transition-colors cursor-pointer"
+            >
+              Csomagok azonnali megtekintése
+            </button>
+          </div>
 
           {/* BIZALMI SÁV */}
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm" style={{ color: "#6B5A52" }}>
@@ -1461,6 +1495,16 @@ function FitAnyaLanding() {
             </div>
           </div>
         </div>
+
+        {/* KÖZTES HORGONY GOMB A MINTAÉTREND ALÁ */}
+        <div className="text-center mt-8">
+          <button
+            onClick={() => scrollTo(pricingRef)}
+            className="cta-btn font-display font-semibold text-sm sm:text-base text-white px-8 py-3.5 rounded-2xl inline-flex items-center justify-center gap-2 shadow-md cursor-pointer hover:scale-105 transition-transform"
+          >
+            Kérem a teljes 30 receptes heti menüt és a csomagokat <ArrowRight size={18} />
+          </button>
+        </div>
       </section>
 
       {/* ÁRAZÁS */}
@@ -1743,6 +1787,25 @@ function FitAnyaLanding() {
           <p className="text-xs mt-4" style={{ color: "#C4B5AC" }}>© 2026 FitAnya Módszer</p>
         </div>
       </footer>
+
+      {/* MOBIL LEBEGŐ SÁV (STICKY BOTTOM CTA) */}
+      {showStickyBar && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-white/95 backdrop-blur-md border-t border-[#F0DCD4] px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom duration-300"
+          style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
+        >
+          <div className="flex flex-col">
+            <span className="font-display font-bold text-xs text-[#2D3748]">FitAnya Módszer</span>
+            <span className="text-[11px] font-semibold text-[#E07A5F]">4 990 Ft-tól • 14 nap garancia</span>
+          </div>
+          <button
+            onClick={() => scrollTo(pricingRef)}
+            className="cta-btn font-display font-bold text-xs text-white px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 shadow-md cursor-pointer shrink-0"
+          >
+            Csomagok <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
 
       {/* JOGI FELUGRÓ ABLAK (MODAL) */}
       {activeLegalModal && (
