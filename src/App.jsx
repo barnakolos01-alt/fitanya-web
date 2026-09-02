@@ -28,8 +28,6 @@ import {
   Salad,
   Soup,
   Cookie,
-  Download,
-  FileText,
   Users,
   Award,
   Phone,
@@ -207,49 +205,44 @@ const STRIPE_PAYMENT_LINKS = {
   vip: "https://buy.stripe.com/8x2dRb5C86jB95zb5O9ws02",
 };
 
-const SULIKEZDO_PDF_URL = "https://drive.google.com/uc?export=download&id=1Fyv853vVH4lW8XaXiV4vm-93auAgjcD4";
-const ALAP_PDF_URL = "https://drive.google.com/uc?export=download&id=1FkvydVMN9LU5hSFa1ib6kVeYh5Nmxazq";
-const NASSOLASI_KALAUZ_URL = "https://drive.google.com/uc?export=download&id=10xkdMG9usiyfffr2Z4MwUdD6Z1wm3Dnd";
-const SZOKASFORMALO_RENDSZER_URL = "https://drive.google.com/uc?export=download&id=1BHgqESp4BSHB6p48OYmBG9V39rLqArUe";
-const BEVASARLOLISTA_URL = "https://drive.google.com/uc?export=download&id=1JO7UtDfRscfZCJb_wei1biIneb5TQQmj";
-const VIP_EDZESPROGRAM_URL = "https://drive.google.com/uc?export=download&id=1t0jzoQI1IthWdQrbVaQhrxSyv2fF0aKu";
-const VIP_KOLLAGEN_RESET_URL = "https://drive.google.com/uc?export=download&id=1EtnQtKoVQHweDYpQsFcsJuEfyml_BIU9";
-const VIP_SOS_PUFFADAS_URL = "https://drive.google.com/uc?export=download&id=16VRXRWDo5kn06EvPIJTOc5yfTvLabGCN";
-
-const PACKAGE_DOWNLOADS = {
+// Csomagok nyilvános tartalma (Google Drive letöltési linkek nélkül)
+const PACKAGE_CONTENTS = {
   sulikezdo: {
-    files: [
-      {
-        title: "Sulikezdő Túlélőcsomag: 2 az 1-ben Uzsidoboz & Anya-Tízórai Rendszer (PDF)",
-        meta: "Szeptemberi Különkiadás · 15 Maszatmentes Recept & Polctérkép · PDF",
-        downloadUrl: SULIKEZDO_PDF_URL,
-      },
+    title: "Sulikezdő Túlélőcsomag (Szeptemberi Különkiadás)",
+    items: [
+      "2 az 1-ben Uzsidoboz & Anya-Tízórai Rendszer (PDF)",
+      "15 Maszatmentes Recept & Bolti Polctérkép",
+      "Kortizol-Reset & Reggeli Maradéktakarítás-Stop Kisokos",
     ],
   },
   basic: {
-    files: [
-      { title: "FitAnya Alapprogram – 30 Családi Gyorsrecept & Tenyér-szabály (PDF)", meta: "Teljes Kézikönyv · Nyomtatható PDF", downloadUrl: ALAP_PDF_URL },
+    title: "FitAnya Alapprogram",
+    items: [
+      "FitAnya Alapprogram – 30 Családi Gyorsrecept & Tenyér-szabály (PDF)",
+      "Interaktív Tenyér-Makró Útmutató",
     ],
   },
   premium: {
-    files: [
-      { title: "FitAnya Alapprogram – 30 Recept & Tenyér-szabály (PDF)", meta: "Teljes Kézikönyv · Nyomtatható PDF", downloadUrl: ALAP_PDF_URL },
-      { title: "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)", meta: "Lidl / Aldi / Spar Polctérkép · PDF", downloadUrl: NASSOLASI_KALAUZ_URL },
-      { title: "4 Hetes FitAnya Szokásformáló Rendszer (PDF)", meta: "Heti Protokollok & Habit Tracker · PDF", downloadUrl: SZOKASFORMALO_RENDSZER_URL },
-      { title: "Heti Mester-Bevásárlólista & 15 Perces Dobozolás (PDF)", meta: "Nyomtatható Sablon · PDF", downloadUrl: BEVASARLOLISTA_URL },
+    title: "Prémium Csomag",
+    items: [
+      "FitAnya Alapprogram – 30 Recept & Tenyér-szabály (PDF)",
+      "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)",
+      "4 Hetes FitAnya Szokásformáló Rendszer (PDF)",
+      "Heti Mester-Bevásárlólista & 15 Perces Dobozolási Kisokos (PDF)",
     ],
   },
   vip: {
-    files: [
-      { title: "FitAnya Alapprogram – 30 Recept & Tenyér-szabály (PDF)", meta: "Teljes Kézikönyv · Nyomtatható PDF", downloadUrl: ALAP_PDF_URL },
-      { title: "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)", meta: "Lidl / Aldi / Spar Polctérkép · PDF", downloadUrl: NASSOLASI_KALAUZ_URL },
-      { title: "4 Hetes FitAnya Szokásformáló Rendszer (PDF)", meta: "Heti Protokollok & Habit Tracker · PDF", downloadUrl: SZOKASFORMALO_RENDSZER_URL },
-      { title: "Heti Mester-Bevásárlólista & 15 Perces Dobozolás (PDF)", meta: "Nyomtatható Sablon · PDF", downloadUrl: BEVASARLOLISTA_URL },
-      { title: "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)", meta: "Eszközmentes Anyabarát Torna · PDF", downloadUrl: VIP_EDZESPROGRAM_URL },
-      { title: "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)", meta: "Anti-aging Protokoll · PDF", downloadUrl: VIP_KOLLAGEN_RESET_URL },
-      { title: "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)", meta: "Gyorssegély Vészhelyzetre · PDF", downloadUrl: VIP_SOS_PUFFADAS_URL },
-    ],
+    title: "VIP Anya Csomag",
     vip: true,
+    items: [
+      "FitAnya Alapprogram – 30 Recept & Tenyér-szabály (PDF)",
+      "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)",
+      "4 Hetes FitAnya Szokásformáló Rendszer (PDF)",
+      "Heti Mester-Bevásárlólista & 15 Perces Dobozolás (PDF)",
+      "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)",
+      "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)",
+      "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)",
+    ],
   },
 };
 
@@ -556,99 +549,87 @@ function MealSwapCard({ mealKey, meal, selectedIndex, isOpen, onToggleDropdown, 
   );
 }
 
-function DownloadCard({ file, downloaded, onDownload }) {
-  return (
-    <div
-      className="rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4"
-      style={{ background: "#FDFBF7", border: "1px solid #F0DCD4" }}
-    >
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#FDE8E1" }}>
-        <FileText size={22} style={{ color: "#E07A5F" }} />
-      </div>
-      <div className="flex-1">
-        <p className="font-display font-semibold text-sm sm:text-base leading-snug" style={{ color: "#2D3748" }}>{file.title}</p>
-        <p className="text-xs mt-1" style={{ color: "#8A7268" }}>{file.meta}</p>
-      </div>
-      <a
-        href={file.downloadUrl || "#"}
-        target="_blank"
-        rel="noopener noreferrer"
-        download
-        onClick={onDownload}
-        className="shrink-0 inline-flex items-center justify-center gap-2 font-display font-semibold text-sm px-5 py-2.5 rounded-xl transition-transform no-underline"
-        style={{
-          background: downloaded ? "#F0F5F1" : "#E07A5F",
-          color: downloaded ? "#7C9885" : "#FFFDFB",
-          border: downloaded ? "1px solid #7C9885" : "none",
-        }}
-      >
-        {downloaded ? (<><CheckCircle2 size={16} /> Letöltve</>) : (<><Download size={16} /> Letöltés (PDF)</>)}
-      </a>
-    </div>
-  );
-}
-
-function OrderSuccessPanel({ orderForm, selectedPkg, allPackages, downloadedFiles, onDownload, onRestart }) {
-  const pkg = allPackages.find((p) => p.id === selectedPkg) || allPackages[0];
-  const downloads = PACKAGE_DOWNLOADS[selectedPkg] || PACKAGE_DOWNLOADS.premium;
+function OrderSuccessPanel({ orderForm, selectedPkg, onRestart }) {
+  const pkgData = PACKAGE_CONTENTS[selectedPkg] || PACKAGE_CONTENTS.premium;
+  const buyerEmail = orderForm.email || "a megadott e-mail címedre";
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <div
         className="rounded-3xl p-8 sm:p-10 text-center"
         style={{ background: "linear-gradient(160deg,#FDE8E1,#F9D5CE)" }}
       >
-        <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "#FFFDFB" }}>
-          <CheckCircle2 size={28} style={{ color: "#7C9885" }} />
+        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white shadow-sm">
+          <CheckCircle2 size={32} style={{ color: "#7C9885" }} />
         </div>
-        <h3 className="font-display font-semibold text-2xl mb-1" style={{ color: "#2D3748" }}>
+        <h3 className="font-display font-semibold text-2xl sm:text-3xl mb-2" style={{ color: "#2D3748" }}>
           Sikeres megrendelés, {orderForm.name || "kedves Anyuka"}! 🎉
         </h3>
-        <p className="text-sm" style={{ color: "#6B5A52" }}>
-          Megvásárolt csomagod: <strong style={{ color: "#E07A5F" }}>{pkg.name}</strong> — a hozzáférési központod alább érhető el.
+        <p className="text-sm max-w-md mx-auto leading-relaxed" style={{ color: "#6B5A52" }}>
+          A fizetés sikeresen megtörtént. A(z) <strong style={{ color: "#E07A5F" }}>{pkgData.title}</strong> letöltési linkjeit elküldtük az e-mail fiókodba:
         </p>
-        {downloads.vip && (
-          <span
-            className="inline-flex items-center gap-1.5 mt-4 text-xs font-display font-bold px-4 py-1.5 rounded-full"
-            style={{ background: "#2D3748", color: "#F9D5CE" }}
-          >
-            <Award size={14} style={{ color: "#F4A825" }} /> VIP Prioritásos Támogatás aktiválva
-          </span>
+        <div className="mt-3 inline-block px-4 py-2 rounded-xl bg-white/80 border border-[#F0DCD4] font-semibold text-sm text-[#2D3748]">
+          📬 {buyerEmail}
+        </div>
+        {pkgData.vip && (
+          <div className="mt-4">
+            <span
+              className="inline-flex items-center gap-1.5 text-xs font-display font-bold px-4 py-1.5 rounded-full"
+              style={{ background: "#2D3748", color: "#F9D5CE" }}
+            >
+              <Award size={14} style={{ color: "#F4A825" }} /> VIP Prioritásos Támogatás aktiválva
+            </span>
+          </div>
         )}
       </div>
 
-      <div>
-        <p className="text-xs uppercase tracking-wide font-semibold mb-3 px-1" style={{ color: "#D8C6BE" }}>
-          A csomagod tartalma — {downloads.files.length} letölthető anyag
+      <div className="rounded-3xl p-6 sm:p-8 bg-white border border-[#F0DCD4] shadow-sm">
+        <h4 className="font-display font-semibold text-base sm:text-lg text-[#2D3748] mb-4 flex items-center gap-2">
+          <Sparkles size={18} style={{ color: "#E07A5F" }} /> Mi történik most? (30 másodperces teendő)
+        </h4>
+        <ol className="space-y-3 text-sm text-[#4A5568]">
+          <li className="flex items-start gap-2.5">
+            <span className="font-bold text-[#E07A5F]">1.</span>
+            <span>Nyisd meg a leveleződet (<strong>{buyerEmail}</strong>).</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="font-bold text-[#E07A5F]">2.</span>
+            <span>Keresd a <em>„FitAnya – A megvásárolt anyagaid”</em> tárgyú levelet. Ha nem látod 2 percen belül, <strong>nézd meg a Promóciók és a Spam mappát is!</strong></span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="font-bold text-[#E07A5F]">3.</span>
+            <span>Kattints a levélben lévő letöltési linkekre, és mentsd le a PDF-eket a telefonodra vagy számítógépedre.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div className="rounded-3xl p-6 bg-[#FFFDFB] border border-[#F0DCD4]">
+        <p className="text-xs uppercase tracking-wider font-bold mb-3 text-[#8A7268]">
+          A megvásárolt csomagod tartalma:
         </p>
-        <div className="space-y-3">
-          {downloads.files.map((f, i) => {
-            const key = `${selectedPkg}-${i}`;
-            return (
-              <DownloadCard
-                key={key}
-                file={f}
-                downloaded={!!downloadedFiles[key]}
-                onDownload={() => onDownload(key)}
-              />
-            );
-          })}
-        </div>
+        <ul className="space-y-2">
+          {pkgData.items.map((item, idx) => (
+            <li key={idx} className="flex items-center gap-2 text-sm text-[#2D3748]">
+              <Check size={16} className="text-[#7C9885] shrink-0" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="rounded-2xl p-5" style={{ background: "#FFFDFB" }}>
+        <div className="rounded-2xl p-5 bg-[#FFFDFB] border border-[#F0DCD4]">
           <ShieldCheck size={20} style={{ color: "#7C9885" }} className="mb-2" />
-          <p className="font-display font-semibold text-sm mb-1" style={{ color: "#2D3748" }}>14 napos garancia</p>
-          <p className="text-xs leading-relaxed" style={{ color: "#8A7268" }}>
+          <p className="font-display font-semibold text-sm mb-1 text-[#2D3748]">14 napos garancia</p>
+          <p className="text-xs text-[#8A7268] leading-relaxed">
             Ha nem válik be, egyetlen e-mailre 100%-ban visszautaljuk a vételárat, kérdés nélkül.
           </p>
         </div>
-        <div className="rounded-2xl p-5" style={{ background: "#FFFDFB" }}>
-          <Phone size={20} style={{ color: "#7C9885" }} className="mb-2" />
-          <p className="font-display font-semibold text-sm mb-1" style={{ color: "#2D3748" }}>Ügyfélszolgálat</p>
-          <p className="text-xs leading-relaxed" style={{ color: "#8A7268" }}>
-            Kérdésed van? Írj nekünk: <strong>ugyfelszolgalat@fitanyamodszer.hu</strong>
+        <div className="rounded-2xl p-5 bg-[#FFFDFB] border border-[#F0DCD4]">
+          <Mail size={20} style={{ color: "#7C9885" }} className="mb-2" />
+          <p className="font-display font-semibold text-sm mb-1 text-[#2D3748]">Ügyfélszolgálat</p>
+          <p className="text-xs text-[#8A7268] leading-relaxed">
+            Nem érkezett meg a levél? Írj nekünk: <strong>ugyfelszolgalat@fitanyamodszer.hu</strong>
           </p>
         </div>
       </div>
@@ -656,8 +637,7 @@ function OrderSuccessPanel({ orderForm, selectedPkg, allPackages, downloadedFile
       <div className="text-center pt-2">
         <button
           onClick={onRestart}
-          className="inline-flex items-center gap-2 font-display font-semibold text-sm px-6 py-3 rounded-xl cursor-pointer"
-          style={{ background: "transparent", border: "1.5px solid #D8C6BE", color: "#D8C6BE" }}
+          className="inline-flex items-center gap-2 font-display font-semibold text-sm px-6 py-3 rounded-xl cursor-pointer bg-transparent border border-[#D8C6BE] text-[#8A7268] hover:text-[#2D3748]"
         >
           <Home size={16} /> Vissza a főoldalra
         </button>
@@ -728,7 +708,6 @@ function FitAnyaLanding() {
   const [orderError, setOrderError] = useState("");
   const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [downloadedFiles, setDownloadedFiles] = useState({});
 
   const [activeLegalModal, setActiveLegalModal] = useState(null);
   const [showStickyBar, setShowStickyBar] = useState(false);
@@ -771,13 +750,11 @@ function FitAnyaLanding() {
     }
   }, [wizardDone]);
 
-  const handleDownload = (key) => setDownloadedFiles((s) => ({ ...s, [key]: true }));
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("status") === "success") {
       const pkgParam = params.get("pkg");
-      if (pkgParam && PACKAGE_DOWNLOADS[pkgParam]) {
+      if (pkgParam && PACKAGE_CONTENTS[pkgParam]) {
         setSelectedPkg(pkgParam);
       }
 
@@ -904,7 +881,6 @@ function FitAnyaLanding() {
       age: "", height: "", weight: "", goalWeight: "",
       nursing: "", activity: "", sleep: "", snacking: "", kitchen: "", focus: ""
     });
-    setDownloadedFiles({});
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -1050,7 +1026,7 @@ function FitAnyaLanding() {
     },
     {
       q: "Mi történik a fizetés után? Hogyan kapom meg az anyagokat?",
-      a: "A bankkártyás vagy Apple/Google Pay fizetés után azonnal megnyílik a letöltési felület a telefonodon, és a hozzáférést e-mailben is elküldjük. Nincs várakozás vagy szállítási idő.",
+      a: "A bankkártyás vagy Apple/Google Pay fizetés után a hozzáférés és a letöltési linkek azonnal kiküldésre kerülnek a megadott e-mail címedre. Nincs várakozás vagy szállítási idő.",
     },
   ];
 
@@ -1285,7 +1261,7 @@ function FitAnyaLanding() {
             </p>
             <WaveConnector steps={stepLabels} activeIndex={step} />
 
-            {/* 1. Alapadatok (Manuális kitöltés) */}
+            {/* 1. Alapadatok */}
             {step === 0 && (
               <div className="grid grid-cols-2 gap-4 mt-8">
                 <h2 className="col-span-2 font-display font-semibold text-xl mb-1">Személyes adatok és célkitűzés</h2>
@@ -1311,7 +1287,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 2. Élethelyzet — AUTO ADVANCE */}
+            {/* 2. Élethelyzet */}
             {step === 1 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1343,7 +1319,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 3. Aktivitás — AUTO ADVANCE */}
+            {/* 3. Aktivitás */}
             {step === 2 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1375,7 +1351,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 4. Alvás & Stressz — AUTO ADVANCE */}
+            {/* 4. Alvás & Stressz */}
             {step === 3 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1407,7 +1383,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 5. Nassolás & Kalóriaszivárgás — AUTO ADVANCE */}
+            {/* 5. Nassolás */}
             {step === 4 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1439,7 +1415,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 6. Konyhai kapacitás — AUTO ADVANCE */}
+            {/* 6. Konyhai idő */}
             {step === 5 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1471,7 +1447,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 7. Fő Fókusz — KIVÁLASZTÁS + MANUÁLIS MEGERŐSÍTŐ GOMB */}
+            {/* 7. Fő Fókusz */}
             {step === 6 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1644,7 +1620,7 @@ function FitAnyaLanding() {
               )}
             </div>
 
-            {/* HÍD BANNER: SZÁMOKBÓL GYAKORLAT */}
+            {/* HÍD BANNER */}
             <div className="rounded-2xl p-5 mb-6 bg-[#FFF9F5] border border-[#F0DCD4] flex items-start gap-3.5">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#FDE8E1] text-[#E07A5F] mt-0.5">
                 <Zap size={20} />
@@ -1659,7 +1635,7 @@ function FitAnyaLanding() {
               </div>
             </div>
 
-            {/* NEKED AJÁNLOTT CSOMAG KIEMELÉS — PRICINGREF-HEZ GÖRGET! */}
+            {/* NEKED AJÁNLOTT CSOMAG */}
             <div className="rounded-3xl p-6 sm:p-8 mb-6 border-2 bg-gradient-to-br from-[#FFF9F5] to-[#FDE8E1] border-[#E07A5F] relative">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display px-3.5 py-1 rounded-full bg-[#E07A5F] text-white mb-3 select-none">
                 <Sparkles size={13} /> Algoritmus által kijelölt csomag
@@ -1680,7 +1656,6 @@ function FitAnyaLanding() {
                 Megnézem a csomag tartalmát és a recepteket <ArrowRight size={18} />
               </button>
 
-              {/* SZEPTEMBERI ALTERNATÍVA GOMB A DIAGNOSZTIKA ALATT */}
               <div className="mt-4 pt-4 border-t border-[#F0DCD4]/80 flex flex-col sm:flex-row items-center justify-between gap-2">
                 <span className="text-xs text-[#6B5A52] text-center sm:text-left">
                   Csak az iskolakezdési rohanást és a reggeli pékségeket akarod kivédeni?
@@ -1694,7 +1669,7 @@ function FitAnyaLanding() {
               </div>
             </div>
 
-            {/* E-MAIL KAPU — FINOMHANGOLT LEAD MAGNET */}
+            {/* E-MAIL KAPU (LEAD MAGNET) */}
             {!gateSent ? (
               <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#2D3748" }}>
                 <Mail size={28} className="mx-auto mb-3" style={{ color: "#F9D5CE" }} />
@@ -1802,11 +1777,11 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* ÁRAZÁSI SZEKCIÓ + KÜLÖNÁLLÓ SZEPTEMBERI SULIKEZDŐ KÁRTYA */}
+      {/* ÁRAZÁSI SZEKCIÓ */}
       <section ref={pricingRef} className="py-16 sm:py-24" style={{ background: "#FDE8E1" }}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           
-          {/* 1. SZEPTEMBERI LIMITÁLT KÜLÖNKIADÁS DOBOZ */}
+          {/* SZEPTEMBERI LIMITÁLT DOBOZ */}
           <div 
             ref={seasonalRef}
             className="mb-14 rounded-3xl p-7 sm:p-10 bg-white border-2 border-[#E07A5F] shadow-xl relative overflow-hidden"
@@ -1852,7 +1827,7 @@ function FitAnyaLanding() {
                 <p className="font-display font-bold text-3xl sm:text-4xl text-[#E07A5F] my-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   3 490 Ft
                 </p>
-                <p className="text-[11px] text-[#8A7268] mb-4">Egyszeri díj · Azonnali letöltés</p>
+                <p className="text-[11px] text-[#8A7268] mb-4">Egyszeri díj · Azonnali kézbesítés</p>
                 
                 <button
                   type="button"
@@ -1868,7 +1843,7 @@ function FitAnyaLanding() {
             </div>
           </div>
 
-          {/* 2. TELJES CSOMAGOK */}
+          {/* TELJES CSOMAGOK */}
           <div className="text-center mb-14">
             <SectionEyebrow>Komplett Életmód Csomagok</SectionEyebrow>
             <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-3">Válaszd ki, meddig szeretnél eljutni</h2>
@@ -1950,8 +1925,8 @@ function FitAnyaLanding() {
           </div>
           <div className="p-6 rounded-2xl bg-white border border-[#F0DCD4]">
             <div className="w-12 h-12 rounded-full bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center font-bold text-lg mx-auto mb-3">2</div>
-            <h4 className="font-semibold text-base text-[#2D3748] mb-1">Azonnali letöltés</h4>
-            <p className="text-xs text-[#6B5A52]">Azonnal megnyílik a letöltőfelület, nem kell postára vagy jóváhagyásra várnod.</p>
+            <h4 className="font-semibold text-base text-[#2D3748] mb-1">Azonnali kézbesítés</h4>
+            <p className="text-xs text-[#6B5A52]">A hozzáférési linkek automatikusan megérkeznek az e-mail fiókodba.</p>
           </div>
           <div className="p-6 rounded-2xl bg-white border border-[#F0DCD4]">
             <div className="w-12 h-12 rounded-full bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center font-bold text-lg mx-auto mb-3">3</div>
@@ -2036,7 +2011,7 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* RENDELÉS — OPTION B LOGIKA (ADATBEKÉRÉS ÉS STRIPE TOVÁBBÍTÁS) */}
+      {/* RENDELÉS */}
       <section ref={orderRef} className="py-16 sm:py-24" style={{ background: "#2D3748" }}>
         <div className={orderSubmitted ? "max-w-3xl mx-auto px-5 sm:px-8" : "max-w-xl mx-auto px-5 sm:px-8"}>
           {!orderSubmitted && (
@@ -2052,9 +2027,6 @@ function FitAnyaLanding() {
             <OrderSuccessPanel
               orderForm={orderForm}
               selectedPkg={selectedPkg}
-              allPackages={allPackages}
-              downloadedFiles={downloadedFiles}
-              onDownload={handleDownload}
               onRestart={handleRestart}
             />
           ) : (
@@ -2147,7 +2119,7 @@ function FitAnyaLanding() {
         </div>
       </footer>
 
-      {/* MOBIL LEBEGŐ SÁV (STICKY BOTTOM CTA) */}
+      {/* MOBIL LEBEGŐ SÁV */}
       {showStickyBar && (
         <div
           className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-white/95 backdrop-blur-md border-t border-[#F0DCD4] px-5 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom duration-300"
@@ -2172,7 +2144,7 @@ function FitAnyaLanding() {
         </div>
       )}
 
-      {/* JOGI FELUGRÓ ABLAK (MODAL) */}
+      {/* JOGI FELUGRÓ ABLAK */}
       {activeLegalModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div 
@@ -2210,7 +2182,7 @@ function FitAnyaLanding() {
 
                   <div>
                     <h4 className="font-semibold text-[#2D3748] mb-1">3. Megrendelés, fizetés és kézbesítés</h4>
-                    <p>A fizetés a Stripe nemzetközi, titkosított rendszerén keresztül történik (bankkártya, Apple Pay, Google Pay). A sikeres fizetést követően a hozzáférés és a letöltési linkek azonnal megjelennek a felületen, valamint automatikusan kiküldésre kerülnek a megadott e-mail címre. A szerződés elektronikus úton megkötött, magyar nyelvű szerződésnek minősül.</p>
+                    <p>A fizetés a Stripe nemzetközi, titkosított rendszerén keresztül történik (bankkártya, Apple Pay, Google Pay). A sikeres fizetést követően a hozzáférés és a letöltési linkek automatikusan kiküldésre kerülnek a megadott e-mail címre. A szerződés elektronikus úton megkötött, magyar nyelvű szerződésnek minősül.</p>
                   </div>
 
                   <div>
@@ -2260,7 +2232,6 @@ function FitAnyaLanding() {
                     <h4 className="font-semibold text-[#2D3748] mb-1">3. Adatfeldolgozók</h4>
                     <p>• <strong>Stripe Payments Europe, Ltd. (Írország):</strong> Bankkártyás fizetési tranzakciók lebonyolítása (kártyaadatokhoz a Szolgáltató nem fér hozzá).</p>
                     <p>• <strong>Cloudflare Inc. (USA / EU):</strong> Tárhelyszolgáltatás, webes kiszolgálás és hálózati védelem.</p>
-                    <p>• <strong>Google Ireland Ltd. (Írország):</strong> PDF tananyagok biztonságos felhőtárhelye.</p>
                   </div>
 
                   <div>
