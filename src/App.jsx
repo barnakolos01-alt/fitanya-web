@@ -241,6 +241,57 @@ const PACKAGE_DOWNLOADS = {
   },
 };
 
+const PILLARS_DATA = [
+  {
+    id: "pillar1",
+    tag: "1. Pillér",
+    title: "10 Perces Csendes Mozgás",
+    desc: "Nincs szükség kondibérletre vagy ugrálásra. Kifejezetten a hasfal és a törzsizmok kíméletes, de hatékony megerősítésére fókuszálunk.",
+    icon: Clock,
+    iconColor: "#E07A5F",
+    img: "/edzes.jpg",
+    modalTitle: "10 Perces Csendes Otthoni Mozgás",
+    modalPoints: [
+      "Zéró ugrálás: Nem ébreszti fel az alvó babát és védi a szülés után érzékeny medencefenék izomzatát.",
+      "Szétnyílt hasizom (diastasis recti) barát gyakorlatok a hasfal biztonságos feszesítésére.",
+      "Nincs szükség semmilyen eszközre, mindössze egy polifoamra vagy szőnyegre a nappaliban.",
+      "Pontosan 10 perc: bármikor beilleszthető a délelőtti vagy délutáni alvásidőbe."
+    ]
+  },
+  {
+    id: "pillar2",
+    tag: "2. Pillér",
+    title: "Egy Főzés — Tenyér-szabály",
+    desc: "Nincs kétfelé főzés. A család kedvenc ételeit készíted el, csupán a saját tányérodra szedett makróarányokat állítod be 20 másodperc alatt a tenyered segítségével.",
+    icon: Utensils,
+    iconColor: "#8A4B4F",
+    img: "/etrend.jpg",
+    modalTitle: "Egy Főzés a Családnak — Tenyér-szabály",
+    modalPoints: [
+      "Nem kell külön diétás kaját főznöd magadnak: a gulyás, bolognai vagy sült csirke a családnak is ugyanaz marad.",
+      "Konyhamérleg nélkül: a tenyered, öklöd és hüvelykujjad adja a grammra pontos tápanyagarányt.",
+      "Nincs éhezés: a megemelt fehérje- és zöldségarány miatt 4-5 órán át stabil marad a jóllakottságod.",
+      "Gyors tálalás: mindössze 20 másodperc alatt a megfelelő arány kerül a tányérodra a közös fazékból."
+    ]
+  },
+  {
+    id: "pillar3",
+    tag: "3. Pillér",
+    title: "Hormon-Reset & Energia",
+    desc: "A kimerültség és a stressz miatti kortizolszintet célzott tápanyagokkal és mikro-pihenőkkel ellensúlyozzuk, megelőzve az esti falásrohamokat.",
+    icon: Sun,
+    iconColor: "#7C9885",
+    img: "/energia.jpg",
+    modalTitle: "Hormon-Reset & Anyai Energiaszint",
+    modalPoints: [
+      "Kortizolkontroll: az alváshiány miatti stresszhormonok raktározó hatását célzott tápanyag-időzítéssel tompítjuk.",
+      "Viszlát esti nasirohamok: ha napközben stabilizáljuk a vércukrodat, este 9-kor nem tör rád a hűtőfosztási kényszer.",
+      "Természetes energiaszint koffein-túladagolás nélkül: egyenletes fizikai és mentális teherbírás a nap végéig.",
+      "Szoptatásbarát és kíméletes a női hormonrendszerhez, nem borítja fel az anyagcserét."
+    ]
+  }
+];
+
 function SectionEyebrow({ children }) {
   return (
     <span
@@ -608,7 +659,7 @@ export default function FitAnyaLandingRoot() {
 }
 
 function FitAnyaLanding() {
-  // 1. LOCALSTORAGE KEZELÉS: Meglévő kérdőív és űrlap állapotok betöltése
+  // 1. LOCALSTORAGE: Elmentett állapotok betöltése (kiesésvédelem háttérbe kerüléskor)
   const [step, setStep] = useState(() => {
     try {
       const savedStep = localStorage.getItem("fa_step");
@@ -671,16 +722,15 @@ function FitAnyaLanding() {
   const [activeLegalModal, setActiveLegalModal] = useState(null);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [activePalmDetail, setActivePalmDetail] = useState(null);
+  const [activePillarModal, setActivePillarModal] = useState(null);
 
-  // Állapotváltozások automatikus mentése a helyi tárhelybe
+  // Mentés LocalStorage-ba
   useEffect(() => {
     try {
       localStorage.setItem("fa_step", String(step));
       localStorage.setItem("fa_done", String(wizardDone));
       localStorage.setItem("fa_form", JSON.stringify(form));
-    } catch (e) {
-      // Helyi tárhely kvóta vagy tiltás esetén csendes lefutás
-    }
+    } catch (e) {}
   }, [step, wizardDone, form]);
 
   useEffect(() => {
@@ -711,7 +761,7 @@ function FitAnyaLanding() {
     }
   }, []);
 
-  // Görgetésfigyelő a mobilos lebegő sávhoz
+  // Görgetésfigyelő mobilos lebegő sávhoz
   useEffect(() => {
     const handleScroll = () => {
       if (orderSubmitted) {
@@ -747,7 +797,7 @@ function FitAnyaLanding() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [orderSubmitted]);
 
-  // Súrlódásmentes és megbízható webhook adatküldő (sendBeacon fallback-kel)
+  // Súrlódásmentes adatmentés sendBeacon háttérhívással
   const sendLeadData = (payload) => {
     const dataStr = JSON.stringify(payload);
     if (navigator.sendBeacon) {
@@ -764,7 +814,7 @@ function FitAnyaLanding() {
     }
   };
 
-  // STRIPE ÁTIRÁNYÍTÁS ELŐRE KITÖLTÖTT E-MAIL CÍMMEL
+  // STRIPE ÁTIRÁNYÍTÁS DINAMIKUS PREFILL-LEL
   const handleStripeCheckout = () => {
     const baseUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
     if (baseUrl) {
@@ -795,7 +845,7 @@ function FitAnyaLanding() {
     }
     setOrderError("");
     
-    // Háttérben azonnal mentjük a vásárlási szándékot a webhookra
+    // Adatok azonnali mentése táblázatba a fizetés indítása előtt
     sendLeadData({
       action: "order_intent",
       name: orderForm.name.trim(),
@@ -1020,81 +1070,120 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* A 3 ALAPPILLÉR */}
+      {/* A 3 ALAPPILLÉR — TELJESEN INTERAKTÍV KÁRTYÁK A DEAD CLICK ELTÜNTETÉSÉHEZ */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
         <div className="text-center mb-10">
           <SectionEyebrow><Award size={14} /> Miért működik?</SectionEyebrow>
           <h2 className="font-display font-semibold text-2xl sm:text-4xl mt-3">A FitAnya Módszer 3 Alappillére</h2>
           <p className="text-sm sm:text-base mt-2 max-w-xl mx-auto" style={{ color: "#4A5568" }}>
-            Nem drasztikus diétákról vagy kimerítő edzésekről szól. Három egyszerű, egymásra épülő szokás, amit a legsűrűbb napirendbe is beilleszthetsz.
+            Nem drasztikus diétákról vagy kimerítő edzésekről szól. Három egyszerű, egymásra épülő szokás. 
+            <strong className="text-[#E07A5F] block sm:inline sm:ml-1">Koppints a kártyákra a részletekért!</strong>
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm flex flex-col">
-            <div className="h-52 w-full overflow-hidden relative">
-              <img 
-                src="/edzes.jpg" 
-                alt="10 perces otthoni edzés" 
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-              <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm">
-                <Clock size={20} className="text-[#E07A5F]" />
+          {PILLARS_DATA.map((p) => {
+            const Icon = p.icon;
+            return (
+              <div 
+                key={p.id}
+                onClick={() => setActivePillarModal(p)}
+                className="group rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col hover:-translate-y-1 active:scale-[0.99] select-none"
+              >
+                <div className="h-52 w-full overflow-hidden relative">
+                  <img 
+                    src={p.img} 
+                    alt={p.title} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                    <Icon size={20} style={{ color: p.iconColor }} />
+                  </div>
+                  <span className="absolute bottom-3 right-3 text-[11px] font-bold px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[#2D3748] shadow-sm flex items-center gap-1 group-hover:text-[#E07A5F]">
+                    Részletek <ChevronRight size={13} />
+                  </span>
+                </div>
+                <div className="p-6 flex flex-col flex-1 justify-between">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{ color: p.iconColor }}>
+                      {p.tag}
+                    </span>
+                    <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2 group-hover:text-[#E07A5F] transition-colors">
+                      {p.title}
+                    </h3>
+                    <p className="text-sm text-[#4A5568] leading-relaxed">
+                      {p.desc}
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-[#F0DCD4] text-xs font-semibold text-[#E07A5F] flex items-center gap-1">
+                    <span>Hogyan működik a gyakorlatban?</span>
+                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="p-6 flex flex-col flex-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#E07A5F] mb-1">1. Pillér</span>
-              <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">10 Perces Csendes Mozgás</h3>
-              <p className="text-sm text-[#4A5568] leading-relaxed">
-                Nincs szükség kondibérletre vagy ugrálásra. Kifejezetten a hasfal és a törzsizmok kíméletes, de hatékony megerősítésére fókuszálunk.
-              </p>
-            </div>
-          </div>
+            );
+          })}
+        </div>
+      </section>
 
-          <div className="rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm flex flex-col">
-            <div className="h-52 w-full overflow-hidden relative">
-              <img 
-                src="/etrend.jpg" 
-                alt="Gyors és egészséges családi ételek" 
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-              <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm">
-                <Utensils size={20} className="text-[#8A4B4F]" />
-              </div>
-            </div>
-            <div className="p-6 flex flex-col flex-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#8A4B4F] mb-1">2. Pillér</span>
-              <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">Egy Főzés — Tenyér-szabály</h3>
-              <p className="text-sm text-[#4A5568] leading-relaxed">
-                Nincs kétfelé főzés. A család kedvenc ételeit készíted el, csupán a saját tányérodra szedett makróarányokat állítod be 20 másodperc alatt a tenyered segítségével.
-              </p>
-            </div>
-          </div>
+      {/* 3 ALAPPILLÉR RÉSZLETES MODAL */}
+      {activePillarModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div 
+            className="bg-[#FFFDFB] max-w-lg w-full rounded-3xl p-6 sm:p-8 shadow-2xl relative border border-[#F0DCD4] animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              type="button" 
+              onClick={() => setActivePillarModal(null)} 
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+              aria-label="Bezárás"
+            >
+              <X size={20} />
+            </button>
 
-          <div className="rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm flex flex-col">
-            <div className="h-52 w-full overflow-hidden relative">
-              <img 
-                src="/energia.jpg" 
-                alt="Hormonális egyensúly és napi energiaszint" 
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-              <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm">
-                <Sun size={20} className="text-[#7C9885]" />
-              </div>
+            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#FDE8E1] text-[#E07A5F]">
+              {activePillarModal.tag}
+            </span>
+            <h3 className="font-display font-semibold text-xl sm:text-2xl text-[#2D3748] mt-3 mb-2">
+              {activePillarModal.modalTitle}
+            </h3>
+            <p className="text-xs sm:text-sm text-[#6B5A52] mb-5 leading-relaxed">
+              A FitAnya Módszerben így építjük be ezt a mindennapjaidba:
+            </p>
+
+            <div className="space-y-3 mb-6">
+              {activePillarModal.modalPoints.map((pt, i) => (
+                <div key={i} className="flex items-start gap-3 text-sm text-[#4A5568]">
+                  <CheckCircle2 size={18} className="text-[#7C9885] shrink-0 mt-0.5" />
+                  <span>{pt}</span>
+                </div>
+              ))}
             </div>
-            <div className="p-6 flex flex-col flex-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#7C9885] mb-1">3. Pillér</span>
-              <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2">Hormon-Reset &amp; Energia</h3>
-              <p className="text-sm text-[#4A5568] leading-relaxed">
-                A kimerültség és a stressz miatti kortizolszintet célzott tápanyagokkal és mikro-pihenőkkel ellensúlyozzuk, megelőzve az esti falásrohamokat.
-              </p>
+
+            <div className="pt-4 border-t border-[#F0DCD4] flex items-center justify-between gap-3">
+              <button 
+                type="button" 
+                onClick={() => setActivePillarModal(null)} 
+                className="text-xs font-semibold text-[#8A7268] hover:text-[#2D3748] cursor-pointer"
+              >
+                Bezárás
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setActivePillarModal(null);
+                  scrollTo(wizardRef);
+                }} 
+                className="cta-btn font-display font-semibold text-xs sm:text-sm text-white px-5 py-2.5 rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                Kitöltöm az auditot <ArrowRight size={15} />
+              </button>
             </div>
           </div>
         </div>
-      </section>
+      )}
 
       {/* EGY FŐZÉS - KÉT TÁNYÉR ÖSSZEHASONLÍTÁS */}
       <section className="max-w-5xl mx-auto px-5 sm:px-8 py-12">
@@ -1430,14 +1519,14 @@ function FitAnyaLanding() {
               />
             </div>
 
-            {/* SZEMÉLYRE SZABOTT TENYÉR-MAKRÓ ADAGOLÓ (INTERAKTÍV - DEAD CLICK MEGSZÜNTETVE) */}
+            {/* SZEMÉLYRE SZABOTT TENYÉR-MAKRÓ ADAGOLÓ */}
             <div className="rounded-3xl p-6 sm:p-8 mb-4 bg-white border border-[#F0DCD4] shadow-sm">
               <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
                 <h3 className="font-display font-semibold text-lg sm:text-xl text-[#2D3748]">
                   Személyre Szabott Napi Tenyér-Adagod
                 </h3>
                 <span className="text-[11px] font-semibold text-[#E07A5F] flex items-center gap-1">
-                  <Info size={13} /> Koppints a kártyákra a részletekért!
+                  <Info size={13} /> Koppints a kártyákra a magyarázatért!
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-[#6B5A52] mb-6">
@@ -1490,20 +1579,19 @@ function FitAnyaLanding() {
                 </div>
               </div>
 
-              {/* Dinamikusan felnyíló infópanel kattintáskor */}
               {activePalmDetail && (
                 <div className="mt-4 p-4 rounded-2xl bg-[#FFF9F5] border border-[#F0DCD4] text-xs leading-relaxed text-[#4A5568] animate-in fade-in duration-200">
                   {activePalmDetail === "protein" && (
-                    <p>🖐️ <strong>1 Tenyérnyi fehérje</strong> = kb. egy tenyér nagyságú és vastagságú csirkemell, halfilé, 2 db tojás vagy 150g zsírszegény túró. Cél: az izomzat megtartása diéta alatt.</p>
+                    <p>🖐️ <strong>1 Tenyérnyi fehérje</strong> = kb. egy tenyér nagyságú és vastagságú csirkemell, halfilé, 2 db tojás vagy 150g zsírszegény túró. Cél: az izomzat megtartása és a jóllakottság.</p>
                   )}
                   {activePalmDetail === "veg" && (
-                    <p>✊ <strong>1 Ökölnyi rost</strong> = egy zárt ököl méretű nyers vagy párolt zöldség (pl. brokkoli, cukkini, spenót, uborka, paradicsom). Segíti az emésztést és tartós teltségérzetet ad.</p>
+                    <p>✊ <strong>1 Ökölnyi rost</strong> = egy zárt ököl méretű nyers vagy párolt zöldség (pl. brokkoli, cukkini, spenót, uborka, paradicsom). Emésztésjavítás és tartós teltségérzet.</p>
                   )}
                   {activePalmDetail === "carb" && (
-                    <p>🤲 <strong>1 Maréknyi szénhidrát</strong> = amennyi főtt rizs, burgonya, édesburgonya vagy tészta kényelmesen elfér a markodban. Nincs tiltás, a mérték a kulcs.</p>
+                    <p>🤲 <strong>1 Maréknyi szénhidrát</strong> = amennyi főtt rizs, burgonya, édesburgonya vagy tészta kényelmesen elfér a markodban. Nincs koplalás, a pontos mérték adja a deficitet.</p>
                   )}
                   {activePalmDetail === "fat" && (
-                    <p>👍 <strong>1 Hüvelykujjnyi zsír</strong> = kb. 1 evőkanál olívaolaj salátára, egy kis szelet sajt vagy egy fél marék olajos mag (dió, mandula) a hormonális egyensúly támogatására.</p>
+                    <p>👍 <strong>1 Hüvelykujjnyi zsír</strong> = kb. 1 evőkanál olívaolaj salátára, egy kis szelet sajt vagy egy fél marék olajos mag a hormonális egyensúly fenntartásához.</p>
                   )}
                 </div>
               )}
