@@ -659,7 +659,7 @@ export default function FitAnyaLandingRoot() {
 }
 
 function FitAnyaLanding() {
-  // 1. LOCALSTORAGE: Elmentett állapotok betöltése (kiesésvédelem háttérbe kerüléskor)
+  // 1. LOCALSTORAGE: Kérdőív és űrlap állapotok betöltése
   const [step, setStep] = useState(() => {
     try {
       const savedStep = localStorage.getItem("fa_step");
@@ -797,7 +797,7 @@ function FitAnyaLanding() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [orderSubmitted]);
 
-  // Súrlódásmentes adatmentés sendBeacon háttérhívással
+  // Súrlódásmentes adatmentés sendBeacon háttérhívással a feliratkozási kapuhoz
   const sendLeadData = (payload) => {
     const dataStr = JSON.stringify(payload);
     if (navigator.sendBeacon) {
@@ -838,23 +838,13 @@ function FitAnyaLanding() {
     }
   };
 
+  // JAVÍTVA: Kizárólag validáció és Stripe indítás fut, nincs webhook hívás, így nem generálódik téves e-mail!
   const handleOrderSubmit = () => {
     if (!orderForm.name.trim() || !orderForm.email.trim()) {
       setOrderError("Kérjük, add meg a neved és az e-mail címed a folytatáshoz!");
       return;
     }
     setOrderError("");
-    
-    // Adatok azonnali mentése táblázatba a fizetés indítása előtt
-    sendLeadData({
-      action: "order_intent",
-      name: orderForm.name.trim(),
-      email: orderForm.email.trim(),
-      selectedPkg,
-      ...results,
-      ...form,
-    });
-
     handleStripeCheckout();
   };
 
@@ -1070,7 +1060,7 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* A 3 ALAPPILLÉR — TELJESEN INTERAKTÍV KÁRTYÁK A DEAD CLICK ELTÜNTETÉSÉHEZ */}
+      {/* A 3 ALAPPILLÉR — INTERAKTÍV KÁRTYÁK MODAL NYITÁSSAL */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
         <div className="text-center mb-10">
           <SectionEyebrow><Award size={14} /> Miért működik?</SectionEyebrow>
@@ -1859,7 +1849,7 @@ function FitAnyaLanding() {
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-[#F0DCD4] text-xs font-semibold text-[#E07A5F]">
-              ✓ 30 Családi Gyorsrecept az alapcsomagban[cite: 1]
+              ✓ 30 Családi Gyorsrecept az alapcsomagban
             </div>
           </div>
 
