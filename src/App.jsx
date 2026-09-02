@@ -43,6 +43,7 @@ import {
   Target,
   Loader2,
   HelpCircle,
+  Info,
 } from "lucide-react";
 
 // AZ ÉLES GOOGLE APPS SCRIPT WEBHOOK URL:
@@ -243,7 +244,7 @@ const PACKAGE_DOWNLOADS = {
 function SectionEyebrow({ children }) {
   return (
     <span
-      className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full"
+      className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full select-none"
       style={{ background: "#F9D5CE", color: "#8A4B4F" }}
     >
       {children}
@@ -253,7 +254,7 @@ function SectionEyebrow({ children }) {
 
 function WaveConnector({ steps, activeIndex }) {
   return (
-    <div className="relative flex items-center justify-between w-full max-w-lg mx-auto mb-2">
+    <div className="relative flex items-center justify-between w-full max-w-lg mx-auto mb-2 select-none">
       <svg
         className="absolute left-0 right-0 top-1/2 -translate-y-1/2 w-full"
         height="20"
@@ -272,7 +273,7 @@ function WaveConnector({ steps, activeIndex }) {
       {steps.map((label, i) => (
         <div key={i} className="relative z-10 flex flex-col items-center gap-1.5" style={{ width: `${100 / steps.length}%` }}>
           <div
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold font-display"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold font-display transition-colors"
             style={{
               background: i <= activeIndex ? "#E07A5F" : "#FDFBF7",
               color: i <= activeIndex ? "#FDFBF7" : "#B99189",
@@ -290,7 +291,7 @@ function WaveConnector({ steps, activeIndex }) {
 function KpiCard({ icon: Icon, label, value, sub, accent = "#E07A5F" }) {
   return (
     <div
-      className="rounded-2xl p-5 sm:p-6 flex flex-col gap-2"
+      className="rounded-2xl p-5 sm:p-6 flex flex-col gap-2 select-none"
       style={{ background: "#FDFBF7", border: "1px solid #F0DCD4" }}
     >
       <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${accent}1A` }}>
@@ -333,21 +334,21 @@ function PricingCard({ tier, selected, isRecommended, onSelect }) {
     >
       {isRecommended ? (
         <span
-          className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold font-display px-4 py-1.5 rounded-full whitespace-nowrap shadow-md"
+          className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold font-display px-4 py-1.5 rounded-full whitespace-nowrap shadow-md select-none"
           style={{ background: "#C8624A", color: "#FFFDFB" }}
         >
           ★ NEKED AJÁNLOTT CSOMAG ★
         </span>
       ) : isFeatured ? (
         <span
-          className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold font-display px-4 py-1.5 rounded-full whitespace-nowrap"
+          className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold font-display px-4 py-1.5 rounded-full whitespace-nowrap select-none"
           style={{ background: "#E07A5F", color: "#FFF9F5" }}
         >
           Legnépszerűbb választás
         </span>
       ) : hasBadge ? (
         <span
-          className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold font-display px-4 py-1.5 rounded-full whitespace-nowrap"
+          className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold font-display px-4 py-1.5 rounded-full whitespace-nowrap select-none"
           style={{ background: "#8A4B4F", color: "#FDFBF7" }}
         >
           {tier.badge}
@@ -407,7 +408,7 @@ function FaqItem({ q, a, open, onToggle }) {
 
 function MacroChip({ icon: Icon, value, unit, color }) {
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full" style={{ background: `${color}17`, color }}>
+    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full select-none" style={{ background: `${color}17`, color }}>
       <Icon size={11} /> {value}{unit}
     </span>
   );
@@ -419,7 +420,7 @@ function MealSwapCard({ mealKey, meal, selectedIndex, isOpen, onToggleDropdown, 
 
   return (
     <div className="relative rounded-2xl p-5 sm:p-6 flex flex-col" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4" }}>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 select-none">
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#B99189" }}>
           <Icon size={14} /> {meal.label} · {meal.time}
         </span>
@@ -429,7 +430,7 @@ function MealSwapCard({ mealKey, meal, selectedIndex, isOpen, onToggleDropdown, 
         {current.name}
       </p>
 
-      <div className="flex flex-wrap gap-1.5 mb-5">
+      <div className="flex flex-wrap gap-1.5 mb-5 select-none">
         <MacroChip icon={Flame} value={current.kcal} unit=" kcal" color="#E07A5F" />
         <MacroChip icon={Beef} value={current.protein} unit="g" color="#8A4B4F" />
         <MacroChip icon={Wheat} value={current.carbs} unit="g" color="#B08D4F" />
@@ -458,7 +459,7 @@ function MealSwapCard({ mealKey, meal, selectedIndex, isOpen, onToggleDropdown, 
             className="absolute left-3 right-3 top-full mt-2 rounded-2xl p-2 z-30"
             style={{ background: "#FFFDFB", border: "1px solid #F0DCD4", boxShadow: "0 18px 40px -16px rgba(45,55,72,0.35)" }}
           >
-            <div className="flex items-center justify-between px-2 pt-1.5 pb-2">
+            <div className="flex items-center justify-between px-2 pt-1.5 pb-2 select-none">
               <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "#B99189" }}>
                 Azonos makróértékű alternatívák
               </p>
@@ -607,19 +608,61 @@ export default function FitAnyaLandingRoot() {
 }
 
 function FitAnyaLanding() {
-  const [step, setStep] = useState(0);
-  const [wizardDone, setWizardDone] = useState(false);
-  const [form, setForm] = useState({
-    age: "", height: "", weight: "", goalWeight: "",
-    nursing: "", activity: "", sleep: "", snacking: "", kitchen: "", focus: ""
+  // 1. LOCALSTORAGE KEZELÉS: Meglévő kérdőív és űrlap állapotok betöltése
+  const [step, setStep] = useState(() => {
+    try {
+      const savedStep = localStorage.getItem("fa_step");
+      return savedStep !== null ? Number(savedStep) : 0;
+    } catch {
+      return 0;
+    }
   });
-  const [gateEmail, setGateEmail] = useState("");
-  const [gateSent, setGateSent] = useState(false);
+
+  const [wizardDone, setWizardDone] = useState(() => {
+    try {
+      return localStorage.getItem("fa_done") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const [form, setForm] = useState(() => {
+    const defaultForm = {
+      age: "", height: "", weight: "", goalWeight: "",
+      nursing: "", activity: "", sleep: "", snacking: "", kitchen: "", focus: ""
+    };
+    try {
+      const saved = localStorage.getItem("fa_form");
+      return saved ? JSON.parse(saved) : defaultForm;
+    } catch {
+      return defaultForm;
+    }
+  });
+
+  const [gateEmail, setGateEmail] = useState(() => {
+    try { return localStorage.getItem("fa_email") || ""; } catch { return ""; }
+  });
+  
+  const [gateSent, setGateSent] = useState(() => {
+    try { return localStorage.getItem("fa_gate_sent") === "true"; } catch { return false; }
+  });
+  
   const [isSendingGate, setIsSendingGate] = useState(false);
   const [selectedPkg, setSelectedPkg] = useState("premium");
   const [faqOpen, setFaqOpen] = useState(0);
 
-  const [orderForm, setOrderForm] = useState({ name: "", email: "" });
+  const [orderForm, setOrderForm] = useState(() => {
+    const defaultOrder = { name: "", email: "" };
+    try {
+      const saved = localStorage.getItem("fa_order_form");
+      if (saved) return JSON.parse(saved);
+      const savedEmail = localStorage.getItem("fa_email");
+      return savedEmail ? { name: "", email: savedEmail } : defaultOrder;
+    } catch {
+      return defaultOrder;
+    }
+  });
+
   const [orderError, setOrderError] = useState("");
   const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -627,6 +670,24 @@ function FitAnyaLanding() {
 
   const [activeLegalModal, setActiveLegalModal] = useState(null);
   const [showStickyBar, setShowStickyBar] = useState(false);
+  const [activePalmDetail, setActivePalmDetail] = useState(null);
+
+  // Állapotváltozások automatikus mentése a helyi tárhelybe
+  useEffect(() => {
+    try {
+      localStorage.setItem("fa_step", String(step));
+      localStorage.setItem("fa_done", String(wizardDone));
+      localStorage.setItem("fa_form", JSON.stringify(form));
+    } catch (e) {
+      // Helyi tárhely kvóta vagy tiltás esetén csendes lefutás
+    }
+  }, [step, wizardDone, form]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("fa_order_form", JSON.stringify(orderForm));
+    } catch (e) {}
+  }, [orderForm]);
 
   const handleDownload = (key) => setDownloadedFiles((s) => ({ ...s, [key]: true }));
 
@@ -686,6 +747,24 @@ function FitAnyaLanding() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [orderSubmitted]);
 
+  // Súrlódásmentes és megbízható webhook adatküldő (sendBeacon fallback-kel)
+  const sendLeadData = (payload) => {
+    const dataStr = JSON.stringify(payload);
+    if (navigator.sendBeacon) {
+      const blob = new Blob([dataStr], { type: "text/plain;charset=utf-8" });
+      navigator.sendBeacon(GOOGLE_SHEET_WEBHOOK_URL, blob);
+    } else {
+      fetch(GOOGLE_SHEET_WEBHOOK_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: dataStr,
+        keepalive: true,
+      }).catch((e) => console.warn(e));
+    }
+  };
+
+  // STRIPE ÁTIRÁNYÍTÁS ELŐRE KITÖLTÖTT E-MAIL CÍMMEL
   const handleStripeCheckout = () => {
     const baseUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
     if (baseUrl) {
@@ -699,9 +778,13 @@ function FitAnyaLanding() {
         window.fbq("track", "InitiateCheckout", { value: price, currency: "HUF" });
       }
 
-      const encodedEmail = encodeURIComponent(orderForm.email.trim());
-      window.location.href = `${baseUrl}?prefilled_email=${encodedEmail}`;
-      setTimeout(() => setIsCheckingOut(false), 5000); 
+      const rawEmail = (orderForm.email || gateEmail || "").trim();
+      const checkoutUrl = rawEmail 
+        ? `${baseUrl}?prefilled_email=${encodeURIComponent(rawEmail)}` 
+        : baseUrl;
+
+      window.location.href = checkoutUrl;
+      setTimeout(() => setIsCheckingOut(false), 6000); 
     }
   };
 
@@ -711,14 +794,36 @@ function FitAnyaLanding() {
       return;
     }
     setOrderError("");
+    
+    // Háttérben azonnal mentjük a vásárlási szándékot a webhookra
+    sendLeadData({
+      action: "order_intent",
+      name: orderForm.name.trim(),
+      email: orderForm.email.trim(),
+      selectedPkg,
+      ...results,
+      ...form,
+    });
+
     handleStripeCheckout();
   };
 
   const handleRestart = () => {
+    try {
+      localStorage.removeItem("fa_step");
+      localStorage.removeItem("fa_done");
+      localStorage.removeItem("fa_form");
+      localStorage.removeItem("fa_order_form");
+      localStorage.removeItem("fa_email");
+      localStorage.removeItem("fa_gate_sent");
+    } catch (e) {}
+
     setOrderSubmitted(false);
     setOrderError("");
     setWizardDone(false);
     setStep(0);
+    setGateEmail("");
+    setGateSent(false);
     setForm({
       age: "", height: "", weight: "", goalWeight: "",
       nursing: "", activity: "", sleep: "", snacking: "", kitchen: "", focus: ""
@@ -791,18 +896,17 @@ function FitAnyaLanding() {
     setIsSendingGate(true);
     
     setOrderForm((prev) => ({ ...prev, email: gateEmail.trim() }));
+    try {
+      localStorage.setItem("fa_email", gateEmail.trim());
+      localStorage.setItem("fa_gate_sent", "true");
+    } catch (e) {}
     
     try {
-      const payload = {
+      sendLeadData({
+        action: "gate_lead",
         email: gateEmail.trim(),
         ...results,
         ...form,
-      };
-      await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload),
       });
 
       if (window.fbq) {
@@ -811,7 +915,6 @@ function FitAnyaLanding() {
 
       setGateSent(true);
     } catch (err) {
-      console.error(err);
       setGateSent(true);
     } finally {
       setIsSendingGate(false);
@@ -909,7 +1012,7 @@ function FitAnyaLanding() {
             Kattints ide a teszt kitöltéséhez &amp; kalóriaszámoláshoz <ArrowRight size={20} />
           </button>
 
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm" style={{ color: "#6B5A52" }}>
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm select-none" style={{ color: "#6B5A52" }}>
             <span className="inline-flex items-center gap-1.5"><ShieldCheck size={16} style={{ color: "#7C9885" }} /> Tudományosan igazolt élettani alapok</span>
             <span className="inline-flex items-center gap-1.5"><Heart size={16} style={{ color: "#7C9885" }} /> 100% Pénzvisszafizetési Garancia</span>
             <span className="inline-flex items-center gap-1.5"><Zap size={16} style={{ color: "#E07A5F" }} /> Külön főzés és koplalás nélkül</span>
@@ -1005,7 +1108,7 @@ function FitAnyaLanding() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="rounded-3xl p-6 sm:p-7 border" style={{ background: "#FFFDFB", borderColor: "#F0DCD4" }}>
-            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-red-100 text-red-800">
+            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-red-100 text-red-800 select-none">
               A Család / Gyerekek tányérja
             </span>
             <h3 className="font-display font-semibold text-lg mt-3 text-[#2D3748]">Klasszikus Bolognai tészta</h3>
@@ -1020,7 +1123,7 @@ function FitAnyaLanding() {
           </div>
 
           <div className="rounded-3xl p-6 sm:p-7 border-2" style={{ background: "#FFF9F5", borderColor: "#E07A5F" }}>
-            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-green-100 text-green-800">
+            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-green-100 text-green-800 select-none">
               A Te tányérod (FitAnya módszer)
             </span>
             <h3 className="font-display font-semibold text-lg mt-3 text-[#2D3748]">Ugyanaz a Bolognai – FitAnya arányban</h3>
@@ -1049,7 +1152,7 @@ function FitAnyaLanding() {
       <section ref={wizardRef} className="max-w-2xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
         {!wizardDone ? (
           <div className="rounded-3xl p-6 sm:p-10" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4", boxShadow: "0 20px 48px -28px rgba(45,55,72,0.25)" }}>
-            <p className="text-center text-xs uppercase tracking-wide font-semibold mb-5" style={{ color: "#B99189" }}>
+            <p className="text-center text-xs uppercase tracking-wide font-semibold mb-5 select-none" style={{ color: "#B99189" }}>
               Lépés {step + 1} / 6 — {stepLabels[step]}
             </p>
             <WaveConnector steps={stepLabels} activeIndex={step} />
@@ -1184,7 +1287,7 @@ function FitAnyaLanding() {
                     <h2 className="font-display font-semibold text-lg flex items-center gap-2">
                       <Utensils size={18} style={{ color: "#E07A5F" }} /> 1. Kérdés: Kalóriaszivárgás
                     </h2>
-                    {form.snacking ? <span className="text-xs font-bold text-[#7C9885] bg-green-50 px-2 py-0.5 rounded-md">Kiválasztva ✓</span> : <span className="text-xs font-semibold text-[#E07A5F] bg-orange-50 px-2 py-0.5 rounded-md">Válassz egyet</span>}
+                    {form.snacking ? <span className="text-xs font-bold text-[#7C9885] bg-green-50 px-2 py-0.5 rounded-md select-none">Kiválasztva ✓</span> : <span className="text-xs font-semibold text-[#E07A5F] bg-orange-50 px-2 py-0.5 rounded-md select-none">Válassz egyet</span>}
                   </div>
                   <p className="text-xs mb-3 text-[#6B5A52]">
                     Milyen gyakran csúszik be csipegetés, stresszevés vagy a családi maradékok elfogyasztása?
@@ -1216,7 +1319,7 @@ function FitAnyaLanding() {
                     <h2 className="font-display font-semibold text-lg flex items-center gap-2">
                       <Clock size={18} style={{ color: "#E07A5F" }} /> 2. Kérdés: Konyhai kapacitás
                     </h2>
-                    {form.kitchen ? <span className="text-xs font-bold text-[#7C9885] bg-green-50 px-2 py-0.5 rounded-md">Kiválasztva ✓</span> : <span className="text-xs font-semibold text-[#E07A5F] bg-orange-50 px-2 py-0.5 rounded-md">Válassz egyet</span>}
+                    {form.kitchen ? <span className="text-xs font-bold text-[#7C9885] bg-green-50 px-2 py-0.5 rounded-md select-none">Kiválasztva ✓</span> : <span className="text-xs font-semibold text-[#E07A5F] bg-orange-50 px-2 py-0.5 rounded-md select-none">Válassz egyet</span>}
                   </div>
                   <p className="text-xs mb-3 text-[#6B5A52]">Mennyi időd jut a főzésre egy átlagos napon?</p>
                   <div className="space-y-2">
@@ -1327,41 +1430,83 @@ function FitAnyaLanding() {
               />
             </div>
 
-            {/* SZEMÉLYRE SZABOTT TENYÉR-MAKRÓ ADAGOLÓ */}
+            {/* SZEMÉLYRE SZABOTT TENYÉR-MAKRÓ ADAGOLÓ (INTERAKTÍV - DEAD CLICK MEGSZÜNTETVE) */}
             <div className="rounded-3xl p-6 sm:p-8 mb-4 bg-white border border-[#F0DCD4] shadow-sm">
-              <h3 className="font-display font-semibold text-lg sm:text-xl text-[#2D3748] mb-1">
-                Személyre Szabott Napi Tenyér-Adagod
-              </h3>
+              <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
+                <h3 className="font-display font-semibold text-lg sm:text-xl text-[#2D3748]">
+                  Személyre Szabott Napi Tenyér-Adagod
+                </h3>
+                <span className="text-[11px] font-semibold text-[#E07A5F] flex items-center gap-1">
+                  <Info size={13} /> Koppints a kártyákra a részletekért!
+                </span>
+              </div>
               <p className="text-xs sm:text-sm text-[#6B5A52] mb-6">
                 Ezekből az arányokból állítsd össze a tányérod a napi étkezések során — konyhamérleg nélkül:
               </p>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                <div className="p-4 rounded-2xl bg-[#FFF5F2] border border-[#F0DCD4]">
+                <div 
+                  onClick={() => setActivePalmDetail((c) => c === "protein" ? null : "protein")}
+                  className="p-4 rounded-2xl bg-[#FFF5F2] border cursor-pointer transition-transform active:scale-95 select-none"
+                  style={{ borderColor: activePalmDetail === "protein" ? "#E07A5F" : "#F0DCD4" }}
+                >
                   <span className="text-2xl">🖐️</span>
                   <p className="font-display font-bold text-lg text-[#2D3748] mt-1">{results.palmProtein} Tenyér</p>
                   <p className="text-xs font-semibold text-[#8A4B4F]">Fehérje (~{results.proteinGrams}g)</p>
                   <p className="text-[11px] text-[#8A7268] mt-1">Hús, hal, tojás, túró</p>
                 </div>
-                <div className="p-4 rounded-2xl bg-[#F0F5F1] border border-[#D5E5D8]">
+
+                <div 
+                  onClick={() => setActivePalmDetail((c) => c === "veg" ? null : "veg")}
+                  className="p-4 rounded-2xl bg-[#F0F5F1] border cursor-pointer transition-transform active:scale-95 select-none"
+                  style={{ borderColor: activePalmDetail === "veg" ? "#7C9885" : "#D5E5D8" }}
+                >
                   <span className="text-2xl">✊</span>
                   <p className="font-display font-bold text-lg text-[#2D3748] mt-1">{results.fistVeg} Ököl</p>
                   <p className="text-xs font-semibold text-[#7C9885]">Rost / Zöldség</p>
                   <p className="text-[11px] text-[#8A7268] mt-1">Saláta, uborka, brokkoli</p>
                 </div>
-                <div className="p-4 rounded-2xl bg-[#FFFDF5] border border-[#F2E6C8]">
+
+                <div 
+                  onClick={() => setActivePalmDetail((c) => c === "carb" ? null : "carb")}
+                  className="p-4 rounded-2xl bg-[#FFFDF5] border cursor-pointer transition-transform active:scale-95 select-none"
+                  style={{ borderColor: activePalmDetail === "carb" ? "#B08D4F" : "#F2E6C8" }}
+                >
                   <span className="text-2xl">🤲</span>
                   <p className="font-display font-bold text-lg text-[#2D3748] mt-1">{results.cuppedCarb} Marék</p>
                   <p className="text-xs font-semibold text-[#B08D4F]">Szénhidrát (~{results.carbGrams}g)</p>
                   <p className="text-[11px] text-[#8A7268] mt-1">Rizs, tészta, burgonya</p>
                 </div>
-                <div className="p-4 rounded-2xl bg-[#FAF6F0] border border-[#E8DFD8]">
+
+                <div 
+                  onClick={() => setActivePalmDetail((c) => c === "fat" ? null : "fat")}
+                  className="p-4 rounded-2xl bg-[#FAF6F0] border cursor-pointer transition-transform active:scale-95 select-none"
+                  style={{ borderColor: activePalmDetail === "fat" ? "#8A7268" : "#E8DFD8" }}
+                >
                   <span className="text-2xl">👍</span>
                   <p className="font-display font-bold text-lg text-[#2D3748] mt-1">{results.thumbFat} Hüvelykujj</p>
                   <p className="text-xs font-semibold text-[#6B5A52]">Egészséges Zsír (~{results.fatGrams}g)</p>
                   <p className="text-[11px] text-[#8A7268] mt-1">Olívaolaj, magvak, sajt</p>
                 </div>
               </div>
+
+              {/* Dinamikusan felnyíló infópanel kattintáskor */}
+              {activePalmDetail && (
+                <div className="mt-4 p-4 rounded-2xl bg-[#FFF9F5] border border-[#F0DCD4] text-xs leading-relaxed text-[#4A5568] animate-in fade-in duration-200">
+                  {activePalmDetail === "protein" && (
+                    <p>🖐️ <strong>1 Tenyérnyi fehérje</strong> = kb. egy tenyér nagyságú és vastagságú csirkemell, halfilé, 2 db tojás vagy 150g zsírszegény túró. Cél: az izomzat megtartása diéta alatt.</p>
+                  )}
+                  {activePalmDetail === "veg" && (
+                    <p>✊ <strong>1 Ökölnyi rost</strong> = egy zárt ököl méretű nyers vagy párolt zöldség (pl. brokkoli, cukkini, spenót, uborka, paradicsom). Segíti az emésztést és tartós teltségérzetet ad.</p>
+                  )}
+                  {activePalmDetail === "carb" && (
+                    <p>🤲 <strong>1 Maréknyi szénhidrát</strong> = amennyi főtt rizs, burgonya, édesburgonya vagy tészta kényelmesen elfér a markodban. Nincs tiltás, a mérték a kulcs.</p>
+                  )}
+                  {activePalmDetail === "fat" && (
+                    <p>👍 <strong>1 Hüvelykujjnyi zsír</strong> = kb. 1 evőkanál olívaolaj salátára, egy kis szelet sajt vagy egy fél marék olajos mag (dió, mandula) a hormonális egyensúly támogatására.</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* HÍD BANNER: SZÁMOKBÓL GYAKORLAT */}
@@ -1381,7 +1526,7 @@ function FitAnyaLanding() {
 
             {/* NEKED AJÁNLOTT CSOMAG KIEMELÉS */}
             <div className="rounded-3xl p-6 sm:p-8 mb-6 border-2 bg-gradient-to-br from-[#FFF9F5] to-[#FDE8E1] border-[#E07A5F] relative">
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display px-3.5 py-1 rounded-full bg-[#E07A5F] text-white mb-3">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display px-3.5 py-1 rounded-full bg-[#E07A5F] text-white mb-3 select-none">
                 <Sparkles size={13} /> Algoritmus által kijelölt csomag
               </span>
               <h3 className="font-display font-semibold text-xl text-[#2D3748] mb-2">
@@ -1626,7 +1771,7 @@ function FitAnyaLanding() {
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-[#F0DCD4] text-xs font-semibold text-[#E07A5F]">
-              ✓ 30 Családi Gyorsrecept az alapcsomagban
+              ✓ 30 Családi Gyorsrecept az alapcsomagban[cite: 1]
             </div>
           </div>
 
@@ -1662,7 +1807,7 @@ function FitAnyaLanding() {
         </div>
 
         {/* 14 NAPOS GARANCIA */}
-        <div className="rounded-2xl p-8 sm:p-10 text-center mb-14" style={{ background: "#FDFBF7", border: "2px solid #7C9885" }}>
+        <div className="rounded-2xl p-8 sm:p-10 text-center mb-14 select-none" style={{ background: "#FDFBF7", border: "2px solid #7C9885" }}>
           <ShieldCheck size={32} className="mx-auto mb-3" style={{ color: "#7C9885" }} />
           <h3 className="font-display font-semibold text-xl mb-1">14 Napos Kérdés Nélküli Pénzvisszafizetési Garancia</h3>
           <p className="text-sm max-w-xl mx-auto" style={{ color: "#4A5568" }}>
@@ -1744,7 +1889,7 @@ function FitAnyaLanding() {
                   <>Biztonságos Fizetés a Stripe-on — {(packages.find((p) => p.id === selectedPkg)?.price ?? 0).toLocaleString("hu-HU")} Ft <ArrowRight size={18} /></>
                 )}
               </button>
-              <div className="flex items-center justify-center gap-4 mt-4 flex-wrap">
+              <div className="flex items-center justify-center gap-4 mt-4 flex-wrap select-none">
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: "#8A7268" }}>
                   <CreditCard size={14} style={{ color: "#7C9885" }} /> Kártya
                 </span>
@@ -1755,7 +1900,7 @@ function FitAnyaLanding() {
                   <Wallet size={14} style={{ color: "#7C9885" }} /> Google Pay
                 </span>
               </div>
-              <p className="text-xs text-center mt-3 flex items-center justify-center gap-1.5" style={{ color: "#8A7268" }}>
+              <p className="text-xs text-center mt-3 flex items-center justify-center gap-1.5 select-none" style={{ color: "#8A7268" }}>
                 <ShieldCheck size={13} style={{ color: "#7C9885" }} /> Titkosított Stripe fizetés · 14 napos garancia
               </p>
             </div>
@@ -1796,9 +1941,9 @@ function FitAnyaLanding() {
           className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-white/95 backdrop-blur-md border-t border-[#F0DCD4] px-5 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom duration-300"
           style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
         >
-          <div className="flex flex-col">
+          <div className="flex flex-col select-none">
             <span className="font-display font-bold text-sm text-[#2D3748]">FitAnya Módszer</span>
-            <span className="text-[11px] font-semibold text-[#E07A5F]">4 990 Ft-tól • 14 nap garancia</span>
+            <span className="text-[11px] font-semibold text-[#E07A5F]">4 990 Ft-tól • 14 nap garancia[cite: 1]</span>
           </div>
           <button
             onClick={() => scrollTo(pricingRef)}
