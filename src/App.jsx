@@ -23,11 +23,6 @@ import {
   Beef,
   Wheat,
   Droplet,
-  RefreshCw,
-  Coffee,
-  Salad,
-  Soup,
-  Cookie,
   Users,
   Award,
   Phone,
@@ -150,53 +145,6 @@ function computeAudit(data) {
     lactationBonus,
   };
 }
-
-const MEAL_PLAN = {
-  reggeli: {
-    label: "Reggeli",
-    icon: Coffee,
-    time: "7:30",
-    options: [
-      { name: "Zabkása tejjel, banánnal és fahéjjal", kcal: 360, protein: 16, carbs: 55, fat: 9 },
-      { name: "Tojásrántotta 2 tojásból, teljes kiőrlésű pirítóssal", kcal: 350, protein: 21, carbs: 30, fat: 15 },
-      { name: "Görög joghurt zabmüzlivel és bogyós gyümölccsel", kcal: 340, protein: 22, carbs: 42, fat: 8 },
-      { name: "Sonkás-sajtos teljes kiőrlésű szendvics paradicsommal", kcal: 355, protein: 19, carbs: 38, fat: 13 },
-    ],
-  },
-  ebed: {
-    label: "Ebéd",
-    icon: Soup,
-    time: "12:30",
-    options: [
-      { name: "Csirkemellfilé barna rizzsel és gőzölt brokkolival", kcal: 560, protein: 42, carbs: 58, fat: 15 },
-      { name: "Currys pulykacomb basmati rizzsel", kcal: 545, protein: 38, carbs: 60, fat: 16 },
-      { name: "Bolognai spagetti sovány darálthússal", kcal: 570, protein: 35, carbs: 65, fat: 17 },
-      { name: "Töltött paprika sovány hússal, tejfölös öntettel", kcal: 550, protein: 33, carbs: 52, fat: 19 },
-    ],
-  },
-  vacsora: {
-    label: "Vacsora",
-    icon: Salad,
-    time: "18:30",
-    options: [
-      { name: "Sült lazacfilé párolt zöldségekkel", kcal: 460, protein: 34, carbs: 22, fat: 24 },
-      { name: "Túrós tésztasaláta sonkával és kukoricával", kcal: 445, protein: 28, carbs: 48, fat: 14 },
-      { name: "Zöldséges omlett sajttal", kcal: 450, protein: 27, carbs: 14, fat: 30 },
-      { name: "Csirkemell saláta olívaolajos öntettel, sajttal", kcal: 440, protein: 36, carbs: 18, fat: 22 },
-    ],
-  },
-  uzsonna: {
-    label: "Nasi",
-    icon: Cookie,
-    time: "16:00",
-    options: [
-      { name: "Alma mogyoróvajjal", kcal: 190, protein: 6, carbs: 22, fat: 9 },
-      { name: "Túró Rudi és egy szem alma", kcal: 185, protein: 8, carbs: 24, fat: 7 },
-      { name: "Sovány sajt teljes kiőrlésű ropival", kcal: 180, protein: 11, carbs: 18, fat: 7 },
-      { name: "Görög joghurt egy marék dióval", kcal: 195, protein: 10, carbs: 12, fat: 12 },
-    ],
-  },
-};
 
 const STRIPE_PAYMENT_LINKS = {
   sulikezdo: "https://buy.stripe.com/7sY00l9SodM381v2zi9ws03",
@@ -462,93 +410,6 @@ function FaqItem({ q, a, open, onToggle }) {
   );
 }
 
-function MacroChip({ icon: Icon, value, unit, color }) {
-  return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full select-none" style={{ background: `${color}17`, color }}>
-      <Icon size={11} /> {value}{unit}
-    </span>
-  );
-}
-
-function MealSwapCard({ mealKey, meal, selectedIndex, isOpen, onToggleDropdown, onSelect }) {
-  const current = meal.options[selectedIndex];
-  const Icon = meal.icon;
-
-  return (
-    <div className="relative rounded-2xl p-5 sm:p-6 flex flex-col" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4" }}>
-      <div className="flex items-center justify-between mb-3 select-none">
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#B99189" }}>
-          <Icon size={14} /> {meal.label} · {meal.time}
-        </span>
-      </div>
-
-      <p className="font-display font-semibold text-base leading-snug mb-4 min-h-[48px]" style={{ color: "#2D3748" }}>
-        {current.name}
-      </p>
-
-      <div className="flex flex-wrap gap-1.5 mb-5 select-none">
-        <MacroChip icon={Flame} value={current.kcal} unit=" kcal" color="#E07A5F" />
-        <MacroChip icon={Beef} value={current.protein} unit="g" color="#8A4B4F" />
-        <MacroChip icon={Wheat} value={current.carbs} unit="g" color="#B08D4F" />
-        <MacroChip icon={Droplet} value={current.fat} unit="g" color="#7C9885" />
-      </div>
-
-      <button
-        onClick={() => onToggleDropdown(mealKey)}
-        className="mt-auto w-full inline-flex items-center justify-center gap-2 text-sm font-display font-semibold px-4 py-2.5 rounded-xl cursor-pointer relative z-20"
-        style={{ border: "1.5px solid #E07A5F", color: "#E07A5F", background: isOpen ? "#FDE8E1" : "transparent" }}
-      >
-        <RefreshCw size={15} /> Kaja cseréje
-      </button>
-
-      {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-20 cursor-default"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleDropdown(null);
-            }}
-          />
-
-          <div
-            className="absolute left-3 right-3 top-full mt-2 rounded-2xl p-2 z-30"
-            style={{ background: "#FFFDFB", border: "1px solid #F0DCD4", boxShadow: "0 18px 40px -16px rgba(45,55,72,0.35)" }}
-          >
-            <div className="flex items-center justify-between px-2 pt-1.5 pb-2 select-none">
-              <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "#B99189" }}>
-                Azonos makróértékű alternatívák
-              </p>
-              <button
-                type="button"
-                onClick={() => onToggleDropdown(null)}
-                className="text-gray-400 hover:text-gray-600 p-0.5 rounded cursor-pointer"
-                aria-label="Bezárás"
-              >
-                <X size={14} />
-              </button>
-            </div>
-            {meal.options.map((opt, i) => (
-              <button
-                key={i}
-                onClick={() => onSelect(mealKey, i)}
-                className="w-full text-left px-2.5 py-2.5 rounded-xl flex items-center justify-between gap-3 cursor-pointer"
-                style={{ background: i === selectedIndex ? "#FDE8E1" : "transparent" }}
-              >
-                <span className="text-sm" style={{ color: "#2D3748" }}>
-                  {opt.name}
-                  {i === selectedIndex && <span className="ml-2 text-[11px] font-semibold" style={{ color: "#E07A5F" }}>(jelenlegi)</span>}
-                </span>
-                <span className="text-xs font-semibold shrink-0" style={{ color: "#8A7268" }}>{opt.kcal} kcal</span>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 function OrderSuccessPanel({ orderForm, selectedPkg, onRestart }) {
   const pkgData = PACKAGE_CONTENTS[selectedPkg] || PACKAGE_CONTENTS.premium;
   const buyerEmail = orderForm.email || "a megadott e-mail címedre";
@@ -705,7 +566,6 @@ function FitAnyaLanding() {
   const [activePillarModal, setActivePillarModal] = useState(null);
 
   const wizardRef = useRef(null);
-  const mealPlannerRef = useRef(null);
   const pricingRef = useRef(null);
   const seasonalRef = useRef(null);
   const orderRef = useRef(null);
@@ -883,29 +743,6 @@ function FitAnyaLanding() {
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  const [mealSelection, setMealSelection] = useState({ reggeli: 0, ebed: 0, vacsora: 0, uzsonna: 0 });
-  const [openMealDropdown, setOpenMealDropdown] = useState(null);
-
-  const toggleMealDropdown = (key) => setOpenMealDropdown((cur) => (cur === key ? null : key));
-  const selectMealOption = (key, idx) => {
-    setMealSelection((s) => ({ ...s, [key]: idx }));
-    setOpenMealDropdown(null);
-  };
-
-  const dailyTotals = useMemo(() => {
-    return Object.entries(mealSelection).reduce(
-      (acc, [key, idx]) => {
-        const opt = MEAL_PLAN[key].options[idx];
-        acc.kcal += opt.kcal;
-        acc.protein += opt.protein;
-        acc.carbs += opt.carbs;
-        acc.fat += opt.fat;
-        return acc;
-      },
-      { kcal: 0, protein: 0, carbs: 0, fat: 0 }
-    );
-  }, [mealSelection]);
 
   const stepLabels = [
     "Alapadatok",
@@ -1715,66 +1552,6 @@ function FitAnyaLanding() {
             )}
           </div>
         )}
-      </section>
-
-      {/* 1 NAPOS MINTAÉTREND TERVEZŐ */}
-      <section ref={mealPlannerRef} className="max-w-6xl mx-auto px-5 sm:px-8 py-16 sm:py-24">
-        <div className="text-center mb-4">
-          <SectionEyebrow><Utensils size={14} /> Tenyér-szabály a gyakorlatban</SectionEyebrow>
-          <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-3">1 Napos Mintaétrend Tervező</h2>
-          <p className="mt-3 max-w-xl mx-auto text-sm sm:text-base" style={{ color: "#4A5568" }}>
-            Nem szereted az egyik ételt, vagy nincs otthon hozzávaló? Kattints a{" "}
-            <span className="font-semibold" style={{ color: "#E07A5F" }}>„Kaja cseréje"</span> gombra, és válassz
-            egy azonos makróértékű alternatívát — a napi kereted nem billen ki.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-10">
-          {Object.entries(MEAL_PLAN).map(([key, meal]) => (
-            <MealSwapCard
-              key={key}
-              mealKey={key}
-              meal={meal}
-              selectedIndex={mealSelection[key]}
-              isOpen={openMealDropdown === key}
-              onToggleDropdown={toggleMealDropdown}
-              onSelect={selectMealOption}
-            />
-          ))}
-        </div>
-
-        <div className="rounded-2xl p-6 sm:p-8 mt-8" style={{ background: "#FDE8E1", border: "1px solid #F0C4B8" }}>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "#8A4B4F" }}>Napi összesített bevitel</p>
-              <p className="font-display font-semibold text-2xl mt-1" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#2D3748" }}>
-                {dailyTotals.kcal} kcal
-              </p>
-              {wizardDone && (
-                <p className="text-xs mt-1" style={{ color: "#6B5A52" }}>
-                  A te napi kereted: <strong>{results.targetKcal} kcal</strong> —{" "}
-                  {dailyTotals.kcal <= results.targetKcal
-                    ? "ez a napi menüd szépen belefér!"
-                    : `${dailyTotals.kcal - results.targetKcal} kcal-lal a kereted felett — próbálj cserélni egy könnyebb opcióra.`}
-                </p>
-              )}
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              <MacroChip icon={Beef} value={dailyTotals.protein} unit="g fehérje" color="#8A4B4F" />
-              <MacroChip icon={Wheat} value={dailyTotals.carbs} unit="g szénhidrát" color="#B08D4F" />
-              <MacroChip icon={Droplet} value={dailyTotals.fat} unit="g zsír" color="#7C9885" />
-            </div>
-          </div>
-        </div>
-
-        <div className="text-center mt-10">
-          <button
-            onClick={() => scrollTo(pricingRef)}
-            className="cta-btn font-display font-semibold text-sm sm:text-base text-white px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2 shadow-md cursor-pointer hover:scale-105 transition-transform"
-          >
-            Kérem a teljes 30 receptes heti menüt és a csomagokat <ArrowRight size={18} />
-          </button>
-        </div>
       </section>
 
       {/* ÁRAZÁSI SZEKCIÓ */}
