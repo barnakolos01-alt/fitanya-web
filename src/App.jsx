@@ -205,7 +205,7 @@ const STRIPE_PAYMENT_LINKS = {
   vip: "https://buy.stripe.com/8x2dRb5C86jB95zb5O9ws02",
 };
 
-// Csomagok nyilvános tartalma (Google Drive letöltési linkek nélkül)
+// Csomagok nyilvános tartalma
 const PACKAGE_CONTENTS = {
   sulikezdo: {
     title: "Sulikezdő Túlélőcsomag (Szeptemberi Különkiadás)",
@@ -563,7 +563,7 @@ function OrderSuccessPanel({ orderForm, selectedPkg, onRestart }) {
           <CheckCircle2 size={32} style={{ color: "#7C9885" }} />
         </div>
         <h3 className="font-display font-semibold text-2xl sm:text-3xl mb-2" style={{ color: "#2D3748" }}>
-          Sikeres megrendelés, {orderForm.name || "kedves Anyuka"}! 🎉
+          Sikeres megrendelés! 🎉
         </h3>
         <p className="text-sm max-w-md mx-auto leading-relaxed" style={{ color: "#6B5A52" }}>
           A fizetés sikeresen megtörtént. A(z) <strong style={{ color: "#E07A5F" }}>{pkgData.title}</strong> letöltési linkjeit elküldtük az e-mail fiókodba:
@@ -571,16 +571,6 @@ function OrderSuccessPanel({ orderForm, selectedPkg, onRestart }) {
         <div className="mt-3 inline-block px-4 py-2 rounded-xl bg-white/80 border border-[#F0DCD4] font-semibold text-sm text-[#2D3748]">
           📬 {buyerEmail}
         </div>
-        {pkgData.vip && (
-          <div className="mt-4">
-            <span
-              className="inline-flex items-center gap-1.5 text-xs font-display font-bold px-4 py-1.5 rounded-full"
-              style={{ background: "#2D3748", color: "#F9D5CE" }}
-            >
-              <Award size={14} style={{ color: "#F4A825" }} /> VIP Prioritásos Támogatás aktiválva
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="rounded-3xl p-6 sm:p-8 bg-white border border-[#F0DCD4] shadow-sm">
@@ -750,6 +740,7 @@ function FitAnyaLanding() {
     }
   }, [wizardDone]);
 
+  // Sikeres fizetés érzékelése URL paraméterből
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("status") === "success") {
@@ -769,6 +760,15 @@ function FitAnyaLanding() {
       setOrderSubmitted(true);
     }
   }, []);
+
+  // Automatikus legörgetés a megrendelési siker felülethez
+  useEffect(() => {
+    if (orderSubmitted && orderRef.current) {
+      setTimeout(() => {
+        orderRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
+    }
+  }, [orderSubmitted]);
 
   useEffect(() => {
     const handleScroll = () => {
