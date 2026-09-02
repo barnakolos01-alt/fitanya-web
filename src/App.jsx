@@ -731,7 +731,7 @@ function FitAnyaLanding() {
 
   const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  // Mentés LocalStorage-ba minden lépésnél
+  // Mentés LocalStorage-ba minden állapotváltozáskor
   useEffect(() => {
     try {
       localStorage.setItem("fa_step", String(step));
@@ -746,14 +746,14 @@ function FitAnyaLanding() {
     } catch (e) {}
   }, [orderForm]);
 
-  // Kvíz lépésváltáskor finom képernyő-igazítás a tetejére (Scroll Alignment)
+  // Kvíz lépésváltáskor finom igazítás a teszt tetejére mobilon
   useEffect(() => {
     if (wizardRef.current && step > 0 && !wizardDone) {
       wizardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [step]);
 
-  // Amikor elkészül a teszt, finoman görgessünk a diagnosztika tetejére
+  // Amikor befejeződik a teszt, a diagnosztika tetejére görgetünk
   useEffect(() => {
     if (wizardDone && !orderSubmitted) {
       setTimeout(() => {
@@ -820,7 +820,7 @@ function FitAnyaLanding() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [orderSubmitted]);
 
-  // Lead mentés sendBeacon-nal a feliratkozási kapuhoz
+  // Súrlódásmentes adatmentés sendBeacon-nal a feliratkozási kapuhoz
   const sendLeadData = (payload) => {
     const dataStr = JSON.stringify(payload);
     if (navigator.sendBeacon) {
@@ -837,25 +837,20 @@ function FitAnyaLanding() {
     }
   };
 
-  // AUTOMATIKUS TOVÁBBLÉPÉS EGYKÉRDÉSES LÉPÉSEKNÉL (Súrlódásmentes mobilos UX)
-  const handleSingleChoice = (key, value, isLast = false) => {
+  // AUTOMATIKUS TOVÁBBLÉPÉS (1, 2, 3, 4, 5-ös lépésnél)
+  const handleSingleChoice = (key, value) => {
     setForm((s) => ({ ...s, [key]: value }));
     setTimeout(() => {
-      if (isLast) {
-        setWizardDone(true);
-      } else {
-        setStep((s) => s + 1);
-      }
+      setStep((s) => s + 1);
     }, 220);
   };
 
-  // STRIPE ÁTIRÁNYÍTÁS METAPIXEL VÉDELEMMEL (180ms késleltetés a lapváltás előtt)
+  // STRIPE ÁTIRÁNYÍTÁS METAPIXEL VÉDELEMMEL
   const handleStripeCheckout = () => {
     const baseUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
     if (baseUrl) {
       setIsCheckingOut(true);
 
-      // Meta Pixel Fizetés kezdeményezése
       if (window.fbq) {
         let price = 7990;
         if (selectedPkg === "basic") price = 4990;
@@ -868,7 +863,6 @@ function FitAnyaLanding() {
         ? `${baseUrl}?prefilled_email=${encodeURIComponent(rawEmail)}` 
         : baseUrl;
 
-      // 180ms védelmi szünet, hogy a WebView ne lője le a Meta Pixel kérést
       setTimeout(() => {
         window.location.href = checkoutUrl;
       }, 180);
@@ -931,24 +925,25 @@ function FitAnyaLanding() {
     );
   }, [mealSelection]);
 
-  useEffect(() => {
-    if (orderSubmitted) {
-      const id = setTimeout(() => {
-        orderRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 50);
-      return () => clearTimeout(id);
-    }
-  }, [orderSubmitted]);
-
-  const stepLabels = ["Alapadatok", "Élethelyzet", "Aktivitás", "Alvás & Stressz", "Konyha & Szokások", "Fő Fókusz"];
+  // 7 LÉPÉSESRE BONTOTT STRUKTÚRA: Szétválasztva a Nassolás és a Konyhai kapacitás
+  const stepLabels = [
+    "Alapadatok",
+    "Élethelyzet",
+    "Aktivitás",
+    "Alvás & Stressz",
+    "Nassolás",
+    "Konyhai idő",
+    "Fő Fókusz",
+  ];
 
   const canProceed = useMemo(() => {
-    if (step === 0) return form.age && form.height && form.weight && form.goalWeight;
+    if (step === 0) return !!(form.age && form.height && form.weight && form.goalWeight);
     if (step === 1) return !!form.nursing;
     if (step === 2) return !!form.activity;
     if (step === 3) return !!form.sleep;
-    if (step === 4) return form.snacking && form.kitchen;
-    if (step === 5) return !!form.focus;
+    if (step === 4) return !!form.snacking;
+    if (step === 5) return !!form.kitchen;
+    if (step === 6) return !!form.focus;
     return false;
   }, [step, form]);
 
@@ -1256,16 +1251,16 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* 6 LÉPÉSES AUDIT WIZARD — AUTOMATA TOVÁBBLÉPÉSSEL */}
+      {/* 7 LÉPÉSES AUDIT WIZARD — EGYKÉRDÉSES AUTO-ADVANCE & VÉGSŐ MEGERŐSÍTŐ GOMB */}
       <section ref={wizardRef} className="max-w-2xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
         {!wizardDone ? (
           <div className="rounded-3xl p-6 sm:p-10" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4", boxShadow: "0 20px 48px -28px rgba(45,55,72,0.25)" }}>
             <p className="text-center text-xs uppercase tracking-wide font-semibold mb-5 select-none" style={{ color: "#B99189" }}>
-              Lépés {step + 1} / 6 — {stepLabels[step]}
+              Lépés {step + 1} / 7 — {stepLabels[step]}
             </p>
             <WaveConnector steps={stepLabels} activeIndex={step} />
 
-            {/* 1. Alapadatok */}
+            {/* 1. Alapadatok (Manuális kitöltés) */}
             {step === 0 && (
               <div className="grid grid-cols-2 gap-4 mt-8">
                 <h2 className="col-span-2 font-display font-semibold text-xl mb-1">Személyes adatok és célkitűzés</h2>
@@ -1387,81 +1382,78 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 5. Konyha & Szokások */}
+            {/* 5. Nassolás & Kalóriaszivárgás — AUTO ADVANCE */}
             {step === 4 && (
-              <div className="mt-8 space-y-6">
-                <div className="p-4 rounded-2xl bg-[#FFFDFB] border border-[#F0DCD4]">
-                  <div className="flex items-center justify-between mb-1">
-                    <h2 className="font-display font-semibold text-lg flex items-center gap-2">
-                      <Utensils size={18} style={{ color: "#E07A5F" }} /> 1. Kérdés: Kalóriaszivárgás
-                    </h2>
-                    {form.snacking ? <span className="text-xs font-bold text-[#7C9885] bg-green-50 px-2 py-0.5 rounded-md select-none">Kiválasztva ✓</span> : <span className="text-xs font-semibold text-[#E07A5F] bg-orange-50 px-2 py-0.5 rounded-md select-none">Válassz egyet</span>}
-                  </div>
-                  <p className="text-xs mb-3 text-[#6B5A52]">
-                    Milyen gyakran csúszik be csipegetés, stresszevés vagy a családi maradékok elfogyasztása?
-                  </p>
-                  <div className="space-y-2">
-                    {[
-                      { v: "szinte_soha", l: "Szinte soha, tartom a főétkezéseket" },
-                      { v: "napi_1_2", l: "Napi 1-2 alkalommal becsúszik a pultról vagy a tányérokról" },
-                      { v: "folyamatos", l: "Gyakran csipegetek napközben, és én eszem meg a maradékokat" },
-                    ].map((o) => (
-                      <button
-                        key={o.v}
-                        onClick={() => setForm((s) => ({ ...s, snacking: o.v }))}
-                        className="option-btn w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer"
-                        style={{
-                          border: `1.5px solid ${form.snacking === o.v ? "#E07A5F" : "#F0DCD4"}`,
-                          background: form.snacking === o.v ? "#FDE8E1" : "#FFFDFB",
-                          color: "#2D3748",
-                        }}
-                      >
-                        {o.l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-[#FFFDFB] border border-[#F0DCD4]">
-                  <div className="flex items-center justify-between mb-1">
-                    <h2 className="font-display font-semibold text-lg flex items-center gap-2">
-                      <Clock size={18} style={{ color: "#E07A5F" }} /> 2. Kérdés: Konyhai kapacitás
-                    </h2>
-                    {form.kitchen ? <span className="text-xs font-bold text-[#7C9885] bg-green-50 px-2 py-0.5 rounded-md select-none">Kiválasztva ✓</span> : <span className="text-xs font-semibold text-[#E07A5F] bg-orange-50 px-2 py-0.5 rounded-md select-none">Válassz egyet</span>}
-                  </div>
-                  <p className="text-xs mb-3 text-[#6B5A52]">Mennyi időd jut a főzésre egy átlagos napon?</p>
-                  <div className="space-y-2">
-                    {[
-                      { v: "15perc", l: "Max. 15-20 perc gyors ételekre" },
-                      { v: "csak_csaladnak", l: "Nincs külön időm magamra, csak a családnak főzök" },
-                      { v: "hetvegen", l: "Inkább hétvégén szeretek előre dobozolni / előkészülni" },
-                    ].map((o) => (
-                      <button
-                        key={o.v}
-                        onClick={() => setForm((s) => ({ ...s, kitchen: o.v }))}
-                        className="option-btn w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer"
-                        style={{
-                          border: `1.5px solid ${form.kitchen === o.v ? "#E07A5F" : "#F0DCD4"}`,
-                          background: form.kitchen === o.v ? "#FDE8E1" : "#FFFDFB",
-                          color: "#2D3748",
-                        }}
-                      >
-                        {o.l}
-                      </button>
-                    ))}
-                  </div>
+              <div className="mt-8">
+                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
+                  <Utensils size={20} style={{ color: "#E07A5F" }} /> Kalóriaszivárgás &amp; csipegetés
+                </h2>
+                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>
+                  Milyen gyakran csúszik be csipegetés, stresszevés vagy a családi maradékok megevése?
+                </p>
+                <div className="space-y-3">
+                  {[
+                    { v: "szinte_soha", l: "Szinte soha, tartom a főétkezéseket" },
+                    { v: "napi_1_2", l: "Napi 1-2 alkalommal becsúszik a pultról vagy a tányérokról" },
+                    { v: "folyamatos", l: "Gyakran csipegetek napközben, és én eszem meg a maradékokat" },
+                  ].map((o) => (
+                    <button
+                      key={o.v}
+                      onClick={() => handleSingleChoice("snacking", o.v)}
+                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium cursor-pointer"
+                      style={{
+                        border: `1.5px solid ${form.snacking === o.v ? "#E07A5F" : "#F0DCD4"}`,
+                        background: form.snacking === o.v ? "#FDE8E1" : "#FFFDFB",
+                        color: "#2D3748",
+                      }}
+                    >
+                      {o.l}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* 6. Fő Fókusz — AUTO FINISH */}
+            {/* 6. Konyhai kapacitás — AUTO ADVANCE */}
             {step === 5 && (
+              <div className="mt-8">
+                <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
+                  <Clock size={20} style={{ color: "#E07A5F" }} /> Konyhai idő és kapacitás
+                </h2>
+                <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>
+                  Mennyi időd jut a főzésre egy átlagos napon?
+                </p>
+                <div className="space-y-3">
+                  {[
+                    { v: "15perc", l: "Max. 15-20 perc gyors ételekre" },
+                    { v: "csak_csaladnak", l: "Nincs külön időm magamra, csak a családnak főzök" },
+                    { v: "hetvegen", l: "Inkább hétvégén szeretek előre dobozolni / előkészülni" },
+                  ].map((o) => (
+                    <button
+                      key={o.v}
+                      onClick={() => handleSingleChoice("kitchen", o.v)}
+                      className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium cursor-pointer"
+                      style={{
+                        border: `1.5px solid ${form.kitchen === o.v ? "#E07A5F" : "#F0DCD4"}`,
+                        background: form.kitchen === o.v ? "#FDE8E1" : "#FFFDFB",
+                        color: "#2D3748",
+                      }}
+                    >
+                      {o.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 7. Fő Fókusz — KIVÁLASZTÁS + MANUÁLIS MEGERŐSÍTŐ GOMB A DIAGNOSZTIKÁHOZ */}
+            {step === 6 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
                   <Target size={20} style={{ color: "#E07A5F" }} /> Mi a legnagyobb személyes kihívásod?
                 </h2>
                 <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>
-                  Ez alapján választjuk ki a számodra legoptimálisabb protokollt:
+                  Jelöld be az elsődleges fókuszt, majd kattints a diagnosztika megtekintésére:
                 </p>
                 <div className="space-y-3">
                   {[
@@ -1471,7 +1463,7 @@ function FitAnyaLanding() {
                   ].map((o) => (
                     <button
                       key={o.v}
-                      onClick={() => handleSingleChoice("focus", o.v, true)}
+                      onClick={() => setForm((s) => ({ ...s, focus: o.v }))}
                       className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium cursor-pointer"
                       style={{
                         border: `1.5px solid ${form.focus === o.v ? "#E07A5F" : "#F0DCD4"}`,
@@ -1486,6 +1478,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
+            {/* ALSÓ VEZÉRLŐSÁV */}
             <div className="flex items-center justify-between mt-8">
               <button
                 onClick={() => setStep((s) => Math.max(0, s - 1))}
@@ -1494,16 +1487,28 @@ function FitAnyaLanding() {
               >
                 Vissza
               </button>
-              <button
-                disabled={!canProceed}
-                onClick={() => {
-                  if (step < 5) setStep((s) => s + 1);
-                  else setWizardDone(true);
-                }}
-                className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl inline-flex items-center gap-2 disabled:opacity-40 cursor-pointer"
-              >
-                {step < 5 ? "Tovább" : "Diagnosztika & Terv megtekintése"} <ChevronRight size={16} />
-              </button>
+
+              {/* Step 0: Szükséges a Tovább gomb a mezők kitöltése után */}
+              {step === 0 && (
+                <button
+                  disabled={!canProceed}
+                  onClick={() => setStep(1)}
+                  className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl inline-flex items-center gap-2 disabled:opacity-40 cursor-pointer"
+                >
+                  Tovább <ChevronRight size={16} />
+                </button>
+              )}
+
+              {/* Step 6 (Utolsó lépés): Explicit Diagnosztika & Terv Megtekintése gomb */}
+              {step === 6 && (
+                <button
+                  disabled={!form.focus}
+                  onClick={() => setWizardDone(true)}
+                  className="cta-btn font-display font-semibold text-sm text-white px-6 py-3.5 rounded-xl inline-flex items-center gap-2 disabled:opacity-40 cursor-pointer shadow-md"
+                >
+                  Diagnosztika &amp; Terv megtekintése <ChevronRight size={16} />
+                </button>
+              )}
             </div>
           </div>
         ) : (
@@ -2042,7 +2047,7 @@ function FitAnyaLanding() {
         </div>
       </footer>
 
-      {/* MOBIL LEBEGŐ SÁV (STICKY BOTTOM CTA — KONTEXTUSFÜGGŐ DINAMIKUS VÁLTÁSSAL) */}
+      {/* MOBIL LEBEGŐ SÁV (STICKY BOTTOM CTA) */}
       {showStickyBar && (
         <div
           className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-white/95 backdrop-blur-md border-t border-[#F0DCD4] px-5 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom duration-300"
