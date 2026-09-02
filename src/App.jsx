@@ -1251,7 +1251,7 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* 7 LÉPÉSES AUDIT WIZARD — EGYKÉRDÉSES AUTO-ADVANCE & VÉGSŐ MEGERŐSÍTŐ GOMB */}
+      {/* 7 LÉPÉSES AUDIT WIZARD */}
       <section ref={wizardRef} className="max-w-2xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
         {!wizardDone ? (
           <div className="rounded-3xl p-6 sm:p-10" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4", boxShadow: "0 20px 48px -28px rgba(45,55,72,0.25)" }}>
@@ -1446,7 +1446,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 7. Fő Fókusz — KIVÁLASZTÁS + MANUÁLIS MEGERŐSÍTŐ GOMB A DIAGNOSZTIKÁHOZ */}
+            {/* 7. Fő Fókusz — KIVÁLASZTÁS + MANUÁLIS MEGERŐSÍTŐ GOMB */}
             {step === 6 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1636,7 +1636,7 @@ function FitAnyaLanding() {
               </div>
             </div>
 
-            {/* NEKED AJÁNLOTT CSOMAG KIEMELÉS */}
+            {/* NEKED AJÁNLOTT CSOMAG KIEMELÉS — JAVÍTVA: PRICINGREF-HEZ GÖRGET! */}
             <div className="rounded-3xl p-6 sm:p-8 mb-6 border-2 bg-gradient-to-br from-[#FFF9F5] to-[#FDE8E1] border-[#E07A5F] relative">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display px-3.5 py-1 rounded-full bg-[#E07A5F] text-white mb-3 select-none">
                 <Sparkles size={13} /> Algoritmus által kijelölt csomag
@@ -1650,7 +1650,7 @@ function FitAnyaLanding() {
               <button
                 onClick={() => {
                   setSelectedPkg(results.recommendedPkg);
-                  scrollTo(orderRef);
+                  scrollTo(pricingRef);
                 }}
                 className="cta-btn font-display font-semibold text-sm sm:text-base text-white px-7 py-3.5 rounded-xl inline-flex items-center gap-2 cursor-pointer"
               >
