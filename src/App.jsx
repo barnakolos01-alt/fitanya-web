@@ -659,7 +659,7 @@ export default function FitAnyaLandingRoot() {
 }
 
 function FitAnyaLanding() {
-  // 1. LOCALSTORAGE: Kérdőív és űrlap állapotok betöltése
+  // 1. LOCALSTORAGE: Mentett állapotok visszatöltése
   const [step, setStep] = useState(() => {
     try {
       const savedStep = localStorage.getItem("fa_step");
@@ -724,7 +724,14 @@ function FitAnyaLanding() {
   const [activePalmDetail, setActivePalmDetail] = useState(null);
   const [activePillarModal, setActivePillarModal] = useState(null);
 
-  // Mentés LocalStorage-ba
+  const wizardRef = useRef(null);
+  const mealPlannerRef = useRef(null);
+  const pricingRef = useRef(null);
+  const orderRef = useRef(null);
+
+  const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  // Mentés LocalStorage-ba minden lépésnél
   useEffect(() => {
     try {
       localStorage.setItem("fa_step", String(step));
@@ -738,6 +745,22 @@ function FitAnyaLanding() {
       localStorage.setItem("fa_order_form", JSON.stringify(orderForm));
     } catch (e) {}
   }, [orderForm]);
+
+  // Kvíz lépésváltáskor finom képernyő-igazítás a tetejére (Scroll Alignment)
+  useEffect(() => {
+    if (wizardRef.current && step > 0 && !wizardDone) {
+      wizardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [step]);
+
+  // Amikor elkészül a teszt, finoman görgessünk a diagnosztika tetejére
+  useEffect(() => {
+    if (wizardDone && !orderSubmitted) {
+      setTimeout(() => {
+        wizardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
+    }
+  }, [wizardDone]);
 
   const handleDownload = (key) => setDownloadedFiles((s) => ({ ...s, [key]: true }));
 
@@ -761,7 +784,7 @@ function FitAnyaLanding() {
     }
   }, []);
 
-  // Görgetésfigyelő mobilos lebegő sávhoz
+  // Görgetésfigyelő a lebegő sávhoz
   useEffect(() => {
     const handleScroll = () => {
       if (orderSubmitted) {
@@ -786,7 +809,7 @@ function FitAnyaLanding() {
         hideBar = true;
       }
 
-      if (scrollY > 400 && !hideBar) {
+      if (scrollY > 380 && !hideBar) {
         setShowStickyBar(true);
       } else {
         setShowStickyBar(false);
@@ -797,7 +820,7 @@ function FitAnyaLanding() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [orderSubmitted]);
 
-  // Súrlódásmentes adatmentés sendBeacon háttérhívással a feliratkozási kapuhoz
+  // Lead mentés sendBeacon-nal a feliratkozási kapuhoz
   const sendLeadData = (payload) => {
     const dataStr = JSON.stringify(payload);
     if (navigator.sendBeacon) {
@@ -814,7 +837,19 @@ function FitAnyaLanding() {
     }
   };
 
-  // STRIPE ÁTIRÁNYÍTÁS DINAMIKUS PREFILL-LEL
+  // AUTOMATIKUS TOVÁBBLÉPÉS EGYKÉRDÉSES LÉPÉSEKNÉL (Súrlódásmentes mobilos UX)
+  const handleSingleChoice = (key, value, isLast = false) => {
+    setForm((s) => ({ ...s, [key]: value }));
+    setTimeout(() => {
+      if (isLast) {
+        setWizardDone(true);
+      } else {
+        setStep((s) => s + 1);
+      }
+    }, 220);
+  };
+
+  // STRIPE ÁTIRÁNYÍTÁS METAPIXEL VÉDELEMMEL (180ms késleltetés a lapváltás előtt)
   const handleStripeCheckout = () => {
     const baseUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
     if (baseUrl) {
@@ -833,12 +868,13 @@ function FitAnyaLanding() {
         ? `${baseUrl}?prefilled_email=${encodeURIComponent(rawEmail)}` 
         : baseUrl;
 
-      window.location.href = checkoutUrl;
-      setTimeout(() => setIsCheckingOut(false), 6000); 
+      // 180ms védelmi szünet, hogy a WebView ne lője le a Meta Pixel kérést
+      setTimeout(() => {
+        window.location.href = checkoutUrl;
+      }, 180);
     }
   };
 
-  // JAVÍTVA: Kizárólag validáció és Stripe indítás fut, nincs webhook hívás, így nem generálódik téves e-mail!
   const handleOrderSubmit = () => {
     if (!orderForm.name.trim() || !orderForm.email.trim()) {
       setOrderError("Kérjük, add meg a neved és az e-mail címed a folytatáshoz!");
@@ -894,13 +930,6 @@ function FitAnyaLanding() {
       { kcal: 0, protein: 0, carbs: 0, fat: 0 }
     );
   }, [mealSelection]);
-
-  const wizardRef = useRef(null);
-  const mealPlannerRef = useRef(null);
-  const pricingRef = useRef(null);
-  const orderRef = useRef(null);
-
-  const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   useEffect(() => {
     if (orderSubmitted) {
@@ -1060,7 +1089,7 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* A 3 ALAPPILLÉR — INTERAKTÍV KÁRTYÁK MODAL NYITÁSSAL */}
+      {/* A 3 ALAPPILLÉR — INTERAKTÍV KÁRTYÁK */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
         <div className="text-center mb-10">
           <SectionEyebrow><Award size={14} /> Miért működik?</SectionEyebrow>
@@ -1227,7 +1256,7 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* 6 LÉPÉSES AUDIT WIZARD */}
+      {/* 6 LÉPÉSES AUDIT WIZARD — AUTOMATA TOVÁBBLÉPÉSSEL */}
       <section ref={wizardRef} className="max-w-2xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
         {!wizardDone ? (
           <div className="rounded-3xl p-6 sm:p-10" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4", boxShadow: "0 20px 48px -28px rgba(45,55,72,0.25)" }}>
@@ -1262,7 +1291,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 2. Élethelyzet */}
+            {/* 2. Élethelyzet — AUTO ADVANCE */}
             {step === 1 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1279,7 +1308,7 @@ function FitAnyaLanding() {
                   ].map((o) => (
                     <button
                       key={o.v}
-                      onClick={() => setForm((s) => ({ ...s, nursing: o.v }))}
+                      onClick={() => handleSingleChoice("nursing", o.v)}
                       className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium cursor-pointer"
                       style={{
                         border: `1.5px solid ${form.nursing === o.v ? "#E07A5F" : "#F0DCD4"}`,
@@ -1294,7 +1323,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 3. Aktivitás */}
+            {/* 3. Aktivitás — AUTO ADVANCE */}
             {step === 2 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1311,7 +1340,7 @@ function FitAnyaLanding() {
                   ].map((o) => (
                     <button
                       key={o.v}
-                      onClick={() => setForm((s) => ({ ...s, activity: o.v }))}
+                      onClick={() => handleSingleChoice("activity", o.v)}
                       className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium cursor-pointer"
                       style={{
                         border: `1.5px solid ${form.activity === o.v ? "#E07A5F" : "#F0DCD4"}`,
@@ -1326,7 +1355,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 4. Alvás & Stressz */}
+            {/* 4. Alvás & Stressz — AUTO ADVANCE */}
             {step === 3 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1343,7 +1372,7 @@ function FitAnyaLanding() {
                   ].map((o) => (
                     <button
                       key={o.v}
-                      onClick={() => setForm((s) => ({ ...s, sleep: o.v }))}
+                      onClick={() => handleSingleChoice("sleep", o.v)}
                       className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium cursor-pointer"
                       style={{
                         border: `1.5px solid ${form.sleep === o.v ? "#E07A5F" : "#F0DCD4"}`,
@@ -1425,7 +1454,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* 6. Fő Fókusz */}
+            {/* 6. Fő Fókusz — AUTO FINISH */}
             {step === 5 && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
@@ -1442,7 +1471,7 @@ function FitAnyaLanding() {
                   ].map((o) => (
                     <button
                       key={o.v}
-                      onClick={() => setForm((s) => ({ ...s, focus: o.v }))}
+                      onClick={() => handleSingleChoice("focus", o.v, true)}
                       className="option-btn w-full text-left px-5 py-3.5 rounded-xl text-sm font-medium cursor-pointer"
                       style={{
                         border: `1.5px solid ${form.focus === o.v ? "#E07A5F" : "#F0DCD4"}`,
@@ -2013,21 +2042,27 @@ function FitAnyaLanding() {
         </div>
       </footer>
 
-      {/* MOBIL LEBEGŐ SÁV (STICKY BOTTOM CTA) */}
+      {/* MOBIL LEBEGŐ SÁV (STICKY BOTTOM CTA — KONTEXTUSFÜGGŐ DINAMIKUS VÁLTÁSSAL) */}
       {showStickyBar && (
         <div
           className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-white/95 backdrop-blur-md border-t border-[#F0DCD4] px-5 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom duration-300"
           style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
         >
           <div className="flex flex-col select-none">
-            <span className="font-display font-bold text-sm text-[#2D3748]">FitAnya Módszer</span>
-            <span className="text-[11px] font-semibold text-[#E07A5F]">4 990 Ft-tól • 14 nap garancia[cite: 1]</span>
+            <span className="font-display font-bold text-sm text-[#2D3748]">
+              {wizardDone ? "Személyes terved kész!" : "FitAnya Módszer"}
+            </span>
+            <span className="text-[11px] font-semibold text-[#E07A5F]">
+              {wizardDone 
+                ? `${packages.find(p => p.id === selectedPkg)?.name} • ${(packages.find(p => p.id === selectedPkg)?.price ?? 7990).toLocaleString("hu-HU")} Ft`
+                : "4 990 Ft-tól • 14 nap garancia"}
+            </span>
           </div>
           <button
-            onClick={() => scrollTo(pricingRef)}
+            onClick={() => scrollTo(wizardDone ? orderRef : pricingRef)}
             className="cta-btn font-display font-bold text-sm text-white px-5 py-3 rounded-xl inline-flex items-center gap-1.5 shadow-md cursor-pointer shrink-0"
           >
-            Csomagok <ArrowRight size={16} />
+            {wizardDone ? "Rendelés" : "Csomagok"} <ArrowRight size={16} />
           </button>
         </div>
       )}
