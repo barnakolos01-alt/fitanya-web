@@ -20,103 +20,136 @@ export async function onRequestPost(context) {
 
     const isZeroRemaining = prot <= 0 && veg <= 0 && carb <= 0;
 
-    let systemPrompt = `Te a FitAnya digitális Zsebedzője vagy: közvetlen, életrevaló, magyar konyhai mentor kisgyerekes anyukáknak.
-Nincs kalóriaszámolás, a Tenyér-szabályt használjuk (fehérje: tenyér, rost: ököl, szénhidrát: marék, zsír: hüvelykujj).
-Kerülj minden AI-zsargont és tükörfordítást.`;
+    // Ha a zsír vagy szénhidrát betelt / túllépve
+    const isFatOver = fat <= 0;
+    const isCarbOver = carb <= 0;
 
-    let userPrompt = "";
-    let isJsonMode = false;
+    // 1. TÁNYÉR CSERE: TOOL USE (FUNCTION CALLING) KÉNYSZERÍTÉSSEL
+    if (mode === "plate_swap") {
+      let macroConstraints = "";
+      if (isFatOver) {
+        macroConstraints += " FIGYELEM: A zsírkeret BETELT vagy TÚLLÉPVE! SZIGORÚAN TILOS diót, olajos magvakat, vajat, olajat, zsíros sajtot és egész tojást javasolni! Kizárólag ZSÍRSZEGÉNY fehérje mehet (pl. zsírszegény túró, zsírszegény cottage cheese, csirkemellsonka, tonhalkonzerv sós lében, zsírszegény natúr joghurt).";
+      }
+      if (isCarbOver) {
+        macroConstraints += " FIGYELEM: A szénhidrátkeret BETELT! SZIGORÚAN TILOS müzlit, banánt, kenyeret, zabpelyhet vagy krumplit hozzáadni!";
+      }
 
-    // 1. TÁNYÉROM KERESŐ
-    if (mode === "dish") {
-      userPrompt = `A család ezt eszi: "${input}".
-Hátralévő keret: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
-Mondd el 2 tömör mondatban, hogyan szedjen a kész családi ételből a tányérjára mérlegelés nélkül, mit tegyen mellé rostként.
-A végén kötelező sor:
-🖐️ Levonás: X tenyér fehérje, X ököl rost, X marék szénhidrát, X hüvelykujj zsír.`;
-    }
+      const toolPrompt = `Az anyuka a tányérját szeretné módosítani a hiányzó keretéhez és a hűtőjéhez.
+Aktuális hiányzó keretek: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
+${macroConstraints}
 
-    // 2. INTERAKTÍV TÁNYÉR CSERE (KÖTELEZŐ GÉPI ADATVÁLASZ)
-    else if (mode === "plate_swap") {
-      isJsonMode = true;
-      systemPrompt = `Te egy belső konyhai adatfeldolgozó vagy. Feladatod: az anyuka kérése alapján KÖZVETLENÜL kicserélni a hiányzó tápanyag kártyáját a hűtője szerint.
-SOHA NE írj szöveges választ, listát vagy magyarázatot a JSON elé vagy mögé!
-Kizárólag érvényes JSON mezőket tölts ki:
-- protein: az új konkrét fehérjeétel pontos adaggal (pl. "1 nagy doboz görög joghurt (200g)" vagy "150g zsírszegény túró")
-- veg: az új zöldség pontos adaggal
-- carb: az új szénhidrát pontos adaggal
-- fat: az új zsír pontos adaggal
-- comment: 1etlen rövid jóváhagyó mondat (pl. "Átírtam natúr joghurtra, szuper választás!")`;
-
-      userPrompt = `Hiányzó adagok mára: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
-Jelenlegi kártyák a képernyőn:
+Jelenlegi kártyák a kijelzőn:
 - Fehérje: "${currentPlate?.protein || ""}"
 - Rost: "${currentPlate?.veg || ""}"
 - Szénhidrát: "${currentPlate?.carb || ""}"
 - Zsír: "${currentPlate?.fat || ""}"
 
 Az anyuka kérése: "${input}"
-(Ha azt írja, hogy valami nincs vagy mást kér, cseréld le a megfelelő mezőt konkrét bolti/otthoni ételre!)`;
+Feladatod: Válaszd ki az 1 legmegfelelőbb konkrét ételt, és hívd meg az update_plate eszközt!`;
+
+      const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-3-5-haiku-20241022",
+          max_tokens: 300,
+          temperature: 0.1,
+          tools: [
+            {
+              name: "update_plate",
+              description: "Frissíti az interaktív tányér elemeit és ad egy rövid barátságos magyarázatot.",
+              input_schema: {
+                type: "object",
+                properties: {
+                  protein: { type: "string", description: "Az új konkrét fehérje étel pontos adaggal (pl. 200g zsírszegény túró vagy 4 szelet csirkemellsonka)" },
+                  veg: { type: "string", description: "Az új zöldség pontos adaggal" },
+                  carb: { type: "string", description: "Az új szénhidrát pontos adaggal" },
+                  fat: { type: "string", description: "Az új zsír pontos adaggal" },
+                  comment: { type: "string", description: "1 tömör, barátnős jóváhagyó mondat, kitérve a zsírszegénységre ha a zsír betelt." }
+                },
+                required: ["comment"]
+              }
+            }
+          ],
+          tool_choice: { type: "tool", name: "update_plate" },
+          messages: [{ role: "user", content: toolPrompt }],
+        }),
+      });
+
+      const data = await anthropicResponse.json();
+      const toolBlock = data.content?.find((c) => c.type === "tool_use");
+      const plateData = toolBlock?.input || {};
+
+      return new Response(JSON.stringify({ plateUpdate: plateData }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // 2. TÁNYÉROM KERESŐ
+    if (mode === "dish") {
+      const userPrompt = `A család ezt eszi: "${input}".
+Hátralévő keret: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
+Mondd el 2 tömör mondatban, hogyan szedjen a kész családi ételből a tányérjára mérlegelés nélkül, mit tegyen mellé rostként.
+A végén kötelező sor:
+🖐️ Levonás: X tenyér fehérje, X ököl rost, X marék szénhidrát, X hüvelykujj zsír.`;
+
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-3-5-haiku-20241022",
+          max_tokens: 300,
+          temperature: 0.2,
+          system: "Te a FitAnya Zsebedzője vagy. Közvetlen, praktikus konyhai mentor. Kerüld az AI-zsargont!",
+          messages: [{ role: "user", content: userPrompt }],
+        }),
+      });
+      const d = await res.json();
+      return new Response(JSON.stringify({ reply: d.content?.[0]?.text || "" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // 3. NASI SOS
-    else if (mode === "craving") {
-      userPrompt = `Az anyuka erre vágyik: "${input}".
+    if (mode === "craving") {
+      const userPrompt = `Az anyuka erre vágyik: "${input}".
 Hátralévő kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát.
 1 mondat az élettani okról (fáradtság/dopamin), plusz 2 gyors túlélő alternatíva.`;
+
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-3-5-haiku-20241022",
+          max_tokens: 300,
+          temperature: 0.2,
+          system: "Te a FitAnya Zsebedzője vagy. Semmi bűntudatkeltés, csak gyors mentőöv.",
+          messages: [{ role: "user", content: userPrompt }],
+        }),
+      });
+      const d = await res.json();
+      return new Response(JSON.stringify({ reply: d.content?.[0]?.text || "" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    // 4. ESTI ZÁRÁS
-    else if (mode === "dinner") {
-      if (isZeroRemaining) {
-        userPrompt = `A keret betelt (0 maradt). Mondd meg neki kedvesen de határozottan, hogy mára zárva a konyha, ez fáradtság, igyon egy teát és aludjon.`;
-      } else {
-        userPrompt = `Gyors vacsora kizárólag a maradék keretből: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát.`;
-      }
-    } else {
-      userPrompt = input;
-    }
-
-    const messages = [{ role: "user", content: userPrompt }];
-
-    // Assistant Pre-fill trükk: Ha JSON-t várunk, kényszerítjük a kezdést
-    if (isJsonMode) {
-      messages.push({ role: "assistant", content: '{\n  "' });
-    }
-
-    const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-3-5-haiku-20241022",
-        max_tokens: 300,
-        temperature: 0.1,
-        system: systemPrompt,
-        messages: messages,
-      }),
-    });
-
-    if (!anthropicResponse.ok) {
-      const errText = await anthropicResponse.text();
-      return new Response(
-        JSON.stringify({ error: "Hiba az AI válaszadásakor", details: errText }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    const data = await anthropicResponse.json();
-    let replyText = data.content?.[0]?.text || "";
-
-    if (isJsonMode) {
-      replyText = '{\n  "' + replyText;
-    }
-
-    return new Response(JSON.stringify({ reply: replyText }), {
-      status: 200,
+    return new Response(JSON.stringify({ error: "Ismeretlen kérés" }), {
+      status: 400,
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
