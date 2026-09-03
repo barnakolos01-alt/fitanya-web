@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Send, Loader2, AlertCircle, RefreshCw, Flame } from 'lucide-react';
+import { useFitAnya } from '../../context/FitAnyaContext';
 
 // Formázó komponens: kezeli a félkövér és dőlt jelöléseket
 function FormattedMessage({ content }) {
@@ -49,7 +50,8 @@ function FormattedMessage({ content }) {
   );
 }
 
-export default function CravingCopilot({ remaining = { protein: 1, veg: 2, carb: 1, fat: 1 } }) {
+export default function CravingCopilot() {
+  const { remaining } = useFitAnya();
   const [cravingInput, setCravingInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState(null);
