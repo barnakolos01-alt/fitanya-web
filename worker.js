@@ -26,11 +26,11 @@ Alapszabályok:
         let userPrompt = "";
         if (mode === "craving") {
           userPrompt = `Az anyuka ezt kívánja: "${input}".
-Maradék mai kerete: ${remaining?.protein || 0} tenyér fehérje, ${remaining?.veg || 0} ököl rost, ${remaining?.carb || 0} marék szénhidrát, ${remaining?.fat || 0} hüvelykujj zsír.
+Maradék mai kerete: ${remaining?.protein ?? 1} tenyér fehérje, ${remaining?.veg ?? 2} ököl rost, ${remaining?.carb ?? 1} marék szénhidrát, ${remaining?.fat ?? 1} hüvelykujj zsír.
 Magyarázd el 1 mondatban empatikusan az élettani okát, és adj 2 konkrét, 60 másodperc alatt elérhető bolti/otthoni alternatívát!`;
         } else if (mode === "dinner") {
           userPrompt = `Esti hűtőmentés! Ez van otthon a hűtőben / ezt enné: "${input}".
-Mai maradék kerete: ${remaining?.protein || 0} tenyér fehérje, ${remaining?.veg || 0} ököl rost, ${remaining?.carb || 0} marék szénhidrát, ${remaining?.fat || 0} hüvelykujj zsír.
+Mai maradék kerete: ${remaining?.protein ?? 1} tenyér fehérje, ${remaining?.veg ?? 2} ököl rost, ${remaining?.carb ?? 1} marék szénhidrát, ${remaining?.fat ?? 1} hüvelykujj zsír.
 Állíts össze belőle 3 mondatban egy gyors, 10 perces tányért a Tenyér-szabály arányaival!`;
         } else {
           userPrompt = input;
@@ -40,11 +40,11 @@ Mai maradék kerete: ${remaining?.protein || 0} tenyér fehérje, ${remaining?.v
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-api-key": apiKey,
+            "x-api-key": apiKey.trim(),
             "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
-            model: "claude-3-5-haiku-20241022",
+            model: "claude-haiku-4-5-20251001",
             max_tokens: 350,
             system: systemPrompt,
             messages: [{ role: "user", content: userPrompt }],
@@ -52,15 +52,17 @@ Mai maradék kerete: ${remaining?.protein || 0} tenyér fehérje, ${remaining?.v
         });
 
         if (!anthropicResponse.ok) {
-          const errText = await anthropicResponse.text();
+          const errData = await anthropicResponse.json().catch(() => ({}));
+          const errMsg = errData.error?.message || "Ismeretlen Anthropic hiba";
           return new Response(
-            JSON.stringify({ error: "Hiba az AI válaszadásakor", details: errText }),
+            JSON.stringify({ error: `API hiba (${anthropicResponse.status}): ${errMsg}` }),
             { status: 502, headers: { "Content-Type": "application/json" } }
           );
         }
 
         const data = await anthropicResponse.json();
-        const replyText = data.content?.[0]?.text || "Nem sikerült választ generálni.";
+        const textBlock = data.content?.find((c) => c.type === "text");
+        const replyText = textBlock?.text || data.content?.[0]?.text || "Nem sikerült választ generálni.";
 
         return new Response(JSON.stringify({ reply: replyText }), {
           status: 200,
@@ -74,7 +76,7 @@ Mai maradék kerete: ${remaining?.protein || 0} tenyér fehérje, ${remaining?.v
       }
     }
 
-    // 2. Minden más kérést a statikus frontend (React SPA) szolgál ki
+    // 2. Statikus frontend kiszolgálása
     return env.ASSETS.fetch(request);
   },
 };
