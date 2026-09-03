@@ -11,9 +11,8 @@ export async function onRequestPost(context) {
     }
 
     const body = await request.json();
-    const { mode, input, remaining } = body;
+    const { mode, input, remaining, currentPlate } = body;
 
-    // Számértékek biztonságos parse-olása
     const prot = Number(remaining?.protein ?? 0);
     const veg = Number(remaining?.veg ?? 0);
     const carb = Number(remaining?.carb ?? 0);
@@ -21,53 +20,58 @@ export async function onRequestPost(context) {
 
     const isZeroRemaining = prot <= 0 && veg <= 0 && carb <= 0;
 
-    const systemPrompt = `Te a FitAnya digitális Zsebedzője vagy. Egyenes, intelligens, laza, jókedvű magyar konyhai mentor kisgyerekes anyukáknak.
-
-ALAPSZABÁLYOK:
-1. SOHA NE REFORMÁLD MEG A CSALÁD ÉTELÉT! Az anyuka NEM főz kétfelé, nem használ szarvashúst, parmezánt vagy külön diétás alapanyagokat. A meglévő, kész családi ételből szed a saját tányérjára a Tenyér-szabály szerint!
-2. TILOS az AI-zsargon és a tükörfordítás (tilos: "Mission ACCEPTED", "kombó", "normalizálja a sóvárgást", "csipogtatunk", "szerű").
-3. Életszerű, természetes magyar nyelven beszélj, ahogy egy praktikus barátnő mondaná.
-4. Válaszaid legyenek tömörek: 2-4 mondat, semmi felesleges bevezető ömlengés.`;
+    const systemPrompt = `Te a FitAnya digitális Zsebedzője vagy: közvetlen, életrevaló, magyar konyhai mentor.
+Nincs kalóriaszámolás, a Tenyér-szabályt használjuk (fehérje: tenyér, rost: ököl, szénhidrát: marék, zsír: hüvelykujj).
+Kerülj minden AI-zsargont és tükörfordítást. Természetes, hétköznapi konyhanyelven beszélj!`;
 
     let userPrompt = "";
 
-    // 1. TÁNYÉROM (ÉTELFELISMERŐ & ADAGOLÓ)
+    // 1. ÉTEL-FORDÍTÓ (TÁNYÉROM KERESŐ)
     if (mode === "dish") {
-      userPrompt = `A család ezt eszi / ezt főzte: "${input}".
-Az anyuka hátralévő kerete: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
-
-Így válaszolj (kövesd ezt a stílust és szerkezetet):
-PÉLDA:
-"Nyugodtan egyél belőle! A rakott krumpliból a kolbász és a tojás a fehérjéd, a krumpli a szénhidrát. Szedj egy tenyérnyi kockát a tányérodra, de a tepsi alján maradt zsíros szaftot ne kanalazd rá! Mellé kötelezően vágj egy nagy ökölnyi savanyúságot (kovászos ubi, csemegeubi vagy csalamádé), hogy meglegyen a rostod és eltelítsen.
-
-🖐️ Levonás: 1 tenyér fehérje, 1 ököl rost, 1 marék szénhidrát, 1 hüvelykujj zsír."
-
-Most válaszolj a megadott ételre ("${input}") pontosan ugyanebben a szellemben és tálalási logikában! A végén kötelező a levonás sor.`;
+      userPrompt = `A család ezt eszi: "${input}".
+Hátralévő keret: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
+Mondd el 2 tömör mondatban, hogyan szedjen a kész családi ételből a tányérjára mérlegelés nélkül, mit tegyen mellé rostként.
+A végén kötelező sor:
+🖐️ Levonás: X tenyér fehérje, X ököl rost, X marék szénhidrát, X hüvelykujj zsír.`;
     }
 
-    // 2. NASI SOS (SÓVÁRGÁS)
+    // 2. INTERAKTÍV TÁNYÉR CSERE (AI PLATE SWAP)
+    else if (mode === "plate_swap") {
+      userPrompt = `Az anyuka a 'Mit ehetek még ma?' tányérját szeretné testreszabni a saját hűtője szerint.
+Hátralévő kerete mára: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
+Jelenlegi tételek a tányérján:
+- Fehérje: ${currentPlate?.protein || "nincs"}
+- Rost: ${currentPlate?.veg || "nincs"}
+- Szénhidrát: ${currentPlate?.carb || "nincs"}
+- Zsír: ${currentPlate?.fat || "nincs"}
+
+Az anyuka ezt írta, hogy mije van otthon / mit szeretne kicserélni: "${input}".
+
+Feladat: Cseréld ki a megfelelő komponenst úgy, hogy illeszkedjen az ő hűtőkészletéhez és a megmaradt keretéhez!
+VÁLASZ FORMÁTUM: Kizárólag érvényes JSON formátumban válaszolj, semmi más felvezető szöveg ne legyen!
+Példa:
+{
+  "protein": "${prot > 0 ? "új fehérje leírás adaggal" : ""}",
+  "veg": "${veg > 0 ? "új rost leírás adaggal" : ""}",
+  "carb": "${carb > 0 ? "új szénhidrát leírás adaggal" : ""}",
+  "fat": "${fat > 0 ? "új zsír leírás adaggal" : ""}",
+  "comment": "Rövid, 1 mondatos jóváhagyás barátnős stílusban"
+}`;
+    }
+
+    // 3. NASI SOS
     else if (mode === "craving") {
-      userPrompt = `Az anyuka erre vágyik most: "${input}".
+      userPrompt = `Az anyuka erre vágyik: "${input}".
 Hátralévő kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát.
-
-Így válaszolj:
-1. Egyetlen együttérző, laza mondat az élettani okról (nem akaraterő-hiány: kimerültség, alváshiány, kortizol, dopaminéhség).
-2. Két valódi, 60 másodperces túlélő alternatíva (hétköznapi bolti vagy otthoni dolog), ami elüti a vágyat.`;
+1 mondat az élettani okról (fáradtság/stressz, semmi bűntudat!), plusz 2 gyors, 60 másodperces alternatíva.`;
     }
 
-    // 3. ESTI ZÁRÁS & HŰTŐMENTŐ
+    // 4. ESTI ZÁRÁS
     else if (mode === "dinner") {
       if (isZeroRemaining) {
-        userPrompt = `Este van, az anyuka ezt írta be a hűtőmentőbe: "${input}".
-FONTOS: A mai kerete teljesen elfogyott (0 fehérje, 0 rost, 0 szénhidrát maradt)!
-SZIGORÚAN TILOS vacsorát, receptet, csirkét vagy rizst ajánlani!
-Így válaszolj:
-"Állj, mára a konyha bezárt! 🛑 A mai keretedet hibátlanul lehoztad, a tested mindent megkapott. Ez a vágy most nem valódi éhség, hanem a fáradtság és a nap végi leeresztés jele. Igyál meg egy nagy bögre meleg citromfű vagy mentateát, és bújj ágyba – holnap reggel nagyon büszke leszel magadra!"`;
+        userPrompt = `A keret betelt (0 maradt). Mondd meg neki kedvesen de határozottan, hogy mára zárva a konyha, ez fáradtság, igyon egy teát és aludjon.`;
       } else {
-        userPrompt = `Esti hűtőmentés! Ez van otthon a hűtőben: "${input}".
-Hátralévő kerete: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
-
-Állíts össze 3 mondatban egy 10 perces túlélő vacsorát KIZÁRÓLAG a maradék keretéből. Semmi flancolás: mit mivel dobjon a serpenyőbe vagy tányérra.`;
+        userPrompt = `Gyors vacsora kizárólag a maradék keretből: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát.`;
       }
     } else {
       userPrompt = input;
@@ -83,7 +87,7 @@ Hátralévő kerete: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} maré
       body: JSON.stringify({
         model: "claude-3-5-haiku-20241022",
         max_tokens: 350,
-        temperature: 0.2, // Alacsony kreativitás a hallucinációk megszüntetésére
+        temperature: 0.2,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
       }),
