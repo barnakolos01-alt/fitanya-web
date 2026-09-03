@@ -1,37 +1,34 @@
-import React, { useState } from "react";
-import { Sparkles, RefreshCw, CheckCircle2, Moon, UtensilsCrossed, Coffee } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Sparkles, RefreshCw, CheckCircle2, UtensilsCrossed, Coffee, Loader2, Send } from "lucide-react";
 import { C, serif } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
 
-// Hétköznapi, 0 perc előkészületet igénylő magyar kamra- és hűtőkészlet
 const PANTRY = {
   protein: [
-    "2 szelet minőségi pulyka- vagy csirkemellsonka",
+    "2 szelet pulyka- vagy csirkemellsonka",
     "2 db főtt tojás vagy tükörtojás",
     "4-5 ek zsírszegény túró vagy cottage cheese",
-    "1 kis doboz natúr tonhalkonzerv (lecsöpögtetve)",
-    "1 kis doboz natúr görög joghurt (150g)",
-    "100g tegnapi sült hús maradék felcsíkozva",
+    "1 kis doboz natúr tonhalkonzerv",
+    "1 kis doboz görög joghurt (150g)",
   ],
   veg: [
     "1 db felkarikázott kígyóuborka",
-    "2 marék koktélparadicsom vagy 1 nagy paradicsom",
-    "Nagy marék ropogós csemegeuborka vagy csalamádé",
+    "Nagy marék ropogós csemegeuborka",
+    "2 marék édes koktélparadicsom",
     "1 db kaliforniai paprika csíkokra vágva",
-    "2 marék bébispenót vagy madársaláta",
+    "2 marék bébispenót vagy friss saláta",
   ],
   carb: [
     "1 szelet teljes kiőrlésű vagy rozskenyér",
-    "1 szelet kovászos fehér kenyér",
+    "1 szelet barna kenyér",
     "3-4 db natúr puffasztott rizs",
-    "1 marék hűtőben maradt főtt rizs vagy burgonya",
-    "1 db kis méretű tortilla lap",
+    "1 kis tortilla lap",
   ],
   fat: [
-    "1 tk vaj vagy natúr vajkrém a kenyérre",
-    "1 ek olívaolaj a zöldségekre csurgatva",
-    "Egy pici marék mandula vagy dió (5-6 szem)",
-    "1 szelet trappista vagy mozzarella sajt",
+    "1 tk vaj vagy natúr vajkrém",
+    "1 ek olívaolaj a zöldségekre",
+    "1 pici marék mandula vagy dió (5-6 szem)",
+    "1 vékony szelet sajt",
   ],
 };
 
@@ -40,22 +37,72 @@ export default function InteractivePlateBuilder() {
   const [isOpen, setIsOpen] = useState(false);
   const [logged, setLogged] = useState(false);
 
-  // Kiválasztott opciók indexei
-  const [indices, setIndices] = useState({
-    protein: 0,
-    veg: 0,
-    carb: 0,
-    fat: 0,
+  // Aktuális tányér tételei
+  const [plate, setPlate] = useState({
+    protein: PANTRY.protein[0],
+    veg: PANTRY.veg[0],
+    carb: PANTRY.carb[0],
+    fat: PANTRY.fat[0],
   });
+
+  // AI csere állapotai
+  const [swapInput, setSwapInput] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiComment, setAiComment] = useState(null);
 
   const isZeroRemaining =
     remaining.protein <= 0 && remaining.veg <= 0 && remaining.carb <= 0;
 
+  // Gyors offline csere (ha csak léptetni akar)
   const cycleItem = (macro) => {
-    setIndices((prev) => ({
-      ...prev,
-      [macro]: (prev[macro] + 1) % PANTRY[macro].length,
-    }));
+    const list = PANTRY[macro];
+    const currentIdx = list.indexOf(plate[macro]);
+    const nextIdx = (currentIdx + 1) % list.length;
+    setPlate((prev) => ({ ...prev, [macro]: list[nextIdx] }));
+    setAiComment(null);
+  };
+
+  // AI csere kezelése az anyuka saját hűtője szerint
+  const handleAiSwap = async (e) => {
+    e.preventDefault();
+    if (!swapInput.trim() || aiLoading) return;
+
+    setAiLoading(true);
+    setAiComment(null);
+
+    try {
+      const res = await fetch("/api/coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "plate_swap",
+          input: swapInput.trim(),
+          remaining: remaining,
+          currentPlate: plate,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Hiba a csere során.");
+
+      // JSON kinyerése a válaszból
+      const jsonMatch = data.reply.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        setPlate((prev) => ({
+          protein: parsed.protein?.trim() || prev.protein,
+          veg: parsed.veg?.trim() || prev.veg,
+          carb: parsed.carb?.trim() || prev.carb,
+          fat: parsed.fat?.trim() || prev.fat,
+        }));
+        if (parsed.comment) setAiComment(parsed.comment);
+        setSwapInput("");
+      }
+    } catch (err) {
+      console.warn("AI csere hiba:", err);
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handleLogMeal = () => {
@@ -67,10 +114,10 @@ export default function InteractivePlateBuilder() {
     };
 
     const selectedItems = [];
-    if (remaining.protein > 0) selectedItems.push(PANTRY.protein[indices.protein]);
-    if (remaining.veg > 0) selectedItems.push(PANTRY.veg[indices.veg]);
-    if (remaining.carb > 0) selectedItems.push(PANTRY.carb[indices.carb]);
-    if (remaining.fat > 0) selectedItems.push(PANTRY.fat[indices.fat]);
+    if (remaining.protein > 0) selectedItems.push(plate.protein);
+    if (remaining.veg > 0) selectedItems.push(plate.veg);
+    if (remaining.carb > 0) selectedItems.push(plate.carb);
+    if (remaining.fat > 0) selectedItems.push(plate.fat);
 
     logPortion(delta, `Gyors Tányér: ${selectedItems.slice(0, 2).join(", ")}`);
     setLogged(true);
@@ -97,12 +144,12 @@ export default function InteractivePlateBuilder() {
                 Mit ehetek még ma?
               </p>
               <p className="text-[11px] text-[#6B5A52]">
-                Interaktív tányérépítő a hiányzó keretedből és a hűtődből
+                Interaktív tányérépítő a hiányzó keretedből
               </p>
             </div>
           </div>
           <span className="text-xs font-bold text-[#E07A5F] px-2.5 py-1 rounded-xl bg-white border border-[#F0DCD4]">
-            Megnézem
+            Megnyitás
           </span>
         </button>
       ) : (
@@ -128,7 +175,7 @@ export default function InteractivePlateBuilder() {
             </button>
           </div>
 
-          {/* HA BETELT A NAPI KERET (0T, 0Ö, 0M) */}
+          {/* HA BETELT A NAPI KERET */}
           {isZeroRemaining ? (
             <div className="p-4 rounded-2xl bg-[#FDF6F0] border border-[#F5D8C7] text-center space-y-2.5">
               <div className="w-10 h-10 rounded-full bg-white text-[#E07A5F] flex items-center justify-center mx-auto shadow-sm">
@@ -138,28 +185,24 @@ export default function InteractivePlateBuilder() {
                 Mára a konyha bezárt! 🎉
               </h4>
               <p className="text-xs text-stone-600 leading-relaxed max-w-xs mx-auto">
-                A mai keretedet maradéktalanul lehoztad, a tested mindent megkapott. Ez a késői vágy most nem valódi éhség, hanem a nap végi leeresztés.
+                A mai keretedet maradéktalanul lehoztad, a tested mindent megkapott. Ez most fáradtság, nem éhség!
               </p>
               <p className="text-[11px] font-semibold text-[#C3634C] bg-white py-2 px-3 rounded-xl border border-[#F5D8C7] inline-block">
                 Tipp: Igyál meg egy nagy bögre citromfű teát, és pihenj!
               </p>
             </div>
           ) : (
-            /* HA VAN MÉG HIÁNYZÓ KERET — INTERAKTÍV ÉPÍTŐ */
+            /* HA VAN MÉG HIÁNYZÓ KERET */
             <div className="space-y-3">
-              <p className="text-xs text-stone-500">
-                Koppints az alapanyagra vagy a csere gombra, ha más van otthon a hűtőben:
-              </p>
-
-              {/* FEHÉRJE SZEKCIÓ */}
+              {/* FEHÉRJE */}
               {remaining.protein > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3">
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <span className="text-[10px] uppercase font-bold text-[#E07A5F] tracking-wide block">
                       🖐️ {remaining.protein} Tenyér Fehérje
                     </span>
-                    <p className="text-xs font-semibold text-stone-800 mt-0.5 truncate">
-                      {PANTRY.protein[indices.protein]}
+                    <p className="text-xs font-semibold text-stone-800 mt-0.5 leading-snug break-words">
+                      {plate.protein}
                     </p>
                   </div>
                   <button
@@ -172,15 +215,15 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* ROST SZEKCIÓ */}
+              {/* ROST */}
               {remaining.veg > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3">
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <span className="text-[10px] uppercase font-bold text-[#7C9885] tracking-wide block">
                       ✊ {remaining.veg} Ököl Rost
                     </span>
-                    <p className="text-xs font-semibold text-stone-800 mt-0.5 truncate">
-                      {PANTRY.veg[indices.veg]}
+                    <p className="text-xs font-semibold text-stone-800 mt-0.5 leading-snug break-words">
+                      {plate.veg}
                     </p>
                   </div>
                   <button
@@ -193,15 +236,15 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* SZÉNHIDRÁT SZEKCIÓ */}
+              {/* SZÉNHIDRÁT */}
               {remaining.carb > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3">
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wide block">
                       🤲 {remaining.carb} Marék Szénhidrát
                     </span>
-                    <p className="text-xs font-semibold text-stone-800 mt-0.5 truncate">
-                      {PANTRY.carb[indices.carb]}
+                    <p className="text-xs font-semibold text-stone-800 mt-0.5 leading-snug break-words">
+                      {plate.carb}
                     </p>
                   </div>
                   <button
@@ -214,15 +257,15 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* ZSÍR SZEKCIÓ */}
+              {/* ZSÍR */}
               {remaining.fat > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3">
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <span className="text-[10px] uppercase font-bold text-stone-600 tracking-wide block">
                       👍 {remaining.fat} Hüvelykujj Zsír
                     </span>
-                    <p className="text-xs font-semibold text-stone-800 mt-0.5 truncate">
-                      {PANTRY.fat[indices.fat]}
+                    <p className="text-xs font-semibold text-stone-800 mt-0.5 leading-snug break-words">
+                      {plate.fat}
                     </p>
                   </div>
                   <button
@@ -233,6 +276,37 @@ export default function InteractivePlateBuilder() {
                     <RefreshCw size={11} /> Csere
                   </button>
                 </div>
+              )}
+
+              {/* AI HŰTŐ-CSERE BEVITELI MEZŐ */}
+              <form onSubmit={handleAiSwap} className="mt-2 pt-2 border-t border-stone-100">
+                <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
+                  Más van otthon? Írd be az AI-nak (pl. <em>„nincs kenyerem, de van barna”</em> vagy <em>„csak tonhal van”</em>):
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={swapInput}
+                    onChange={(e) => setSwapInput(e.target.value)}
+                    placeholder="Írd ide, mi van a hűtődben..."
+                    className="flex-1 px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:border-[#E07A5F]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={aiLoading || !swapInput.trim()}
+                    className="px-3 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+                    style={{ backgroundColor: C.coral }}
+                  >
+                    {aiLoading ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                    <span>Csere</span>
+                  </button>
+                </div>
+              </form>
+
+              {aiComment && (
+                <p className="text-[11px] font-medium text-[#C3634C] bg-[#FFF9F5] p-2.5 rounded-xl border border-[#F0DCD4] animate-in fade-in">
+                  💡 {aiComment}
+                </p>
               )}
 
               {/* RÖGZÍTÉS GOMB */}
@@ -247,7 +321,7 @@ export default function InteractivePlateBuilder() {
 
               {logged && (
                 <p className="text-xs text-center font-semibold text-[#7C9885] flex items-center justify-center gap-1">
-                  <CheckCircle2 size={13} /> Szuper, levontuk a keretedből és rögzítettük a naplóban!
+                  <CheckCircle2 size={13} /> Szuper, levonva a keretedből és rögzítve a naplóban!
                 </p>
               )}
             </div>
