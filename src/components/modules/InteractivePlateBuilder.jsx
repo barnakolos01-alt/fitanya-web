@@ -5,11 +5,11 @@ import { useFitAnya } from "../../context/FitAnyaContext";
 
 const PANTRY = {
   protein: [
-    "2-3 szelet minőségi pulykasonka",
+    "4-5 ek zsírszegény túró vagy cottage cheese light",
+    "3-4 szelet minőségi csirkemellsonka",
+    "1 doboz natúr tonhalkonzerv sós lében",
+    "1 kis doboz zsírszegény natúr görög joghurt",
     "2-3 db főtt tojás vagy tükörtojás",
-    "1 doboz natúr görög joghurt (150-200g)",
-    "4-5 ek zsírszegény túró vagy cottage cheese",
-    "1 doboz natúr tonhalkonzerv (lecsöpögtetve)",
   ],
   veg: [
     "1 db felkarikázott kígyóuborka",
@@ -86,67 +86,25 @@ export default function InteractivePlateBuilder() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Hiba a csere során.");
 
-      const raw = (data.reply || "").trim();
-      const start = raw.indexOf("{");
-      const end = raw.lastIndexOf("}");
+      if (data.plateUpdate) {
+        const u = data.plateUpdate;
+        setPlate((prev) => ({
+          protein: u.protein?.trim() || prev.protein,
+          veg: u.veg?.trim() || prev.veg,
+          carb: u.carb?.trim() || prev.carb,
+          fat: u.fat?.trim() || prev.fat,
+        }));
 
-      let success = false;
-
-      if (start !== -1 && end !== -1) {
-        try {
-          const parsed = JSON.parse(raw.substring(start, end + 1));
-          
-          setPlate((prev) => ({
-            protein: parsed.protein?.trim() ? parsed.protein.trim() : prev.protein,
-            veg: parsed.veg?.trim() ? parsed.veg.trim() : prev.veg,
-            carb: parsed.carb?.trim() ? parsed.carb.trim() : prev.carb,
-            fat: parsed.fat?.trim() ? parsed.fat.trim() : prev.fat,
-          }));
-
-          if (parsed.comment) {
-            setAiComment(parsed.comment.replace(/^#+\s*/g, ""));
-          }
-          success = true;
-        } catch (parseErr) {
-          console.warn("JSON parse hiba:", parseErr);
+        if (u.comment) {
+          setAiComment(u.comment);
         }
       }
-
-      if (!success) {
-        applySmartFallback(userText);
-      }
-
       setSwapInput("");
     } catch (err) {
-      applySmartFallback(userText);
+      setAiError("Nem sikerült a csere, kérlek próbáld újra!");
     } finally {
       setAiLoading(false);
     }
-  };
-
-  // Hibatűrő helyi csere (ha a kapcsolat megszakadna)
-  const applySmartFallback = (input) => {
-    const low = input.toLowerCase();
-    const isRejectingEggs = low.includes("nincs tojás") || low.includes("nem szeretem a tojást") || low.includes("nem kérek tojást");
-
-    setPlate((prev) => {
-      const updated = { ...prev };
-      if (low.includes("joghurt")) {
-        updated.protein = "1 doboz natúr görög joghurt (150-200g)";
-      } else if (low.includes("túró") || low.includes("cottage")) {
-        updated.protein = "4-5 ek zsírszegény túró vagy cottage cheese";
-      } else if (low.includes("tonhal") || low.includes("hal")) {
-        updated.protein = "1 doboz natúr tonhalkonzerv (lecsöpögtetve)";
-      } else if (isRejectingEggs) {
-        updated.protein = "1 doboz natúr görög joghurt vagy 150g túró";
-      } else if (low.includes("fehér") && low.includes("kenyér")) {
-        updated.carb = "1 szelet fehér kenyér";
-      }
-      return updated;
-    });
-
-    setAiComment("Átírtam a kártyát a hűtőd szerint!");
-    setSwapInput("");
   };
 
   const handleLogMeal = () => {
@@ -323,14 +281,14 @@ export default function InteractivePlateBuilder() {
               {/* AI HŰTŐ-CSERE BEVITELI MEZŐ */}
               <form onSubmit={handleAiSwap} className="mt-2 pt-2 border-t border-stone-100">
                 <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
-                  Nincs otthon valamelyik? Írd be (pl. <em>„nincs tojásom”</em> vagy <em>„csak joghurt van”</em>):
+                  Nincs otthon valamelyik? Írd be (pl. <em>„nincs tojásom”</em> vagy <em>„gyors fehérjeforrás kell”</em>):
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={swapInput}
                     onChange={(e) => setSwapInput(e.target.value)}
-                    placeholder="Írd ide, mi van a hűtődben..."
+                    placeholder="Írd ide, mit szeretnél vagy mi van otthon..."
                     className="flex-1 px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:border-[#E07A5F]"
                   />
                   <button
