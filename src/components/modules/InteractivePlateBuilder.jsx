@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Sparkles, RefreshCw, CheckCircle2, UtensilsCrossed, Coffee, Loader2, Send } from "lucide-react";
+import React, { useState } from "react";
+import { Sparkles, RefreshCw, CheckCircle2, UtensilsCrossed, Coffee, Loader2, Send, AlertCircle } from "lucide-react";
 import { C, serif } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
 
@@ -20,7 +20,7 @@ const PANTRY = {
   ],
   carb: [
     "1 szelet teljes kiőrlésű vagy rozskenyér",
-    "1 szelet barna kenyér",
+    "1 szelet fehér kenyér",
     "3-4 db natúr puffasztott rizs",
     "1 kis tortilla lap",
   ],
@@ -49,26 +49,29 @@ export default function InteractivePlateBuilder() {
   const [swapInput, setSwapInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiComment, setAiComment] = useState(null);
+  const [aiError, setAiError] = useState(null);
 
   const isZeroRemaining =
     remaining.protein <= 0 && remaining.veg <= 0 && remaining.carb <= 0;
 
-  // Gyors offline csere (ha csak léptetni akar)
+  // Gyors offline csere
   const cycleItem = (macro) => {
     const list = PANTRY[macro];
     const currentIdx = list.indexOf(plate[macro]);
     const nextIdx = (currentIdx + 1) % list.length;
     setPlate((prev) => ({ ...prev, [macro]: list[nextIdx] }));
     setAiComment(null);
+    setAiError(null);
   };
 
-  // AI csere kezelése az anyuka saját hűtője szerint
+  // AI csere kezelése golyóálló hibatűréssel
   const handleAiSwap = async (e) => {
     e.preventDefault();
     if (!swapInput.trim() || aiLoading) return;
 
     setAiLoading(true);
     setAiComment(null);
+    setAiError(null);
 
     try {
       const res = await fetch("/api/coach", {
@@ -85,24 +88,57 @@ export default function InteractivePlateBuilder() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Hiba a csere során.");
 
-      // JSON kinyerése a válaszból
-      const jsonMatch = data.reply.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        setPlate((prev) => ({
-          protein: parsed.protein?.trim() || prev.protein,
-          veg: parsed.veg?.trim() || prev.veg,
-          carb: parsed.carb?.trim() || prev.carb,
-          fat: parsed.fat?.trim() || prev.fat,
-        }));
-        if (parsed.comment) setAiComment(parsed.comment);
-        setSwapInput("");
+      const raw = (data.reply || "").trim();
+      const start = raw.indexOf("{");
+      const end = raw.lastIndexOf("}");
+
+      // Ha sikerült JSON-t fogni a válaszból
+      if (start !== -1 && end !== -1) {
+        try {
+          const jsonStr = raw.substring(start, end + 1);
+          const parsed = JSON.parse(jsonStr);
+
+          setPlate((prev) => ({
+            protein: parsed.protein?.trim() || prev.protein,
+            veg: parsed.veg?.trim() || prev.veg,
+            carb: parsed.carb?.trim() || prev.carb,
+            fat: parsed.fat?.trim() || prev.fat,
+          }));
+
+          if (parsed.comment) setAiComment(parsed.comment);
+          setSwapInput("");
+        } catch {
+          // Ha sérült a JSON, a szöveget írjuk ki és okosan cserélünk
+          handleFallbackSwap(swapInput, raw);
+        }
+      } else {
+        // Ha sima beszélgetős választ adott a Claude
+        handleFallbackSwap(swapInput, raw);
       }
     } catch (err) {
-      console.warn("AI csere hiba:", err);
+      setAiError(err.message || "Nem sikerült a csere, próbáld újra!");
     } finally {
       setAiLoading(false);
     }
+  };
+
+  // Tartalék csere logika, ha az AI nem JSON formátumban válaszolna
+  const handleFallbackSwap = (userInput, aiText) => {
+    const lower = userInput.toLowerCase();
+    setPlate((prev) => {
+      const updated = { ...prev };
+      if (lower.includes("fehér") && lower.includes("kenyér")) {
+        updated.carb = "1 szelet fehér kenyér";
+      } else if (lower.includes("tojás")) {
+        updated.protein = "2 db tükörtojás vagy főtt tojás";
+      } else if (lower.includes("túró")) {
+        updated.protein = "4-5 ek zsírszegény túró";
+      }
+      return updated;
+    });
+
+    setAiComment(aiText.replace(/[\{\}\[\]"]/g, "").trim());
+    setSwapInput("");
   };
 
   const handleLogMeal = () => {
@@ -281,7 +317,7 @@ export default function InteractivePlateBuilder() {
               {/* AI HŰTŐ-CSERE BEVITELI MEZŐ */}
               <form onSubmit={handleAiSwap} className="mt-2 pt-2 border-t border-stone-100">
                 <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
-                  Más van otthon? Írd be az AI-nak (pl. <em>„nincs kenyerem, de van barna”</em> vagy <em>„csak tonhal van”</em>):
+                  Más van otthon? Írd be az AI-nak (pl. <em>„nincs rozskenyér, csak fehér”</em>):
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -294,7 +330,7 @@ export default function InteractivePlateBuilder() {
                   <button
                     type="submit"
                     disabled={aiLoading || !swapInput.trim()}
-                    className="px-3 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-sm"
                     style={{ backgroundColor: C.coral }}
                   >
                     {aiLoading ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
@@ -304,9 +340,16 @@ export default function InteractivePlateBuilder() {
               </form>
 
               {aiComment && (
-                <p className="text-[11px] font-medium text-[#C3634C] bg-[#FFF9F5] p-2.5 rounded-xl border border-[#F0DCD4] animate-in fade-in">
+                <div className="text-[11px] font-medium text-[#C3634C] bg-[#FFF9F5] p-2.5 rounded-xl border border-[#F0DCD4] animate-in fade-in leading-relaxed">
                   💡 {aiComment}
-                </p>
+                </div>
+              )}
+
+              {aiError && (
+                <div className="text-[11px] font-medium text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 flex items-center gap-1.5 animate-in fade-in">
+                  <AlertCircle size={13} className="shrink-0" />
+                  <span>{aiError}</span>
+                </div>
               )}
 
               {/* RÖGZÍTÉS GOMB */}
