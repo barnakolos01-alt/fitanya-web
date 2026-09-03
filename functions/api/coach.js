@@ -5,7 +5,7 @@ export async function onRequestPost(context) {
 
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "Az API kulcs hiányzik." }),
+        JSON.stringify({ error: "Az API kulcs hiányzik a Cloudflare-ből." }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -21,32 +21,21 @@ export async function onRequestPost(context) {
     const isFatOver = fat <= 0;
     const isCarbOver = carb <= 0;
 
-    // 1. TÁNYÉROM KERESŐ (DISH): STRUKTURÁLT MAGYAR KONYHAI ELEMZÉS
+    // 1. TÁNYÉROM KERESŐ: TOOL USE-ZAL KIKÉNYSZERÍTETT ADAGOLÁS ÉS LEVONÁS
     if (mode === "dish") {
-      let warning = "";
+      let fatWarning = "";
       if (isFatOver) {
-        warning += " FIGYELEM: A zsírkeret BETELT vagy TÚLLÉPVE! SZIGORÚAN TILOS vajat, olajat vagy plusz zsírt ajánlani! Ha zsírosabb magyar ételről van szó (gulyás, pörkölt, rakott ételek), figyelmeztesd, hogy a zsíros szaftot/levet hagyja a tányéron, ne tunkoljon, és a javasolt levonásban KÖTELEZŐ legalább 1 zsírt felszámolni a rejtett zsírok miatt!";
+        fatWarning = "KRITIKUS: Az anyuka zsírkerete mára teljesen elfogyott (0 maradt)! SZIGORÚAN TILOS plusz zsírt (tejföl, sajt, vaj, olaj) ajánlani! Ha az étel zsíros (pl. gulyás, pörkölt, rántott hús), kifejezetten mondd meg neki, hogy a zsíros levet/szaftot hagyja a tányéron, és a levonásban KÖTELEZŐ legalább 1 zsírt felszámolni a rejtett zsírok miatt!";
       }
 
-      const prompt = `A család ezt eszi: "${input}".
-Az anyuka megmaradt kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát, ${fat} zsír.
-${warning}
+      const prompt = `A család ezt eszi / ezt főzte: "${input}".
+Az anyuka hátralévő kerete mára: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
+${fatWarning}
 
 SZABÁLYOK:
-- Nincs mellébeszélés, nincs "rozs" a rost helyett, nincs áltudományoskodás!
-- Tanítsd meg 2-3 tömör mondatban, hogyan szedjen a kész családi fazékból a Tenyér-szabály szerint (mit tegyen a tányérra fehérjeként, rostként, szénhidrátként).
-- Állítsd be a reális levonási számokat az adagolási javaslathoz!
-
-Kizárólag érvényes JSON-t adj vissza:
-{
-  "reply": "2-3 praktikus magyar mondat a tálalásról",
-  "delta": {
-    "protein": 1,
-    "veg": 1,
-    "carb": 1,
-    "fat": ${isFatOver ? 1 : 1}
-  }
-}`;
+- Nincs mellébeszélés, semmi "szénhidrátkicsapódás", "testi-lelki kielégülés" vagy áltudományos fitnesz-zsargon!
+- 2-3 tömör, barátnős mondatban tanítsd meg, hogyan szedjen a kész családi ételből a tányérjára a Tenyér-szabály szerint (mennyi hús/fehérje, mennyi zöldség/rost, és ha van benne krumpli/tészta, kell-e még kenyér).
+- Állítsd be a pontos levonási számokat (protein, veg, carb, fat)! Hagyományos zsíros magyar ételeknél a zsír nem lehet 0!`;
 
       const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -57,52 +46,71 @@ Kizárólag érvényes JSON-t adj vissza:
         },
         body: JSON.stringify({
           model: "claude-3-5-haiku-20241022",
-          max_tokens: 400,
+          max_tokens: 450,
           temperature: 0.1,
-          system: "Te a FitAnya Zsebedzője vagy. Ismered a hagyományos magyar konyha rejtett zsírtartalmát. Szigorúan JSON formátumban válaszolsz.",
-          messages: [
-            { role: "user", content: prompt },
-            { role: "assistant", content: '{\n  "reply":' }
+          tools: [
+            {
+              name: "analyze_family_dish",
+              description: "Elemzi a családi ételt és pontos levonási értékeket ad vissza.",
+              input_schema: {
+                type: "object",
+                properties: {
+                  advice: {
+                    type: "string",
+                    description: "2-3 praktikus mondat a tálalásról a Tenyér-szabály szerint.",
+                  },
+                  protein: { type: "number", description: "Levonandó tenyér fehérje" },
+                  veg: { type: "number", description: "Levonandó ököl rost" },
+                  carb: { type: "number", description: "Levonandó marék szénhidrát" },
+                  fat: { type: "number", description: "Levonandó hüvelykujj zsír" },
+                },
+                required: ["advice", "protein", "veg", "carb", "fat"],
+              },
+            },
           ],
+          tool_choice: { type: "tool", name: "analyze_family_dish" },
+          messages: [{ role: "user", content: prompt }],
         }),
       });
 
       if (!anthropicResponse.ok) {
-        return new Response(JSON.stringify({
-          reply: "Nyugodtan egyél belőle! Szedj egy tenyérnyi húst és bőségesen zöldséget a sűrűjéből. A zsíros levét ne kanalazd ki mind, mert a leves alapja zsíros!",
-          delta: { protein: 1, veg: 1, carb: 1, fat: 1 }
-        }), { status: 200, headers: { "Content-Type": "application/json" } });
+        return new Response(
+          JSON.stringify({
+            reply: "Szedj egy tenyérnyi húst a sűrűjéből, és pakold meg a zöldségekkel! Mivel a leves pörköltalapon főtt, a zsíros levet ne tunkold ki kenyérrel, mert a zsírkereted már betelt mára.",
+            delta: { protein: 1, veg: 1, carb: 1, fat: 1 },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
       }
 
       const data = await anthropicResponse.json();
-      const raw = '{\n  "reply":' + (data.content?.[0]?.text || "");
-      try {
-        const parsed = JSON.parse(raw);
-        return new Response(JSON.stringify(parsed), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      } catch {
-        return new Response(JSON.stringify({
-          reply: "Nyugodtan egyél belőle! A hús a fehérjéd, a zöldség a rostod. A zsíros szaftot és tunkolást kerüld, mert a keretedből a zsír már betelt!",
-          delta: { protein: 1, veg: 1, carb: 1, fat: 1 }
-        }), { status: 200, headers: { "Content-Type": "application/json" } });
-      }
+      const toolUse = data.content?.find((c) => c.type === "tool_use");
+      const dishResult = toolUse?.input || {};
+
+      return new Response(
+        JSON.stringify({
+          reply: dishResult.advice || "Szedj bátran a család ételéből a tenyér-szabály szerint!",
+          delta: {
+            protein: dishResult.protein ?? 1,
+            veg: dishResult.veg ?? 1,
+            carb: dishResult.carb ?? 1,
+            fat: dishResult.fat ?? 1,
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
     }
 
-    // 2. INTERAKTÍV GOMB-AJÁNLÓ (SUGGEST OPTIONS)
+    // 2. INTERAKTÍV TÁNYÉR CSERE (SUGGEST OPTIONS)
     if (mode === "plate_swap" || mode === "suggest_options") {
       let restrictions = "";
-      if (isFatOver) restrictions += " FIGYELEM: Zsírkeret elfogyott! Tilos olajat, vajat, diót és zsíros sajtokat adni!";
-      if (isCarbOver) restrictions += " FIGYELEM: Szénhidrátkeret elfogyott! Ne adj hozzá újabb pékárut vagy tésztát!";
+      if (isFatOver) restrictions += " Zsírkeret elfogyott! Tilos olajat, vajat, diót és zsíros sajtot adni!";
+      if (isCarbOver) restrictions += " Szénhidrátkeret elfogyott! Ne adj újabb kenyérfélét!";
 
-      const prompt = `Az anyuka tányércserét kér.
-Hátralévő keretei: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát, ${fat} zsír.
+      const prompt = `Az anyuka tányércserét kér. Keretei: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát, ${fat} zsír.
 ${restrictions}
-Jelenlegi tételei: Fehérje: "${currentPlate?.protein}", Rost: "${currentPlate?.veg}", Szénhidrát: "${currentPlate?.carb}", Zsír: "${currentPlate?.fat}".
 Kérése: "${input}"
-
-Kizárólag érvényes JSON formátumban válaszolj!`;
+Adj 3-4 konkrét magyar alternatívát gombokként a suggest_food_options függvénnyel!`;
 
       const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -115,22 +123,42 @@ Kizárólag érvényes JSON formátumban válaszolj!`;
           model: "claude-3-5-haiku-20241022",
           max_tokens: 600,
           temperature: 0.1,
-          system: "Te egy szigorúan JSON-t visszaadó táplálkozási motor vagy.",
-          messages: [
-            { role: "user", content: prompt },
-            { role: "assistant", content: '{\n  "comment":' }
+          tools: [
+            {
+              name: "suggest_food_options",
+              description: "Kattintható ételjavaslat gombokat ad.",
+              input_schema: {
+                type: "object",
+                properties: {
+                  comment: { type: "string" },
+                  options: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        label: { type: "string" },
+                        fullText: { type: "string" },
+                        macroType: { type: "string" },
+                      },
+                      required: ["label", "fullText", "macroType"],
+                    },
+                  },
+                },
+                required: ["comment", "options"],
+              },
+            },
           ],
+          tool_choice: { type: "tool", name: "suggest_food_options" },
+          messages: [{ role: "user", content: prompt }],
         }),
       });
 
       const data = await anthropicResponse.json();
-      const rawText = '{\n  "comment":' + (data.content?.[0]?.text || "");
-      try {
-        const parsed = JSON.parse(rawText);
-        return new Response(JSON.stringify(parsed), { status: 200, headers: { "Content-Type": "application/json" } });
-      } catch {
-        return new Response(JSON.stringify({ options: [] }), { status: 200, headers: { "Content-Type": "application/json" } });
-      }
+      const toolUse = data.content?.find((c) => c.type === "tool_use");
+      return new Response(JSON.stringify(toolUse?.input || { options: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // 3. NASI SOS
@@ -140,10 +168,10 @@ Kizárólag érvényes JSON formátumban válaszolj!`;
         headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
         body: JSON.stringify({
           model: "claude-3-5-haiku-20241022",
-          max_tokens: 350,
+          max_tokens: 300,
           temperature: 0.2,
-          system: "Te a FitAnya Zsebedzője vagy. Nulla bűntudat, csak gyors segítség.",
-          messages: [{ role: "user", content: `Erre vágyik: "${input}". 1 mondat ok, 2 gyors túlélő alternatíva.` }],
+          system: "Te a FitAnya Zsebedzője vagy. Tömör, empátiás mentőöv.",
+          messages: [{ role: "user", content: `Erre vágyik: "${input}". 1 mondat ok, 2 gyors alternatíva.` }],
         }),
       });
       const d = await res.json();
