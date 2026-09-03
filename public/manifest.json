@@ -1,9 +1,9 @@
 {
-  "name": "FitAnya Módszer",
+  "name": "FitAnya Zsebedző",
   "short_name": "FitAnya",
   "description": "Táplálkozási és életmód-asszisztens anyukáknak — konyhamérleg és bűntudat nélkül.",
-  "id": "/",
-  "start_url": "/?source=pwa",
+  "id": "/app",
+  "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
