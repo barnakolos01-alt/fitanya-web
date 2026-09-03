@@ -1,6 +1,56 @@
 import React, { useState } from 'react';
 import { Sparkles, Send, Loader2, AlertCircle, RefreshCw, Flame } from 'lucide-react';
 
+// Formázó komponens: a nyers ** és * Markdown jeleket HTML elemekké alakítja
+function FormattedMessage({ content }) {
+  if (!content) return null;
+
+  const lines = content.split('\n');
+
+  return (
+    <div className="space-y-2 text-sm text-stone-700 leading-relaxed">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <div key={idx} className="h-1" />;
+
+        // Darabolás a **félkövér** és *dőlt* részek mentén
+        const parts = line.split(/(\*\*[\s\S]*?\*\*|\*[^*]+?\*)/g);
+
+        const isHighlightLine = trimmed.startsWith('🎯') || trimmed.startsWith('💡');
+
+        return (
+          <p
+            key={idx}
+            className={
+              isHighlightLine
+                ? 'mt-3 pt-2.5 border-t border-stone-200/80 font-medium text-stone-800'
+                : ''
+            }
+          >
+            {parts.map((part, pIdx) => {
+              if (part.startsWith('**') && part.endsWith('**')) {
+                return (
+                  <strong key={pIdx} className="font-semibold text-stone-900">
+                    {part.slice(2, -2)}
+                  </strong>
+                );
+              }
+              if (part.startsWith('*') && part.endsWith('*')) {
+                return (
+                  <em key={pIdx} className="italic text-stone-800">
+                    {part.slice(1, -1)}
+                  </em>
+                );
+              }
+              return part;
+            })}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function CravingCopilot({ remaining = { protein: 1, veg: 2, carb: 1, fat: 1 } }) {
   const [cravingInput, setCravingInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -63,7 +113,7 @@ export default function CravingCopilot({ remaining = { protein: 1, veg: 2, carb:
 
   return (
     <div className="bg-white rounded-3xl p-6 shadow-sm border border-stone-200/80 max-w-lg mx-auto">
-      {/* Fejléc - meleg terrakotta stílusban */}
+      {/* Fejléc */}
       <div className="flex items-center gap-3 mb-5">
         <div className="w-10 h-10 rounded-2xl bg-[#fbf3ef] text-[#c3634c] flex items-center justify-center border border-[#f3e1d8]">
           <Flame className="w-5 h-5" />
@@ -84,7 +134,7 @@ export default function CravingCopilot({ remaining = { protein: 1, veg: 2, carb:
                 key={idx}
                 type="button"
                 onClick={() => handleQuickSelect(pill)}
-                className="text-xs bg-stone-50 hover:bg-[#fbf3ef] hover:text-[#c3634c] hover:border-[#f3e1d8] text-stone-700 px-3.5 py-1.5 rounded-full border border-stone-200 transition-colors"
+                className="text-xs bg-stone-50 hover:bg-[#fbf3ef] hover:text-[#c3634c] hover:border-[#f3e1d8] text-stone-700 px-3.5 py-1.5 rounded-full border border-stone-200 transition-colors cursor-pointer"
               >
                 {pill}
               </button>
@@ -112,7 +162,7 @@ export default function CravingCopilot({ remaining = { protein: 1, veg: 2, carb:
               <button
                 type="submit"
                 disabled={!cravingInput.trim() || loading}
-                className="absolute right-2 top-2 bottom-2 px-3 bg-[#c3634c] hover:bg-[#b0533d] disabled:opacity-40 text-white rounded-xl flex items-center justify-center transition-all shadow-sm"
+                className="absolute right-2 top-2 bottom-2 px-3 bg-[#c3634c] hover:bg-[#b0533d] disabled:opacity-40 text-white rounded-xl flex items-center justify-center transition-all shadow-sm cursor-pointer"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
@@ -138,10 +188,10 @@ export default function CravingCopilot({ remaining = { protein: 1, veg: 2, carb:
           </button>
         </form>
       ) : (
-        /* AI Válasz kártya */
+        /* AI Válasz kártya tiszta formázással */
         <div className="space-y-4">
           <div className="p-4 bg-[#fbf5f2] border border-[#f1ded6] rounded-2xl">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-bold text-[#c3634c] uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
                 FitAnya Zsebedző javaslata
@@ -149,9 +199,7 @@ export default function CravingCopilot({ remaining = { protein: 1, veg: 2, carb:
               <span className="text-[11px] text-stone-400">Sóvárgás: "{cravingInput}"</span>
             </div>
 
-            <div className="text-sm text-stone-700 leading-relaxed whitespace-pre-line">
-              {response}
-            </div>
+            <FormattedMessage content={response} />
           </div>
 
           <button
