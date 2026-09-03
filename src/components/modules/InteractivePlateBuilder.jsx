@@ -47,7 +47,6 @@ export default function InteractivePlateBuilder() {
   const [swapInput, setSwapInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiComment, setAiComment] = useState(null);
-  const [aiError, setAiError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
 
   const inputRef = useRef(null);
@@ -63,14 +62,45 @@ export default function InteractivePlateBuilder() {
     setAiComment(null);
   };
 
+  // HELYI OFFLINE MENTŐÖV: Ha bármi hiba lenne, az app saját maga készít gombokat a beírt szavak alapján
+  const applySmartFallbackButtons = (text) => {
+    const low = text.toLowerCase();
+    let fallbackOpts = [];
+    
+    if (low.includes("fehér") || low.includes("kenyér")) {
+       fallbackOpts.push({ label: "🍞 1 szelet fehér kenyér", fullText: "1 szelet fehér vagy félbarna kenyér", macroType: "carb" });
+       fallbackOpts.push({ label: "🍘 Puffasztott rizs", fullText: "3-4 db natúr puffasztott rizs", macroType: "carb" });
+    }
+    if (low.includes("túró") || low.includes("fehérje") || low.includes("sonka") || low.includes("tojás")) {
+       fallbackOpts.push({ label: "🥚 2-3 db főtt tojás", fullText: "2-3 db főtt tojás vagy tükörtojás", macroType: "protein" });
+       fallbackOpts.push({ label: "🥛 Görög joghurt", fullText: "1 kis doboz natúr görög joghurt", macroType: "protein" });
+       fallbackOpts.push({ label: "🥩 Pulykasonka", fullText: "3-4 szelet minőségi pulykasonka", macroType: "protein" });
+    }
+    if (low.includes("zöldség") || low.includes("uborka") || low.includes("paradicsom")) {
+       fallbackOpts.push({ label: "🍅 Koktélparadicsom", fullText: "2 marék édes koktélparadicsom", macroType: "veg" });
+       fallbackOpts.push({ label: "🥒 Csemegeuborka", fullText: "Nagy marék ropogós csemegeuborka", macroType: "veg" });
+    }
+
+    if (fallbackOpts.length === 0) {
+       fallbackOpts = [
+         { label: "🥚 Tojás (Fehérje)", fullText: "2 db főtt tojás", macroType: "protein" },
+         { label: "🍞 Fehér kenyér (Szénhidrát)", fullText: "1 szelet fehér kenyér", macroType: "carb" }
+       ];
+    }
+    
+    setAiComment("Itt van pár szuper alternatíva a kérésed alapján:");
+    setSuggestions(fallbackOpts);
+  };
+
   const handleAskSuggestions = async (e) => {
     if (e) e.preventDefault();
     if (!swapInput.trim() || aiLoading) return;
 
     setAiLoading(true);
     setAiComment(null);
-    setAiError(null);
     setSuggestions([]);
+
+    const userText = swapInput.trim();
 
     try {
       const res = await fetch("/api/coach", {
@@ -78,42 +108,34 @@ export default function InteractivePlateBuilder() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode: "suggest_options",
-          input: swapInput.trim(),
+          input: userText,
           remaining: remaining,
           currentPlate: plate,
         }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Hiba az AI válasznál.");
-
-      if (data.comment) setAiComment(data.comment);
+      
       if (data.options && Array.isArray(data.options) && data.options.length > 0) {
+        if (data.comment) setAiComment(data.comment);
         setSuggestions(data.options);
       } else {
-        setAiComment("Itt van pár bevált cserelehetőség a hűtődhöz:");
-        setSuggestions([
-          { label: "🥒 Uborka helyett: Paradicsom", fullText: "2 marék édes koktélparadicsom", macroType: "veg" },
-          { label: "🍞 Rozskenyér helyett: Fehér kenyér", fullText: "1 szelet fehér vagy félbarna kenyér", macroType: "carb" },
-          { label: "🍞 Rozskenyér helyett: Puffasztott rizs", fullText: "3-4 db natúr puffasztott rizs", macroType: "carb" },
-        ]);
+        applySmartFallbackButtons(userText);
       }
     } catch (err) {
-      setAiError(err.message || "Nem sikerült betölteni az ötleteket. Kérlek próbáld újra!");
+      applySmartFallbackButtons(userText);
     } finally {
       setAiLoading(false);
     }
   };
 
-  // Ha az anyuka rákattint egy gombra, az a kártya frissül, és a többi gomb megmarad
   const handleApplySuggestion = (item) => {
     setPlate((prev) => ({
       ...prev,
       [item.macroType]: item.fullText,
     }));
-    // Kiszűrjük a már kiválasztott elemet, de a többit (pl. másik makrót) meghagyjuk
     setSuggestions((prev) => prev.filter((s) => s.label !== item.label));
-    setAiComment(`Beállítva: ${item.label}`);
+    setAiComment(`Beállítva a tányérodra: ${item.label}`);
   };
 
   const handleLogMeal = () => {
@@ -205,7 +227,7 @@ export default function InteractivePlateBuilder() {
             </div>
           ) : (
             <div className="space-y-3">
-              {/* FEHÉRJE */}
+              {/* FEHÉRJE KÁRTYA */}
               {remaining.protein > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
@@ -226,7 +248,7 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* ROST */}
+              {/* ROST KÁRTYA */}
               {remaining.veg > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
@@ -247,7 +269,7 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* SZÉNHIDRÁT */}
+              {/* SZÉNHIDRÁT KÁRTYA */}
               {remaining.carb > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
@@ -268,7 +290,7 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* ZSÍR */}
+              {/* ZSÍR KÁRTYA */}
               {remaining.fat > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
@@ -292,7 +314,7 @@ export default function InteractivePlateBuilder() {
               {/* AI BEVITELI MEZŐ */}
               <form onSubmit={handleAskSuggestions} className="mt-3 pt-3 border-t border-stone-100">
                 <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
-                  Mit cserélnél? (pl. <em>„nincs rozskenyér és uborka helyett mást kérek”</em>):
+                  Mit cserélnél? (pl. <em>„túró helyett mást, és fehér kenyeret”</em>):
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -318,13 +340,6 @@ export default function InteractivePlateBuilder() {
               {aiComment && (
                 <div className="text-[11px] font-medium text-[#C3634C] bg-[#FFF9F5] p-2.5 rounded-xl border border-[#F0DCD4] animate-in fade-in leading-relaxed">
                   💡 {aiComment}
-                </div>
-              )}
-
-              {aiError && (
-                <div className="text-[11px] font-medium text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 flex items-center gap-1.5 animate-in fade-in">
-                  <AlertCircle size={13} className="shrink-0" />
-                  <span>{aiError}</span>
                 </div>
               )}
 
