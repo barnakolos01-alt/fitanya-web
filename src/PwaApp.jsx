@@ -8,9 +8,9 @@ import HydrationEngine from "./components/modules/HydrationEngine";
 import { Smartphone, Download, Share, PlusSquare, X } from "lucide-react";
 
 const MODULES = [
-  { key: "craving", label: "Tűzoltó", Comp: CravingCopilot },
-  { key: "tracker", label: "Tenyér-Tracker", Comp: PalmTrackerModule },
-  { key: "evening", label: "Esti Zárás", Comp: EveningRescue },
+  { key: "craving", label: "Nassolás", Comp: CravingCopilot },
+  { key: "tracker", label: "Mérő", Comp: PalmTrackerModule },
+  { key: "evening", label: "Vacsora", Comp: EveningRescue },
   { key: "hydration", label: "Víz", Comp: HydrationEngine },
 ];
 
@@ -61,17 +61,14 @@ export default function PwaApp() {
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
-      // Android / Desktop Chrome natív prompt
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") {
         setDeferredPrompt(null);
       }
     } else if (isIos) {
-      // iOS esetén útmutató felugró ablak
       setShowIosModal(true);
     } else {
-      // Egyéb böngészők esetén útmutatás
       alert(
         "A böngésződ menüjében (jobb felső sarok) válaszd az 'Alkalmazás telepítése' vagy 'Hozzáadás a kezdőképernyőhöz' lehetőséget!"
       );
@@ -139,7 +136,6 @@ export default function PwaApp() {
             </p>
           </div>
 
-          {/* HA A BANNER BE VAN ZÁRVA, DE MÉG NINCS TELEPÍTVE, A FEJLÉCBEN ELÉRHETŐ MARAD A GOMB */}
           {!isStandalone && bannerDismissed && (
             <button
               onClick={handleInstallClick}
@@ -150,13 +146,13 @@ export default function PwaApp() {
           )}
         </header>
 
-        {/* FELSŐ MODULVÁLASZTÓ TABS */}
-        <div className="px-5 flex gap-1.5 mb-6 overflow-x-auto pb-1 select-none">
+        {/* FIX, CSÚSZKAMENTES 4 OSZLOPOS MENÜ */}
+        <div className="px-5 grid grid-cols-4 gap-1.5 mb-6 select-none">
           {MODULES.map((m) => (
             <button
               key={m.key}
               onClick={() => setTab(m.key)}
-              className="flex-shrink-0 text-xs font-semibold px-4 py-2.5 rounded-full transition-all cursor-pointer"
+              className="w-full text-center text-[12px] font-semibold py-2.5 px-1 rounded-2xl transition-all cursor-pointer truncate"
               style={
                 tab === m.key
                   ? { backgroundColor: C.coral, color: "#fff", boxShadow: "0 4px 12px -2px rgba(224,122,95,0.4)" }
