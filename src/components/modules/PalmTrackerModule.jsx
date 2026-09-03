@@ -167,6 +167,10 @@ export default function PalmTrackerModule() {
         subtitle="Konyhamérleg nélkül — a családi közös fazékból a te tányérodra."
         icon={Utensils}
       />
+
+      {/* HETI ÖSSZEFOGLALÓ / MEGTARTÓ HUROK KÁRTYA */}
+      <WeeklySummaryCard />
+
       <TrackerHeader />
 
       {/* MAI ÉTKEZÉSI NAPLÓ (DAILY LOG HISTORY) */}
