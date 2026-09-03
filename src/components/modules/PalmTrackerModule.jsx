@@ -8,11 +8,15 @@ import {
   AlertCircle,
   Plus,
   Minus,
+  Moon,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { C } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
 import SectionHeader from "../ui/SectionHeader";
 import TrackerHeader from "../ui/TrackerHeader";
+import EveningRescue from "./EveningRescue";
 import { DISHES } from "../../utils/dishes";
 
 function FormattedMessage({ content }) {
@@ -24,6 +28,18 @@ function FormattedMessage({ content }) {
       {lines.map((line, idx) => {
         const trimmed = line.trim();
         if (!trimmed) return <div key={idx} className="h-1" />;
+
+        if (trimmed.startsWith("#")) {
+          const cleanHeading = trimmed.replace(/^#+\s*/, "");
+          return (
+            <h4
+              key={idx}
+              className="font-bold text-stone-900 text-sm mt-3 mb-1.5 pt-1.5 border-b border-[#f1ded6] pb-1 text-[#c3634c]"
+            >
+              {cleanHeading}
+            </h4>
+          );
+        }
 
         const parts = line.split(/(\*\*[\s\S]*?\*\*|\*[^*]+?\*)/g);
         const isHighlight = trimmed.startsWith("🖐️") || trimmed.startsWith("💡") || trimmed.startsWith("🎯");
@@ -51,13 +67,13 @@ export default function PalmTrackerModule() {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(null);
   const [logged, setLogged] = useState(false);
+  const [showEveningRescue, setShowEveningRescue] = useState(false);
 
   // AI ételfordító állapotai
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState(null);
   const [aiError, setAiError] = useState(null);
 
-  // Személyre szabható levonási adag az AI válasz után
   const [customDelta, setCustomDelta] = useState({
     protein: 1,
     veg: 1,
@@ -121,13 +137,13 @@ export default function PalmTrackerModule() {
   return (
     <div>
       <SectionHeader
-        title="Napi Tenyér-Tracker"
-        subtitle="Konyhamérleg nélkül — a családi fazékból a te tányérodra."
+        title="Tányérom"
+        subtitle="Konyhamérleg nélkül — a családi közös fazékból a te tányérodra."
         icon={Utensils}
       />
       <TrackerHeader />
 
-      <div className="rounded-3xl p-4 sm:p-5" style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}>
+      <div className="rounded-3xl p-4 sm:p-5 mb-5" style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}>
         <label className="text-xs font-medium mb-1.5 flex items-center gap-1.5" style={{ color: C.textSoft }}>
           <Search size={13} /> Mit eszel ma a családdal?
         </label>
@@ -151,7 +167,7 @@ export default function PalmTrackerModule() {
           />
         </div>
 
-        {/* FIX RECEPTEK TALÁLATI LISTÁJA */}
+        {/* FIX RECEPTEK LISTÁJA */}
         {visibleDishes.length > 0 && (
           <div className="flex flex-col gap-1.5 mb-3">
             {visibleDishes.map((d) => (
@@ -175,7 +191,7 @@ export default function PalmTrackerModule() {
           </div>
         )}
 
-        {/* AI KÉRDÉS GOMB (HA NEM TALÁLJA VAGY EGYEDI ÉTELT ÍRT BE) */}
+        {/* AI KÉRDÉS GOMB */}
         {query.trim().length > 1 && (
           <div className="mb-3">
             <button
@@ -204,7 +220,7 @@ export default function PalmTrackerModule() {
           </div>
         )}
 
-        {/* PRESET ÉTEL KONYHANYELV MEGJELENÍTÉSE */}
+        {/* PRESET ÉTEL */}
         {selected && !aiResponse && (
           <div className="rounded-2xl p-3.5 mb-3" style={{ backgroundColor: "#FFF9F5", border: `1px solid ${C.border}` }}>
             <p className="text-xs font-semibold mb-1" style={{ color: C.coralDeep }}>
@@ -224,7 +240,7 @@ export default function PalmTrackerModule() {
           </div>
         )}
 
-        {/* AI VÁLASZ ÉS LEVONÁSI PANEL */}
+        {/* AI VÁLASZ ÉS LEVONÁS */}
         {aiResponse && (
           <div className="rounded-2xl p-4 mb-3 bg-[#fbf5f2] border border-[#f1ded6] animate-in fade-in duration-200">
             <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-[#f1ded6]">
@@ -236,7 +252,6 @@ export default function PalmTrackerModule() {
 
             <FormattedMessage content={aiResponse} />
 
-            {/* ADAGOLÓ PANEL AZ AI ÉTEL UTÁN */}
             <div className="mt-4 pt-3 border-t border-[#f1ded6]">
               <p className="text-xs font-semibold text-stone-700 mb-2">
                 Mennyit vonjunk le a mai keretedből?
@@ -303,6 +318,45 @@ export default function PalmTrackerModule() {
           <p className="text-xs mt-2 text-center font-medium flex items-center justify-center gap-1" style={{ color: C.sageText }}>
             <CheckCircle2 size={13} /> Levonva a mai keretedből!
           </p>
+        )}
+      </div>
+
+      {/* ESTI HŰTŐMENTŐ LENYÍLÓ KÁRTYA */}
+      <div className="mt-6 mb-2">
+        {!showEveningRescue ? (
+          <button
+            type="button"
+            onClick={() => setShowEveningRescue(true)}
+            className="w-full p-4 rounded-3xl border border-[#F0DCD4] bg-[#FFF9F5] text-left flex items-center justify-between hover:bg-[#FDE8E1] transition-all cursor-pointer shadow-sm group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center shrink-0">
+                <Moon size={18} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#2D3748]">
+                  🌙 Este van? 10 perces Hűtőmentő Vacsora
+                </p>
+                <p className="text-[11px] text-[#6B5A52]">
+                  Tervezz vacsorát abból, ami épp otthon van és hiányzik mára!
+                </p>
+              </div>
+            </div>
+            <ChevronDown size={16} className="text-[#E07A5F] group-hover:translate-y-0.5 transition-transform shrink-0" />
+          </button>
+        ) : (
+          <div>
+            <div className="flex justify-end mb-2">
+              <button
+                type="button"
+                onClick={() => setShowEveningRescue(false)}
+                className="text-xs text-[#8A7268] hover:text-[#E07A5F] flex items-center gap-1 cursor-pointer"
+              >
+                <ChevronUp size={14} /> Hűtőmentő összecsukása
+              </button>
+            </div>
+            <EveningRescue />
+          </div>
         )}
       </div>
     </div>
