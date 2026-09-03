@@ -1,15 +1,15 @@
-import React, { useState } from "react";
-import { Sparkles, RefreshCw, CheckCircle2, UtensilsCrossed, Coffee, Loader2, Send, AlertCircle } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { Sparkles, RefreshCw, CheckCircle2, UtensilsCrossed, Coffee, Loader2, Send, Check } from "lucide-react";
 import { C, serif } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
 
 const PANTRY = {
   protein: [
-    "4-5 ek zsírszegény túró vagy cottage cheese light",
-    "3-4 szelet minőségi csirkemellsonka",
-    "1 doboz natúr tonhalkonzerv sós lében",
-    "1 kis doboz zsírszegény natúr görög joghurt",
-    "2-3 db főtt tojás vagy tükörtojás",
+    "4-5 ek zsírszegény túró vagy cottage cheese",
+    "3-4 szelet minőségi pulyka- vagy csirkemellsonka",
+    "1 doboz natúr tonhalkonzerv (sós lében)",
+    "1 kis doboz zsírszegény görög joghurt",
+    "2 db főtt tojás vagy tükörtojás",
   ],
   veg: [
     "1 db felkarikázott kígyóuborka",
@@ -47,7 +47,9 @@ export default function InteractivePlateBuilder() {
   const [swapInput, setSwapInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiComment, setAiComment] = useState(null);
-  const [aiError, setAiError] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+
+  const inputRef = useRef(null);
 
   const isZeroRemaining =
     remaining.protein <= 0 && remaining.veg <= 0 && remaining.carb <= 0;
@@ -58,53 +60,49 @@ export default function InteractivePlateBuilder() {
     const nextIdx = (currentIdx + 1) % list.length;
     setPlate((prev) => ({ ...prev, [macro]: list[nextIdx] }));
     setAiComment(null);
-    setAiError(null);
+    setSuggestions([]);
   };
 
-  const handleAiSwap = async (e) => {
-    e.preventDefault();
+  const handleAskSuggestions = async (e) => {
+    if (e) e.preventDefault();
     if (!swapInput.trim() || aiLoading) return;
 
     setAiLoading(true);
     setAiComment(null);
-    setAiError(null);
-
-    const userText = swapInput.trim();
+    setSuggestions([]);
 
     try {
       const res = await fetch("/api/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mode: "plate_swap",
-          input: userText,
+          mode: "suggest_options",
+          input: swapInput.trim(),
           remaining: remaining,
           currentPlate: plate,
         }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Hiba a csere során.");
-
-      if (data.plateUpdate) {
-        const u = data.plateUpdate;
-        setPlate((prev) => ({
-          protein: u.protein?.trim() || prev.protein,
-          veg: u.veg?.trim() || prev.veg,
-          carb: u.carb?.trim() || prev.carb,
-          fat: u.fat?.trim() || prev.fat,
-        }));
-
-        if (u.comment) {
-          setAiComment(u.comment);
-        }
+      if (data.comment) setAiComment(data.comment);
+      if (data.options && Array.isArray(data.options)) {
+        setSuggestions(data.options);
       }
-      setSwapInput("");
     } catch (err) {
-      setAiError("Nem sikerült a csere, kérlek próbáld újra!");
+      setAiComment("Pillanatnyi hiba történt, kérlek próbáld újra!");
     } finally {
       setAiLoading(false);
     }
+  };
+
+  const handleApplySuggestion = (item) => {
+    setPlate((prev) => ({
+      ...prev,
+      [item.macroType]: item.fullText,
+    }));
+    setSuggestions([]);
+    setSwapInput("");
+    setAiComment(`Szuper választás! Beállítottam a tányérodra: ${item.label}`);
   };
 
   const handleLogMeal = () => {
@@ -126,6 +124,8 @@ export default function InteractivePlateBuilder() {
     setTimeout(() => {
       setLogged(false);
       setIsOpen(false);
+      setSuggestions([]);
+      setAiComment(null);
     }, 1800);
   };
 
@@ -278,17 +278,18 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* AI HŰTŐ-CSERE BEVITELI MEZŐ */}
-              <form onSubmit={handleAiSwap} className="mt-2 pt-2 border-t border-stone-100">
+              {/* AI BEVITELI MEZŐ */}
+              <form onSubmit={handleAskSuggestions} className="mt-3 pt-3 border-t border-stone-100">
                 <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
-                  Nincs otthon valamelyik? Írd be (pl. <em>„nincs tojásom”</em> vagy <em>„gyors fehérjeforrás kell”</em>):
+                  Mit szeretnél cserélni? (pl. <em>„gyors fehérjét kérek”</em> vagy <em>„nincs tojásom”</em>):
                 </label>
                 <div className="flex gap-2">
                   <input
+                    ref={inputRef}
                     type="text"
                     value={swapInput}
                     onChange={(e) => setSwapInput(e.target.value)}
-                    placeholder="Írd ide, mit szeretnél vagy mi van otthon..."
+                    placeholder="Írd ide a kívánságod..."
                     className="flex-1 px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:border-[#E07A5F]"
                   />
                   <button
@@ -298,7 +299,7 @@ export default function InteractivePlateBuilder() {
                     style={{ backgroundColor: C.coral }}
                   >
                     {aiLoading ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
-                    <span>Csere</span>
+                    <span>Ötletek</span>
                   </button>
                 </div>
               </form>
@@ -309,10 +310,40 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {aiError && (
-                <div className="text-[11px] font-medium text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 flex items-center gap-1.5 animate-in fade-in">
-                  <AlertCircle size={13} className="shrink-0" />
-                  <span>{aiError}</span>
+              {/* KATTINTHATÓ GOMBOK / JAVASLATOK LISTÁJA */}
+              {suggestions.length > 0 && (
+                <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-200 space-y-2 animate-in fade-in">
+                  <p className="text-[11px] font-bold text-stone-700">
+                    Válassz egyet a gombok közül:
+                  </p>
+                  <div className="flex flex-col gap-1.5">
+                    {suggestions.map((opt, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleApplySuggestion(opt)}
+                        className="w-full text-left p-2.5 rounded-xl bg-white hover:bg-[#FDE8E1] border border-stone-200 hover:border-[#E07A5F] text-xs font-semibold text-stone-800 flex items-center justify-between transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                      >
+                        <span>{opt.label}</span>
+                        <span className="text-[10px] text-[#E07A5F] font-bold px-2 py-0.5 rounded-lg bg-[#FFF9F5] border border-[#F0DCD4]">
+                          Kiválasztom
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="text-center pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSuggestions([]);
+                        setSwapInput("");
+                        if (inputRef.current) inputRef.current.focus();
+                      }}
+                      className="text-[10px] font-medium text-stone-400 hover:text-stone-700 underline cursor-pointer"
+                    >
+                      Egyik sem jó, mást szeretnék beírni
+                    </button>
+                  </div>
                 </div>
               )}
 
