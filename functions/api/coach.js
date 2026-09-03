@@ -18,12 +18,17 @@ export async function onRequestPost(context) {
     const carb = Number(remaining?.carb ?? 0);
     const fat = Number(remaining?.fat ?? 0);
 
-    // 1. INTERAKTÍV GOMB-AJÁNLÓ
+    // 1. INTERAKTÍV GOMB-AJÁNLÓ (SUGGEST OPTIONS / PLATE SWAP)
     if (mode === "plate_swap" || mode === "suggest_options") {
-      const prompt = `Az anyuka a tányérján lévő ételeket szeretné cserélni.
-Jelenlegi keretei: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát, ${fat} zsír.
+      let restrictions = "";
+      if (fat <= 0) restrictions += " FIGYELEM: Zsírkeret elfogyott! Tilos olajat, vajat, diót és zsíros sajtokat adni!";
+      if (carb <= 0) restrictions += " FIGYELEM: Szénhidrátkeret elfogyott! Ne adj hozzá újabb pékárut vagy tésztát!";
 
-Jelenlegi tételek a tányérján:
+      const prompt = `Az anyuka tányércserét kér.
+Hátralévő keretei: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát, ${fat} zsír.
+${restrictions}
+
+Jelenlegi tételei:
 - Fehérje: "${currentPlate?.protein || "nincs"}"
 - Rost: "${currentPlate?.veg || "nincs"}"
 - Szénhidrát: "${currentPlate?.carb || "nincs"}"
@@ -31,10 +36,19 @@ Jelenlegi tételek a tányérján:
 
 Kérése: "${input}"
 
-SZABÁLYOK:
-- Ha több dolgot említ (pl. túró helyett mást, és rozs helyett fehér kenyeret), AKKOR MINDKETTŐRE adj külön gombot! 
-- Ha konkrét ételt kér (pl. fehér kenyér), adj egy gombot, ami pontosan arra cseréli!
-- Hívd meg a suggest_food_options eszközt!`;
+FELADAT: Adj 3 vagy 4 konkrét, hétköznapi magyar bolti/hűtős alternatívát gombokként!
+FONTOS: Ha fehérjét kért (pl. nem szereti a cottage cheese-t), KIZÁRÓLAG fehérjéket adj (pl. tojás, sonka, görög joghurt, tonhal)!
+
+Kizárólag érvényes JSON formátumban válaszolj!
+Minta:
+{
+  "comment": "Szuper, cseréljük le! Itt van pár könnyű alternatíva:",
+  "options": [
+    { "label": "🥚 2-3 db Főtt tojás", "fullText": "2-3 db főtt tojás vagy tükörtojás", "macroType": "protein" },
+    { "label": "🥩 3-4 szelet Pulykasonka", "fullText": "3-4 szelet minőségi pulykasonka", "macroType": "protein" },
+    { "label": "🥛 Görög joghurt (150g)", "fullText": "1 kis doboz natúr görög joghurt", "macroType": "protein" }
+  ]
+}`;
 
       const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -45,70 +59,41 @@ SZABÁLYOK:
         },
         body: JSON.stringify({
           model: "claude-3-5-haiku-20241022",
-          max_tokens: 800,
-          temperature: 0.2,
-          tools: [
-            {
-              name: "suggest_food_options",
-              description: "Kattintható ételjavaslat gombokat ad.",
-              input_schema: {
-                type: "object",
-                properties: {
-                  comment: {
-                    type: "string",
-                    description: "1 barátságos jóváhagyó mondat.",
-                  },
-                  options: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        label: { type: "string", description: "Rövid gombfelirat, pl: 🍞 Fehér kenyér" },
-                        fullText: { type: "string", description: "Teljes szöveg a kártyára, pl: 1 szelet fehér kenyér" },
-                        macroType: { type: "string", description: "Melyik kártya: protein, veg, carb vagy fat" },
-                      },
-                      required: ["label", "fullText", "macroType"],
-                    },
-                  },
-                },
-                required: ["comment", "options"],
-              },
-            },
+          max_tokens: 600,
+          temperature: 0.1,
+          system: "Te egy szigorúan JSON-t visszaadó táplálkozási motor vagy. Tilos bármilyen más szöveget generálni!",
+          messages: [
+            { role: "user", content: prompt },
+            { role: "assistant", content: '{\n  "comment":' }
           ],
-          tool_choice: { type: "tool", name: "suggest_food_options" },
-          messages: [{ role: "user", content: prompt }],
         }),
       });
 
-      // Vészhelyzeti háló: Ha az Anthropic API hibát dob, azonnal adunk 3 mentő-gombot
       if (!anthropicResponse.ok) {
-        return new Response(JSON.stringify({
-          comment: "Itt van pár szuper alternatíva a kérésed alapján:",
-          options: [
-            { label: "🥚 2-3 db Főtt tojás (Fehérje)", fullText: "2-3 db főtt tojás vagy tükörtojás", macroType: "protein" },
-            { label: "🥛 Natúr Joghurt (Fehérje)", fullText: "1 kis doboz natúr görög joghurt", macroType: "protein" },
-            { label: "🍞 Fehér kenyér (Szénhidrát)", fullText: "1 szelet fehér vagy félbarna kenyér", macroType: "carb" },
-          ]
-        }), { status: 200, headers: { "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ options: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
       }
 
       const data = await anthropicResponse.json();
-      const toolUse = data.content?.find((c) => c.type === "tool_use");
-      const result = toolUse?.input || {
-        comment: "Nézd, ezeket dobhatod be helyette:",
-        options: [
-            { label: "🥚 Tojás (Fehérje)", fullText: "2-3 db főtt tojás", macroType: "protein" },
-            { label: "🍞 Fehér kenyér (Szénhidrát)", fullText: "1 szelet fehér kenyér", macroType: "carb" },
-        ],
-      };
-
-      return new Response(JSON.stringify(result), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      const rawText = '{\n  "comment":' + (data.content?.[0]?.text || "");
+      
+      try {
+        const parsed = JSON.parse(rawText);
+        return new Response(JSON.stringify(parsed), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch {
+        return new Response(JSON.stringify({ options: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
     }
 
-    // TÁNYÉROM KERESŐ
+    // 2. TÁNYÉROM KERESŐ
     if (mode === "dish") {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -117,7 +102,7 @@ SZABÁLYOK:
           model: "claude-3-5-haiku-20241022",
           max_tokens: 350,
           temperature: 0.2,
-          system: "Te a FitAnya Zsebedzője vagy. Semmi AI-zsargon, csak életszerű tálalási tanács.",
+          system: "Te a FitAnya Zsebedzője vagy. Semmi AI-zsargon, csak életszerű tálalási tanács a családi fazékból.",
           messages: [{ role: "user", content: `A család ezt eszi: "${input}". Hátralévő keret: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát, ${fat} zsír. Mondd el hogyan szedjen! A végén kötelező: 🖐️ Levonás: X tenyér fehérje...` }],
         }),
       });
@@ -125,7 +110,7 @@ SZABÁLYOK:
       return new Response(JSON.stringify({ reply: d.content?.[0]?.text || "" }), { status: 200, headers: { "Content-Type": "application/json" } });
     }
 
-    // NASI SOS
+    // 3. NASI SOS
     if (mode === "craving") {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
