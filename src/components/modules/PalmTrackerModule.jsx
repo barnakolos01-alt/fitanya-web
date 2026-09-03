@@ -12,6 +12,7 @@ import {
   Clock,
   Trash2,
 } from "lucide-react";
+import WeeklySummaryCard from "../ui/WeeklySummaryCard";
 import { C } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
 import SectionHeader from "../ui/SectionHeader";
