@@ -13,38 +13,70 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const { mode, input, remaining } = body;
 
-    // Rendszerprompt: közvetlen, laza, hús-vér magyar hangnem (semmi AI-szarság vagy fordításszagú szöveg)
-    const systemPrompt = `Te vagy a FitAnya digitális Zsebedzője: közvetlen, intelligens, laza és őszinte mentor édesanyáknak. 
-Úgy beszélj, mint egy okos barátnő, aki ismeri a biokémiát, de nem gépieskedik. Kerülj minden steril, fordításszagú fitnesz-szöveget (pl. ne használd a "normalizálja", "kombó", "optimális" kifejezéseket).
-A válaszaid rövidek, max 3-4 mondatosak.`;
+    const prot = remaining?.protein ?? 0;
+    const veg = remaining?.veg ?? 0;
+    const carb = remaining?.carb ?? 0;
+    const fat = remaining?.fat ?? 0;
+
+    // Ha minden fő keret elfogyott mára
+    const isZeroRemaining = prot <= 0 && veg <= 0 && carb <= 0;
+
+    // RENDSZERPROMPT: Emberi, természetes, magabiztos magyar zsebedző
+    const systemPrompt = `Te a FitAnya digitális Zsebedzője vagy: egyenes, közvetlen, életrevaló és empatikus konyhai mentor kisgyerekes anyukáknak.
+Módszered: konyhamérleg nélkül, tenyér-mértékekkel (tenyérnyi fehérje, ökölnyi zöldség/rost, maréknyi szénhidrát, hüvelykujjnyi zsír) a közös családi fazékból.
+
+STÍLUSSZABÁLYOK:
+- Beszélj úgy, mint egy éles eszű, támogató barátnő a konyhapult mellett: közvetlen, laza, természetes magyar mondatokkal.
+- SZIGORÚAN TILOS az angol tükörfordítás és az AI-zsargon! Ne használj olyan szavakat, mint: "kombó", "normalizálja a sóvárgást", "retúr tányér", "optimalizálás", "kompaundálódik".
+- Nincs felesleges bevezető sallang ("Íme a javaslatom:", "Örömmel segítek:"). Azonnal a lényegre térj!
+- Ne használj markdown kettőskereszteket (#, ##). Csak normál bekezdéseket és félkövér kiemelést (**).
+- Válaszaid legyenek rövidek, pörgősek (3-4 mondat max).`;
 
     let userPrompt = "";
 
-    // Ellenőrizzük, hogy elfogyott-e minden keret mára
-    const isZeroRemaining = 
-      (remaining?.protein || 0) <= 0 && 
-      (remaining?.veg || 0) <= 0 && 
-      (remaining?.carb || 0) <= 0;
+    // 1. ÉTEL-FORDÍTÓ (TÁNYÉROM KERESŐ)
+    if (mode === "dish") {
+      userPrompt = `A család ezt eszi / ezt főzte: "${input}".
+Az anyuka hátralévő mai kerete: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
+Feladatod:
+1. Magyarázd el 2 tömör mondatban, hogyan szedjen ebből a saját tányérjára a közös fazékból mérlegelés nélkül (pl. mennyi hús/feltét, köret, és mit tegyen mellé zöldségként).
+2. A legvégén egyetlen külön sorban add meg a pontos levonási javaslatot így:
+🖐️ Levonás: X tenyér fehérje, X ököl rost, X marék szénhidrát, X hüvelykujj zsír.`;
+    }
 
-    if (mode === "craving") {
-      userPrompt = `Az anyuka ezt kívánja éppen: "${input}".
-Maradék mai kerete: ${remaining?.protein || 0} fehérje, ${remaining?.veg || 0} rost, ${remaining?.carb || 0} szénhidrát, ${remaining?.fat || 0} zsír.
-Mondd el 1 mondatban laza stílusban az élettani okát (pl. fáradtság, stressz), és adj 1-2 gyors alternatívát, ami nem borítja fel a napját.`;
-    } else if (mode === "dinner") {
+    // 2. SÓVÁRGÁS ÉS NASI SOS
+    else if (mode === "craving") {
+      userPrompt = `Az anyuka ezt kívánja azonnal: "${input}".
+Hátralévő kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát.
+Feladatod:
+1. Mondd el 1 empátiával teli, közvetlen mondatban a valós élettani hátteret (fáradtság, kialvatlanság vagy kortizol-ugrás miatti dopaminéhség – semmi bűntudat!).
+2. Adj 2 olyan pofonegyszerű bolti vagy hűtős alternatívát, ami 60 másodperc alatt összedobható, kielégíti az ízvágyat (édes vagy sós), de nem robbantja szét a napját.`;
+    }
+
+    // 3. ESTI ZÁRÁS & HŰTŐMENTŐ
+    else if (mode === "dinner") {
       if (isZeroRemaining) {
-        userPrompt = `Esti zárás, az anyuka ezt írta be: "${input}". 
-Figyelem: a mai kerete mára már teljesen betelt (mindenhol 0 vagy kevesebb van hátra)! 
-SZIGORÚAN TILOS újabb kaját vagy receptet ajánlanod! Helyette állj bele határozottan, de kedvesen: mondd meg neki, hogy mára lezárt a bolt, ez már nem éhség, hanem a fáradtság vagy az esti relax keresése. Küldd el egy pohár vízre, teára vagy aludni.`;
+        userPrompt = `Késő este van, az anyuka ezt írta be a Hűtőmentőbe: "${input}".
+KRITIKUS HELYZET: A mai napi kerete már teljesen elfogyott (0 fehérje, 0 rost, 0 szénhidrát van hátra)!
+SZIGORÚAN TILOS receptet vagy újabb étkezést javasolnod!
+Feladatod:
+Állítsd meg kedvesen, de határozottan és őszintén:
+- Mondd meg neki, hogy a mai keretét hibátlanul lehozta, a teste megkapott mindent.
+- Világíts rá, hogy ez a késő esti vágy most nem valódi éhség, hanem a csendes házban fellépő fáradtság és a napi stressz levezetése.
+- Javasolj neki egy nagy bögre meleg gyógyteát (citromfű/menta), 2-3 dl vizet, vagy hogy csukja be a hűtőt és feküdjön le aludni.`;
       } else {
-        userPrompt = `Esti hűtőmentés! Ezt enné / ez van otthon: "${input}".
-Még hátralévő kerete: ${remaining?.protein || 0} fehérje, ${remaining?.veg || 0} rost, ${remaining?.carb || 0} szénhidrát, ${remaining?.fat || 0} zsír.
-Írj egy 3 mondatos, villámgyors vacsorát kizárólag a maradék keretéből, teljesen emberi nyelven!`;
+        userPrompt = `Esti hűtőmentés! Ez van otthon a hűtőben: "${input}".
+Még hátralévő kerete mára: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
+Feladatod:
+Rakj össze belőle egy 10 perces, konyhai túlélő vacsorát KIZÁRÓLAG a maradék keretéből. Semmi flancolás: mit mivel dobjon össze a serpenyőben vagy tányéron, hogy jóllakottan zárja a napot.`;
       }
-    } else {
+    }
+
+    // EGYÉB ESET
+    else {
       userPrompt = input;
     }
 
-    // Hívás a Claude 3.5 Haiku modellhez
     const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
