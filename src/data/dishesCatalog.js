@@ -340,24 +340,43 @@ export const DISHES_CATALOG = [
 
 export function searchDishes(searchTerm) {
   if (!searchTerm || searchTerm.trim().length < 2) return [];
+  
   const clean = searchTerm
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
 
-  return DISHES_CATALOG.filter((dish) => {
+  // Relevancia szerinti pontozás
+  const scored = DISHES_CATALOG.map((dish) => {
     const nameNorm = dish.name
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
-    if (nameNorm.includes(clean)) return true;
-    return dish.keywords.some((kw) => {
-      const kwNorm = kw
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      return kwNorm.includes(clean);
-    });
-  }).slice(0, 5);
+
+    let score = 0;
+
+    if (nameNorm.startsWith(clean)) {
+      score = 100; // Névvel kezdődik (pl. "paprika..." -> Paprikás krumpli legfelül)
+    } else if (nameNorm.includes(clean)) {
+      score = 50;  // Névben bárhol benne van
+    } else {
+      const matchKeyword = dish.keywords.some((kw) => {
+        const kwNorm = kw
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+        return kwNorm.includes(clean);
+      });
+      if (matchKeyword) score = 10; // Csak kulcsszóban van benne
+    }
+
+    return { dish, score };
+  });
+
+  return scored
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 7)
+    .map((item) => item.dish);
 }
