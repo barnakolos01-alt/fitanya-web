@@ -122,7 +122,7 @@ export default function FridgeRescue({ remaining = { protein: 1, veg: 2, carb: 1
         </div>
       </div>
 
-      {/* Napi maradék keret emlékeztető kártya */}
+      {/* Napi maradék keret emlékeztető */}
       <div className="mb-5 p-3.5 bg-stone-50 rounded-2xl border border-stone-200/70 flex items-center justify-between text-xs">
         <span className="font-medium text-stone-600">Még hiányzik mára:</span>
         <div className="flex gap-2 font-semibold text-stone-800">
@@ -196,15 +196,18 @@ export default function FridgeRescue({ remaining = { protein: 1, veg: 2, carb: 1
           </button>
         </form>
       ) : (
-        /* AI Válasz doboz */
+        /* AI Válasz kártya tiszta elrendezéssel */
         <div className="space-y-4">
           <div className="p-4 bg-[#fbf5f2] border border-[#f1ded6] rounded-2xl">
-            <div className="flex items-center justify-between mb-3">
+            {/* Fejléc - reszponzív, nem csúszik össze */}
+            <div className="flex flex-col gap-1 mb-3 pb-2.5 border-b border-[#f1ded6]">
               <span className="text-[11px] font-bold text-[#c3634c] uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
                 FitAnya Vacsora Recept (10 perc)
               </span>
-              <span className="text-[11px] text-stone-400">Alap: "{fridgeInput}"</span>
+              <p className="text-xs text-stone-500 italic break-words">
+                Alap: "{fridgeInput}"
+              </p>
             </div>
 
             <FormattedMessage content={response} />
