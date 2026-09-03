@@ -20,7 +20,7 @@ export async function onRequestPost(context) {
 
     const isZeroRemaining = prot <= 0 && veg <= 0 && carb <= 0;
 
-    const systemPrompt = `Te a FitAnya digitális Zsebedzője vagy: közvetlen, életrevaló, magyar konyhai mentor.
+    let systemPrompt = `Te a FitAnya digitális Zsebedzője vagy: közvetlen, életrevaló, magyar konyhai mentor kisgyerekes anyukáknak.
 Nincs kalóriaszámolás, a Tenyér-szabályt használjuk (fehérje: tenyér, rost: ököl, szénhidrát: marék, zsír: hüvelykujj).
 Kerülj minden AI-zsargont és tükörfordítást. Természetes, hétköznapi konyhanyelven beszélj!`;
 
@@ -37,25 +37,25 @@ A végén kötelező sor:
 
     // 2. INTERAKTÍV TÁNYÉR CSERE (AI PLATE SWAP)
     else if (mode === "plate_swap") {
-      userPrompt = `Az anyuka a 'Mit ehetek még ma?' tányérját szeretné testreszabni a saját hűtője szerint.
-Hátralévő kerete mára: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
-Jelenlegi tételek a tányérján:
+      systemPrompt = `KIZÁRÓLAG egyetlen érvényes JSON objektumot adhatsz vissza, semmi mást! Tilos bármilyen bevezető, lezáró vagy magyarázó szöveg!`;
+
+      userPrompt = `Feladat: Cseréld ki a tányér megfelelő elemét az anyuka kérése alapján!
+Hátralévő kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát, ${fat} zsír.
+Jelenlegi tányér:
 - Fehérje: ${currentPlate?.protein || "nincs"}
 - Rost: ${currentPlate?.veg || "nincs"}
 - Szénhidrát: ${currentPlate?.carb || "nincs"}
 - Zsír: ${currentPlate?.fat || "nincs"}
 
-Az anyuka ezt írta, hogy mije van otthon / mit szeretne kicserélni: "${input}".
+Az anyuka ezt írta: "${input}"
 
-Feladat: Cseréld ki a megfelelő komponenst úgy, hogy illeszkedjen az ő hűtőkészletéhez és a megmaradt keretéhez!
-VÁLASZ FORMÁTUM: Kizárólag érvényes JSON formátumban válaszolj, semmi más felvezető szöveg ne legyen!
-Példa:
+Kötelező JSON válasz sablon:
 {
-  "protein": "${prot > 0 ? "új fehérje leírás adaggal" : ""}",
-  "veg": "${veg > 0 ? "új rost leírás adaggal" : ""}",
-  "carb": "${carb > 0 ? "új szénhidrát leírás adaggal" : ""}",
-  "fat": "${fat > 0 ? "új zsír leírás adaggal" : ""}",
-  "comment": "Rövid, 1 mondatos jóváhagyás barátnős stílusban"
+  "protein": "${currentPlate?.protein || ""}",
+  "veg": "${currentPlate?.veg || ""}",
+  "carb": "ide írd az új szénhidrátot ha ezt kérte, pl. 1 szelet kovászos fehér kenyér",
+  "fat": "${currentPlate?.fat || ""}",
+  "comment": "1 rövid barátnős mondat, pl: Teljesen jó a fehér kenyér is, egy szelet pont a maréknyi adagod!"
 }`;
     }
 
@@ -63,7 +63,7 @@ Példa:
     else if (mode === "craving") {
       userPrompt = `Az anyuka erre vágyik: "${input}".
 Hátralévő kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát.
-1 mondat az élettani okról (fáradtság/stressz, semmi bűntudat!), plusz 2 gyors, 60 másodperces alternatíva.`;
+1 mondat az élettani okról (fáradtság/stressz, semmi bűntudat!), plusz 2 gyors alternatíva.`;
     }
 
     // 4. ESTI ZÁRÁS
@@ -87,7 +87,7 @@ Hátralévő kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát.
       body: JSON.stringify({
         model: "claude-3-5-haiku-20241022",
         max_tokens: 350,
-        temperature: 0.2,
+        temperature: 0.1,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
       }),
