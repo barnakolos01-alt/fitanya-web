@@ -5,11 +5,11 @@ import { useFitAnya } from "../../context/FitAnyaContext";
 
 const PANTRY = {
   protein: [
-    "2-3 szelet minőségi pulyka- vagy csirkemellsonka",
+    "2-3 szelet minőségi pulykasonka",
     "2-3 db főtt tojás vagy tükörtojás",
+    "1 doboz natúr görög joghurt (150-200g)",
     "4-5 ek zsírszegény túró vagy cottage cheese",
     "1 doboz natúr tonhalkonzerv (lecsöpögtetve)",
-    "1 doboz natúr görög joghurt (150g)",
   ],
   veg: [
     "1 db felkarikázott kígyóuborka",
@@ -37,7 +37,6 @@ export default function InteractivePlateBuilder() {
   const [isOpen, setIsOpen] = useState(false);
   const [logged, setLogged] = useState(false);
 
-  // Aktuális tányér elemei
   const [plate, setPlate] = useState({
     protein: PANTRY.protein[0],
     veg: PANTRY.veg[0],
@@ -53,7 +52,6 @@ export default function InteractivePlateBuilder() {
   const isZeroRemaining =
     remaining.protein <= 0 && remaining.veg <= 0 && remaining.carb <= 0;
 
-  // Gyors offline csere gomb
   const cycleItem = (macro) => {
     const list = PANTRY[macro];
     const currentIdx = list.indexOf(plate[macro]);
@@ -63,7 +61,6 @@ export default function InteractivePlateBuilder() {
     setAiError(null);
   };
 
-  // AI csere logikája
   const handleAiSwap = async (e) => {
     e.preventDefault();
     if (!swapInput.trim() || aiLoading) return;
@@ -93,68 +90,63 @@ export default function InteractivePlateBuilder() {
       const start = raw.indexOf("{");
       const end = raw.lastIndexOf("}");
 
-      let updatedSuccessfully = false;
+      let success = false;
 
-      // 1. Próbáljuk kinyerni a JSON-t
       if (start !== -1 && end !== -1) {
         try {
           const parsed = JSON.parse(raw.substring(start, end + 1));
+          
           setPlate((prev) => ({
-            protein: parsed.protein?.trim() || prev.protein,
-            veg: parsed.veg?.trim() || prev.veg,
-            carb: parsed.carb?.trim() || prev.carb,
-            fat: parsed.fat?.trim() || prev.fat,
+            protein: parsed.protein?.trim() ? parsed.protein.trim() : prev.protein,
+            veg: parsed.veg?.trim() ? parsed.veg.trim() : prev.veg,
+            carb: parsed.carb?.trim() ? parsed.carb.trim() : prev.carb,
+            fat: parsed.fat?.trim() ? parsed.fat.trim() : prev.fat,
           }));
 
           if (parsed.comment) {
             setAiComment(parsed.comment.replace(/^#+\s*/g, ""));
           }
-          updatedSuccessfully = true;
-        } catch {}
+          success = true;
+        } catch (parseErr) {
+          console.warn("JSON parse hiba:", parseErr);
+        }
       }
 
-      // 2. Ha az AI mégis szöveget adott volna, azonnal átírjuk a kártyát
-      if (!updatedSuccessfully) {
-        applySmartFallback(userText, raw);
+      if (!success) {
+        applySmartFallback(userText);
       }
 
       setSwapInput("");
     } catch (err) {
-      setAiError("Nem sikerült a csere, próbáld újra!");
+      applySmartFallback(userText);
     } finally {
       setAiLoading(false);
     }
   };
 
-  // Intelligens kártyacsere, ha a modell nem JSON-t adott
-  const applySmartFallback = (input, rawText) => {
+  // Hibatűrő helyi csere (ha a kapcsolat megszakadna)
+  const applySmartFallback = (input) => {
     const low = input.toLowerCase();
+    const isRejectingEggs = low.includes("nincs tojás") || low.includes("nem szeretem a tojást") || low.includes("nem kérek tojást");
+
     setPlate((prev) => {
       const updated = { ...prev };
-      if (low.includes("tojás")) {
-        updated.protein = "2-3 db főtt tojás vagy rántotta";
+      if (low.includes("joghurt")) {
+        updated.protein = "1 doboz natúr görög joghurt (150-200g)";
       } else if (low.includes("túró") || low.includes("cottage")) {
         updated.protein = "4-5 ek zsírszegény túró vagy cottage cheese";
       } else if (low.includes("tonhal") || low.includes("hal")) {
-        updated.protein = "1 doboz natúr tonhalkonzerv";
+        updated.protein = "1 doboz natúr tonhalkonzerv (lecsöpögtetve)";
+      } else if (isRejectingEggs) {
+        updated.protein = "1 doboz natúr görög joghurt vagy 150g túró";
       } else if (low.includes("fehér") && low.includes("kenyér")) {
-        updated.carb = "1 szelet fehér vagy félbarna kenyér";
-      } else if (low.includes("rizs")) {
-        updated.carb = "3-4 db natúr puffasztott rizs";
-      } else {
-        // Ha csak annyit írt pl. "nincs sonkám", automatikusan tojásra váltunk
-        updated.protein = "2-3 db főtt tojás vagy tükörtojás";
+        updated.carb = "1 szelet fehér kenyér";
       }
       return updated;
     });
 
-    // Tisztított, max 1 mondatos üzenet
-    const cleanComment = rawText
-      .split("\n")[0]
-      .replace(/[\{\}\[\]"#*]/g, "")
-      .trim();
-
-    setAiComment(cleanComment || "Átírtam a kártyát a hűtőd szerint!");
+    setAiComment("Átírtam a kártyát a hűtőd szerint!");
+    setSwapInput("");
   };
 
   const handleLogMeal = () => {
@@ -227,7 +219,6 @@ export default function InteractivePlateBuilder() {
             </button>
           </div>
 
-          {/* HA BETELT A NAPI KERET */}
           {isZeroRemaining ? (
             <div className="p-4 rounded-2xl bg-[#FDF6F0] border border-[#F5D8C7] text-center space-y-2.5">
               <div className="w-10 h-10 rounded-full bg-white text-[#E07A5F] flex items-center justify-center mx-auto shadow-sm">
@@ -244,7 +235,6 @@ export default function InteractivePlateBuilder() {
               </p>
             </div>
           ) : (
-            /* HA VAN MÉG HIÁNYZÓ KERET */
             <div className="space-y-3">
               {/* FEHÉRJE KÁRTYA */}
               {remaining.protein > 0 && (
@@ -330,10 +320,10 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* AI BEVITELI MEZŐ */}
+              {/* AI HŰTŐ-CSERE BEVITELI MEZŐ */}
               <form onSubmit={handleAiSwap} className="mt-2 pt-2 border-t border-stone-100">
                 <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
-                  Nincs otthon valamelyik? Írd be (pl. <em>„nincs sonkám”</em> vagy <em>„csak tojás van”</em>):
+                  Nincs otthon valamelyik? Írd be (pl. <em>„nincs tojásom”</em> vagy <em>„csak joghurt van”</em>):
                 </label>
                 <div className="flex gap-2">
                   <input
