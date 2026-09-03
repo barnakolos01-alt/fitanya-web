@@ -20,13 +20,13 @@ export async function onRequestPost(context) {
 
     const isZeroRemaining = prot <= 0 && veg <= 0 && carb <= 0;
 
-    let systemPrompt = `Te a FitAnya digitális Zsebedzője vagy: közvetlen, életrevaló, magyar konyhai mentor kisgyerekes anyukáknak.
-Nincs kalóriaszámolás, a Tenyér-szabályt használjuk (fehérje: tenyér, rost: ököl, szénhidrát: marék, zsír: hüvelykujj).
-Kerülj minden AI-zsargont és tükörfordítást. Természetes, hétköznapi konyhanyelven beszélj!`;
+    let systemPrompt = `Te a FitAnya digitális Zsebedzője vagy: közvetlen, életrevaló, magyar konyhai mentor.
+Nincs mérlegelés, a Tenyér-szabályt használjuk (fehérje: tenyér, rost: ököl, szénhidrát: marék, zsír: hüvelykujj).
+Kerülj minden AI-zsargont, esszét és tükörfordítást.`;
 
     let userPrompt = "";
 
-    // 1. ÉTEL-FORDÍTÓ (TÁNYÉROM KERESŐ)
+    // 1. TÁNYÉROM KERESŐ
     if (mode === "dish") {
       userPrompt = `A család ezt eszi: "${input}".
 Hátralévő keret: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
@@ -35,27 +35,27 @@ A végén kötelező sor:
 🖐️ Levonás: X tenyér fehérje, X ököl rost, X marék szénhidrát, X hüvelykujj zsír.`;
     }
 
-    // 2. INTERAKTÍV TÁNYÉR CSERE (AI PLATE SWAP)
+    // 2. INTERAKTÍV TÁNYÉR CSERE (SZIGORÚAN 1 ADAT, SEMMI LISTÁZÁS)
     else if (mode === "plate_swap") {
-      systemPrompt = `KIZÁRÓLAG egyetlen érvényes JSON objektumot adhatsz vissza, semmi mást! Tilos bármilyen bevezető, lezáró vagy magyarázó szöveg!`;
+      systemPrompt = `Te egy beágyazott adat-motor vagy. SOHA NE írj listát, opciókat, markdown címet (#) és NE kérdezz vissza!
+KIZÁRÓLAG egyetlen érvényes JSON objektumot adhatsz vissza!
+Ha az anyuka azt írja, hogy valami nincs otthon (pl. "nincs sonkám"), VÁLASSZ KI TE EGYETLEN konkrét hétköznapi ételt a hiányzó keretére (pl. "2-3 db főtt tojás vagy rántotta"), és írd be a megfelelő mezőbe!`;
 
-      userPrompt = `Feladat: Cseréld ki a tányér megfelelő elemét az anyuka kérése alapján!
-Hátralévő kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát, ${fat} zsír.
-Jelenlegi tányér:
-- Fehérje: ${currentPlate?.protein || "nincs"}
-- Rost: ${currentPlate?.veg || "nincs"}
-- Szénhidrát: ${currentPlate?.carb || "nincs"}
-- Zsír: ${currentPlate?.fat || "nincs"}
+      userPrompt = `Az anyuka ezt írta: "${input}"
+Hátralévő kerete: ${prot} tenyér fehérje, ${veg} ököl rost, ${carb} marék szénhidrát, ${fat} hüvelykujj zsír.
+Jelenlegi kártyák:
+- Fehérje: "${currentPlate?.protein || ""}"
+- Rost: "${currentPlate?.veg || ""}"
+- Szénhidrát: "${currentPlate?.carb || ""}"
+- Zsír: "${currentPlate?.fat || ""}"
 
-Az anyuka ezt írta: "${input}"
-
-Kötelező JSON válasz sablon:
+KIZÁRÓLAG EZT A JSON FORMÁTUMOT ADD VISSZA:
 {
-  "protein": "${currentPlate?.protein || ""}",
-  "veg": "${currentPlate?.veg || ""}",
-  "carb": "ide írd az új szénhidrátot ha ezt kérte, pl. 1 szelet kovászos fehér kenyér",
-  "fat": "${currentPlate?.fat || ""}",
-  "comment": "1 rövid barátnős mondat, pl: Teljesen jó a fehér kenyér is, egy szelet pont a maréknyi adagod!"
+  "protein": "${prot > 0 ? "új konkrét fehérje pontos adaggal" : ""}",
+  "veg": "${veg > 0 ? "új konkrét zöldség pontos adaggal" : ""}",
+  "carb": "${carb > 0 ? "új konkrét szénhidrát pontos adaggal" : ""}",
+  "fat": "${fat > 0 ? "új konkrét zsír pontos adaggal" : ""}",
+  "comment": "1 nagyon rövid jóváhagyó mondat (pl. Átírtam tojásra, 2 db tökéletesen fedezi a fehérjédet!)"
 }`;
     }
 
@@ -63,7 +63,7 @@ Kötelező JSON válasz sablon:
     else if (mode === "craving") {
       userPrompt = `Az anyuka erre vágyik: "${input}".
 Hátralévő kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát.
-1 mondat az élettani okról (fáradtság/stressz, semmi bűntudat!), plusz 2 gyors alternatíva.`;
+1 mondat az élettani okról (fáradtság/dopamin), plusz 2 gyors, 60 másodperces túlélő alternatíva.`;
     }
 
     // 4. ESTI ZÁRÁS
@@ -86,7 +86,7 @@ Hátralévő kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát.
       },
       body: JSON.stringify({
         model: "claude-3-5-haiku-20241022",
-        max_tokens: 350,
+        max_tokens: 250,
         temperature: 0.1,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
@@ -102,7 +102,7 @@ Hátralévő kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát.
     }
 
     const data = await anthropicResponse.json();
-    const replyText = data.content?.[0]?.text || "Nem sikerült választ generálni.";
+    const replyText = data.content?.[0]?.text || "{}";
 
     return new Response(JSON.stringify({ reply: replyText }), {
       status: 200,
