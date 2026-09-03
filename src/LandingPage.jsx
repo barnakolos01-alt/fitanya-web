@@ -153,7 +153,6 @@ const STRIPE_PAYMENT_LINKS = {
   vip: "https://buy.stripe.com/8x2dRb5C86jB95zb5O9ws02",
 };
 
-// Csomagok nyilvános tartalma
 const PACKAGE_CONTENTS = {
   sulikezdo: {
     title: "Sulikezdő Túlélőcsomag (Szeptemberi Különkiadás)",
@@ -310,7 +309,7 @@ function KpiCard({ icon: Icon, label, value, sub, accent = "#E07A5F" }) {
   );
 }
 
-function PricingCard({ tier, selected, isRecommended, onSelect }) {
+function PricingCard({ tier, isRecommended, onCheckout, isCheckingOut }) {
   const isFeatured = tier.featured;
   const hasBadge = !!tier.badge;
   return (
@@ -375,15 +374,22 @@ function PricingCard({ tier, selected, isRecommended, onSelect }) {
           </li>
         ))}
       </ul>
+
+      {/* 1-KATTINTÁSOS STRIPE GOMB */}
       <button
-        onClick={() => onSelect(tier.id)}
-        className="mt-7 w-full font-display font-bold text-sm px-6 py-3.5 rounded-xl inline-flex items-center justify-center gap-2 transition-transform cursor-pointer"
+        disabled={isCheckingOut}
+        onClick={() => onCheckout(tier.id)}
+        className="mt-7 w-full font-display font-bold text-sm px-6 py-3.5 rounded-xl inline-flex items-center justify-center gap-2 transition-transform cursor-pointer shadow-md disabled:opacity-60"
         style={{
           background: isRecommended ? "#C8624A" : isFeatured ? "#E07A5F" : hasBadge ? "#8A4B4F" : "#2D3748",
           color: "#FDFBF7",
         }}
       >
-        {selected === tier.id ? "Kiválasztva" : "Kérem a csomagot"} <ArrowRight size={16} />
+        {isCheckingOut ? (
+          <><Loader2 size={16} className="animate-spin" /> Átirányítás...</>
+        ) : (
+          <>Kérem a csomagot <ArrowRight size={16} /></>
+        )}
       </button>
     </div>
   );
@@ -545,7 +551,6 @@ function FitAnyaLanding() {
   const [isSendingGate, setIsSendingGate] = useState(false);
   const [gateError, setGateError] = useState("");
   
-  // Elemzési állapot és kapu a 7. kérdés után
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisIndex, setAnalysisIndex] = useState(0);
   const [showEmailGate, setShowEmailGate] = useState(false);
@@ -609,7 +614,7 @@ function FitAnyaLanding() {
     }
   }, [wizardDone]);
 
-  // Sikeres fizetés érzékelése URL paraméterből
+  // Sikeres fizetés érzékelése URL paraméterből (Stripe Redirect)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("status") === "success") {
@@ -630,7 +635,6 @@ function FitAnyaLanding() {
     }
   }, []);
 
-  // Automatikus legörgetés a megrendelési siker felülethez
   useEffect(() => {
     if (orderSubmitted && orderRef.current) {
       setTimeout(() => {
@@ -697,37 +701,31 @@ function FitAnyaLanding() {
     }, 220);
   };
 
-  const handleStripeCheckout = () => {
-    const baseUrl = STRIPE_PAYMENT_LINKS[selectedPkg];
+  // 1-KATTINTÁSOS STRIPE CHECKOUT FUNKCIÓ (DUPLA ŰRLAP NÉLKÜL)
+  const handleDirectCheckout = (pkgId) => {
+    const targetPkg = pkgId || selectedPkg;
+    const baseUrl = STRIPE_PAYMENT_LINKS[targetPkg];
     if (baseUrl) {
       setIsCheckingOut(true);
+      setSelectedPkg(targetPkg);
 
       if (window.fbq) {
         let price = 7990;
-        if (selectedPkg === "sulikezdo") price = 3490;
-        if (selectedPkg === "basic") price = 4990;
-        if (selectedPkg === "vip") price = 12990;
+        if (targetPkg === "sulikezdo") price = 3490;
+        if (targetPkg === "basic") price = 4990;
+        if (targetPkg === "vip") price = 12990;
         window.fbq("track", "InitiateCheckout", { value: price, currency: "HUF" });
       }
 
-      const rawEmail = (orderForm.email || gateEmail || "").trim();
+      const rawEmail = (gateEmail || orderForm.email || "").trim();
       const checkoutUrl = rawEmail 
         ? `${baseUrl}?prefilled_email=${encodeURIComponent(rawEmail)}` 
         : baseUrl;
 
       setTimeout(() => {
         window.location.href = checkoutUrl;
-      }, 180);
+      }, 150);
     }
-  };
-
-  const handleOrderSubmit = () => {
-    if (!orderForm.name.trim() || !orderForm.email.trim()) {
-      setOrderError("Kérjük, add meg a neved és az e-mail címed a folytatáshoz!");
-      return;
-    }
-    setOrderError("");
-    handleStripeCheckout();
   };
 
   const handleRestart = () => {
@@ -785,7 +783,6 @@ function FitAnyaLanding() {
     }
   }, [wizardDone, results.recommendedPkg]);
 
-  // Elemzési varázsló indítása a 7. kérdés után
   const handleStartAnalysis = () => {
     if (!form.focus) return;
     setIsAnalyzing(true);
@@ -799,7 +796,6 @@ function FitAnyaLanding() {
     }, 2100);
   };
 
-  // E-mail Kapu jóváhagyása és Eredmények feloldása
   const handleUnlockResults = async () => {
     if (!gateEmail || !gateEmail.includes("@") || !gateEmail.includes(".")) {
       setGateError("Kérjük, valós e-mail címet adj meg a hozzáféréshez!");
@@ -960,7 +956,7 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* A 3 ALAPPILLÉR — INTERAKTÍV KÁRTYÁK */}
+      {/* A 3 ALAPPILLÉR */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
         <div className="text-center mb-10">
           <SectionEyebrow><Award size={14} /> Miért működik?</SectionEyebrow>
@@ -1132,7 +1128,6 @@ function FitAnyaLanding() {
         {!wizardDone ? (
           <div className="rounded-3xl p-6 sm:p-10" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4", boxShadow: "0 20px 48px -28px rgba(45,55,72,0.25)" }}>
             
-            {/* LÉPÉSEK MUTATÁSA (HA NEM AZ ELEMZÉS/KAPU FUT) */}
             {!isAnalyzing && !showEmailGate && (
               <>
                 <p className="text-center text-xs uppercase tracking-wide font-semibold mb-5 select-none" style={{ color: "#B99189" }}>
@@ -1360,7 +1355,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* ANIMÁLT ELEMZÉS ÁLLAPOT (A 7. KÉRDÉS UTÁN) */}
+            {/* ANIMÁLT ELEMZÉS */}
             {isAnalyzing && (
               <div className="py-12 px-4 text-center animate-in fade-in duration-300">
                 <div className="w-16 h-16 rounded-full bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center mx-auto mb-5 animate-pulse">
@@ -1383,7 +1378,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* KÖZTES E-MAIL KAPU (LEAD GENERÁLÁS ÉS SZÁMOK FELOLDÁSA) */}
+            {/* E-MAIL KAPU */}
             {showEmailGate && (
               <div className="py-6 sm:py-8 px-2 text-center animate-in fade-in duration-300">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-[#F0F5F1] text-[#7C9885] shadow-sm">
@@ -1436,7 +1431,7 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* ALSÓ VEZÉRLŐSÁV A KÉRDÉSEK KÖZÖTT */}
+            {/* LÉPÉSKÖZI NAVIGÁCIÓ */}
             {!isAnalyzing && !showEmailGate && (
               <div className="flex items-center justify-between mt-8">
                 <button
@@ -1470,12 +1465,23 @@ function FitAnyaLanding() {
             )}
           </div>
         ) : (
-          /* FELOLDOTT EREDMÉNYEK KÉPERNYŐJE (KIZÁRÓLAG E-MAIL MEGADÁSA UTÁN) */
+          /* FELOLDOTT EREDMÉNYEK KÉPERNYŐJE */
           <div>
             <div className="text-center mb-8">
               <SectionEyebrow><Flame size={14} /> Személyes Élettani Térkép</SectionEyebrow>
               <h2 className="font-display font-semibold text-2xl sm:text-3xl mt-3">A te profilod:</h2>
               <p className="font-display italic text-xl sm:text-2xl mt-1" style={{ color: "#E07A5F" }}>{results.profile}</p>
+            </div>
+
+            {/* JAVÍTOTT ANTI-BOUNCE BANNER (NEM ÜLDI EL A VEVŐT A GMAILBE) */}
+            <div className="rounded-2xl p-4 sm:p-5 mb-6 text-center shadow-xs" style={{ background: "#F0F5F1", border: "1.5px solid #7C9885" }}>
+              <div className="flex items-center justify-center gap-2 text-sm font-bold text-[#2D3748]">
+                <CheckCircle2 size={18} style={{ color: "#7C9885" }} />
+                <span>A Heti Mester-Bevásárlólistát &amp; Dobozolási Kisokost elküldtük az e-mail címedre!</span>
+              </div>
+              <p className="text-xs text-[#526356] mt-1">
+                📬 Címzett: <strong>{orderForm.email || gateEmail}</strong> — <span className="font-semibold text-[#8A4B4F]">Ne lépj ki a leveleződbe</span>, a számaid és a kedvezményes tálalási programod kizárólag ezen az oldalon érhető el!
+              </p>
             </div>
 
             {/* FŐ KPI KÁRTYÁK */}
@@ -1503,7 +1509,7 @@ function FitAnyaLanding() {
             </div>
 
             {/* SZEMÉLYRE SZABOTT TENYÉR-MAKRÓ ADAGOLÓ */}
-            <div className="rounded-3xl p-6 sm:p-8 mb-4 bg-white border border-[#F0DCD4] shadow-sm">
+            <div className="rounded-3xl p-6 sm:p-8 mb-6 bg-white border border-[#F0DCD4] shadow-sm">
               <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
                 <h3 className="font-display font-semibold text-lg sm:text-xl text-[#2D3748]">
                   Személyre Szabott Napi Tenyér-Adagod
@@ -1580,22 +1586,7 @@ function FitAnyaLanding() {
               )}
             </div>
 
-            {/* HÍD BANNER */}
-            <div className="rounded-2xl p-5 mb-6 bg-[#FFF9F5] border border-[#F0DCD4] flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#FDE8E1] text-[#E07A5F] mt-0.5">
-                <Zap size={20} />
-              </div>
-              <div>
-                <p className="font-display font-semibold text-sm sm:text-base text-[#2D3748]">
-                  A számaidat már ismered — de hogyan lesz ebből valódi vacsora?
-                </p>
-                <p className="text-xs sm:text-sm text-[#4A5568] mt-1 leading-relaxed">
-                  Egy dolog ismerni a keretedet, és egy másik dolog a kimerítő hétköznapokban konyhamérleg nélkül, a családnak ugyanabból a fazékból főzni. Ebben segít a FitAnya programcsomag:
-                </p>
-              </div>
-            </div>
-
-            {/* NEKED AJÁNLOTT CSOMAG */}
+            {/* NEKED AJÁNLOTT CSOMAG (AZONNALI STRIPE INDÍTÁSSAL) */}
             <div className="rounded-3xl p-6 sm:p-8 mb-6 border-2 bg-gradient-to-br from-[#FFF9F5] to-[#FDE8E1] border-[#E07A5F] relative">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display px-3.5 py-1 rounded-full bg-[#E07A5F] text-white mb-3 select-none">
                 <Sparkles size={13} /> Algoritmus által kijelölt csomag
@@ -1606,38 +1597,30 @@ function FitAnyaLanding() {
               <p className="text-sm text-[#4A5568] leading-relaxed mb-5">
                 {results.pkgReason}
               </p>
+              
               <button
-                onClick={() => {
-                  setSelectedPkg(results.recommendedPkg);
-                  scrollTo(pricingRef);
-                }}
-                className="cta-btn font-display font-semibold text-sm sm:text-base text-white px-7 py-3.5 rounded-xl inline-flex items-center gap-2 cursor-pointer"
+                disabled={isCheckingOut}
+                onClick={() => handleDirectCheckout(results.recommendedPkg)}
+                className="cta-btn font-display font-semibold text-sm sm:text-base text-white px-7 py-4 rounded-xl inline-flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-60"
               >
-                Megnézem a csomag tartalmát és a recepteket <ArrowRight size={18} />
+                {isCheckingOut ? (
+                  <><Loader2 size={18} className="animate-spin" /> Átirányítás a biztonságos fizetéshez...</>
+                ) : (
+                  <>Kérem a nekem ajánlott csomagot ({mainPackages.find(p => p.id === results.recommendedPkg)?.price.toLocaleString("hu-HU")} Ft) <ArrowRight size={18} /></>
+                )}
               </button>
 
               <div className="mt-4 pt-4 border-t border-[#F0DCD4]/80 flex flex-col sm:flex-row items-center justify-between gap-2">
                 <span className="text-xs text-[#6B5A52] text-center sm:text-left">
-                  Csak az iskolakezdési rohanást és a reggeli pékségeket akarod kivédeni?
+                  Inkább a többi csomagot és a Sulikezdő akciót néznéd meg?
                 </span>
                 <button
-                  onClick={() => scrollTo(seasonalRef)}
+                  onClick={() => scrollTo(pricingRef)}
                   className="text-xs font-bold text-[#E07A5F] hover:underline inline-flex items-center gap-1 cursor-pointer shrink-0"
                 >
-                  Sulikezdő Túlélőcsomag (3 490 Ft) <ArrowRight size={13} />
+                  Ugrás a csomagokhoz <ArrowRight size={13} />
                 </button>
               </div>
-            </div>
-
-            {/* VISSZAIGAZOLÁS A MEGADOTT E-MAIL CÍMRŐL */}
-            <div className="rounded-2xl p-5 sm:p-6 text-center" style={{ background: "#F0F5F1", border: "1px solid #7C9885" }}>
-              <CheckCircle2 size={24} className="mx-auto mb-2" style={{ color: "#7C9885" }} />
-              <p className="font-display font-semibold text-base" style={{ color: "#2D3748" }}>
-                A Heti Mester-Bevásárlólistát &amp; Dobozolási Kisokost elküldtük az e-mail fiókodba!
-              </p>
-              <p className="text-xs sm:text-sm mt-1" style={{ color: "#4A5568" }}>
-                Címzett: <strong>{orderForm.email || gateEmail}</strong> • Ha nem találod 2 percen belül, ellenőrizd a Promóciók és a Spam mappát is.
-              </p>
             </div>
           </div>
         )}
@@ -1687,7 +1670,7 @@ function FitAnyaLanding() {
                 </div>
               </div>
 
-              {/* Ár és Megrendelés Gomb */}
+              {/* 1-KATTINTÁSOS STRIPE GOMB A SULIKEZDŐHÖZ */}
               <div className="shrink-0 w-full md:w-auto p-6 rounded-2xl bg-[#FFF9F5] border border-[#F0DCD4] text-center flex flex-col items-center justify-center">
                 <span className="text-xs font-semibold text-[#8A7268] uppercase tracking-wider">Szezonális Belépő Ár</span>
                 <p className="font-display font-bold text-3xl sm:text-4xl text-[#E07A5F] my-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -1697,19 +1680,21 @@ function FitAnyaLanding() {
                 
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedPkg("sulikezdo");
-                    scrollTo(orderRef);
-                  }}
-                  className="cta-btn w-full font-display font-bold text-sm text-white px-7 py-3.5 rounded-xl inline-flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  disabled={isCheckingOut}
+                  onClick={() => handleDirectCheckout("sulikezdo")}
+                  className="cta-btn w-full font-display font-bold text-sm text-white px-7 py-3.5 rounded-xl inline-flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-60"
                 >
-                  Kérem a Sulikezdő Csomagot <ArrowRight size={16} />
+                  {isCheckingOut ? (
+                    <><Loader2 size={16} className="animate-spin" /> Átirányítás...</>
+                  ) : (
+                    <>Kérem a Sulikezdő Csomagot <ArrowRight size={16} /></>
+                  )}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* TELJES CSOMAGOK */}
+          {/* TELJES CSOMAGOK LISTÁJA */}
           <div className="text-center mb-14">
             <SectionEyebrow>Komplett Életmód Csomagok</SectionEyebrow>
             <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-3">Válaszd ki, meddig szeretnél eljutni</h2>
@@ -1719,9 +1704,9 @@ function FitAnyaLanding() {
               <PricingCard
                 key={p.id}
                 tier={p}
-                selected={selectedPkg}
                 isRecommended={wizardDone && results.recommendedPkg === p.id}
-                onSelect={(id) => { setSelectedPkg(id); scrollTo(orderRef); }}
+                onCheckout={handleDirectCheckout}
+                isCheckingOut={isCheckingOut}
               />
             ))}
           </div>
@@ -1877,87 +1862,6 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* RENDELÉS */}
-      <section ref={orderRef} className="py-16 sm:py-24" style={{ background: "#2D3748" }}>
-        <div className={orderSubmitted ? "max-w-3xl mx-auto px-5 sm:px-8" : "max-w-xl mx-auto px-5 sm:px-8"}>
-          {!orderSubmitted && (
-            <div className="text-center mb-8">
-              <h2 className="font-display font-semibold text-3xl text-white">Foglald le a csomagod</h2>
-              <p className="text-sm mt-2" style={{ color: "#D8C6BE" }}>
-                Kiválasztott csomag: <span className="font-semibold" style={{ color: "#F9D5CE" }}>{allPackages.find((p) => p.id === selectedPkg)?.name}</span>
-              </p>
-            </div>
-          )}
-
-          {orderSubmitted ? (
-            <OrderSuccessPanel
-              orderForm={orderForm}
-              selectedPkg={selectedPkg}
-              onRestart={handleRestart}
-            />
-          ) : (
-            <div
-              className="rounded-3xl p-6 sm:p-9"
-              style={{ background: "#FDFBF7" }}
-            >
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-1 block" style={{ color: "#4A5568" }}>Teljes név</label>
-                  <input value={orderForm.name} onChange={(e) => setOrderForm((s) => ({ ...s, name: e.target.value }))}
-                    onKeyDown={(e) => { if (e.key === "Enter") handleOrderSubmit(); }}
-                    className="w-full rounded-xl px-4 py-3 text-sm" style={{ border: "1px solid #F0DCD4" }} placeholder="pl. Kovács Anna" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block" style={{ color: "#4A5568" }}>E-mail cím</label>
-                  <input value={orderForm.email} onChange={(e) => setOrderForm((s) => ({ ...s, email: e.target.value }))}
-                    onKeyDown={(e) => { if (e.key === "Enter") handleOrderSubmit(); }}
-                    className="w-full rounded-xl px-4 py-3 text-sm" style={{ border: "1px solid #F0DCD4" }} placeholder="pl. anna@gmail.com" />
-                </div>
-                {orderError && (
-                  <p className="text-xs font-medium px-1" style={{ color: "#C8624A" }}>{orderError}</p>
-                )}
-                <div>
-                  <label className="text-sm font-medium mb-1 block" style={{ color: "#4A5568" }}>Csomag kiválasztása</label>
-                  <select value={selectedPkg} onChange={(e) => setSelectedPkg(e.target.value)}
-                    className="w-full rounded-xl px-4 py-3 text-sm cursor-pointer" style={{ border: "1px solid #F0DCD4" }}>
-                    {allPackages.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name} — {p.price.toLocaleString("hu-HU")} Ft</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                disabled={isCheckingOut}
-                onClick={handleOrderSubmit}
-                className="cta-btn w-full font-display font-semibold text-base text-white px-8 py-4 rounded-2xl mt-7 inline-flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer"
-              >
-                {isCheckingOut ? (
-                  <><Loader2 size={18} className="animate-spin" /> Átirányítás a fizetéshez...</>
-                ) : (
-                  <>Biztonságos Fizetés a Stripe-on — {(allPackages.find((p) => p.id === selectedPkg)?.price ?? 0).toLocaleString("hu-HU")} Ft <ArrowRight size={18} /></>
-                )}
-              </button>
-              <div className="flex items-center justify-center gap-4 mt-4 flex-wrap select-none">
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: "#8A7268" }}>
-                  <CreditCard size={14} style={{ color: "#7C9885" }} /> Kártya
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: "#8A7268" }}>
-                   Apple Pay
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: "#8A7268" }}>
-                  <Wallet size={14} style={{ color: "#7C9885" }} /> Google Pay
-                </span>
-              </div>
-              <p className="text-xs text-center mt-3 flex items-center justify-center gap-1.5 select-none" style={{ color: "#8A7268" }}>
-                <ShieldCheck size={13} style={{ color: "#7C9885" }} /> Titkosított Stripe fizetés · 14 napos garancia
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
       {/* LÁBLÉC */}
       <footer className="py-10 px-5 sm:px-8" style={{ background: "#FDFBF7" }}>
         <div className="max-w-4xl mx-auto text-center">
@@ -2002,10 +1906,10 @@ function FitAnyaLanding() {
             </span>
           </div>
           <button
-            onClick={() => scrollTo(wizardDone ? orderRef : pricingRef)}
+            onClick={() => scrollTo(pricingRef)}
             className="cta-btn font-display font-bold text-sm text-white px-5 py-3 rounded-xl inline-flex items-center gap-1.5 shadow-md cursor-pointer shrink-0"
           >
-            {wizardDone ? "Rendelés" : "Csomagok"} <ArrowRight size={16} />
+            Csomagok <ArrowRight size={16} />
           </button>
         </div>
       )}
