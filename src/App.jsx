@@ -160,7 +160,7 @@ const PACKAGE_CONTENTS = {
     items: [
       "2 az 1-ben Uzsidoboz & Anya-Tízórai Rendszer (PDF)",
       "15 Maszatmentes Recept & Bolti Polctérkép",
-      "Kortizol-Reset & Reggeli Maradéktakarítás-Stop Kisokos",
+      "Reggeli Kávépuffer & Maradéktakarítás-Stop Kisokos",
     ],
   },
   basic: {
@@ -230,17 +230,17 @@ const PILLARS_DATA = [
   {
     id: "pillar3",
     tag: "3. Pillér",
-    title: "Hormon-Reset & Energia",
-    desc: "A kimerültség és a stressz miatti kortizolszintet célzott tápanyagokkal és mikro-pihenőkkel ellensúlyozzuk, megelőzve az esti falásrohamokat.",
+    title: "Folyamatos Energia & Kávépuffer",
+    desc: "Megszüntetjük a délelőtti vércukor-zuhanást és az éhgyomri kávé okozta remegést. Kiegyensúlyozott energiaszint egész napra, délutáni kómák és esti nasirohamok nélkül.",
     icon: Sun,
     iconColor: "#7C9885",
     img: "/energia.jpg",
-    modalTitle: "Hormon-Reset & Anyai Energiaszint",
+    modalTitle: "Folyamatos Energia & Reggeli Kávépuffer",
     modalPoints: [
-      "Kortizolkontroll: az alváshiány miatti stresszhormonok raktározó hatását célzott tápanyag-időzítéssel tompítjuk.",
-      "Viszlát esti nasirohamok: ha napközben stabilizáljuk a vércukrodat, este 9-kor nem tör rád a hűtőfosztási kényszer.",
+      "A kávé-sorrend szabály: a reggeli feketét nem üres gyomorra döntjük, hanem előbb hidratálással és fehérjével védjük a gyomorsavat és a vércukrot.",
+      "Viszlát esti nasirohamok: ha napközben stabilizáljuk a vércukorszintedet, este 9-kor nem tör rád a hűtőfosztási kényszer.",
       "Természetes energiaszint koffein-túladagolás nélkül: egyenletes fizikai és mentális teherbírás a nap végéig.",
-      "Szoptatásbarát és kíméletes a női hormonrendszerhez, nem borítja fel az anyagcserét."
+      "Szoptatásbarát és kíméletes a női szervezethez, nem borítja fel az anyagcserét."
     ]
   }
 ];
@@ -513,7 +513,9 @@ function FitAnyaLanding() {
 
   const [wizardDone, setWizardDone] = useState(() => {
     try {
-      return localStorage.getItem("fa_done") === "true";
+      const done = localStorage.getItem("fa_done") === "true";
+      const gatePassed = localStorage.getItem("fa_gate_sent") === "true";
+      return done && gatePassed;
     } catch {
       return false;
     }
@@ -541,6 +543,13 @@ function FitAnyaLanding() {
   });
   
   const [isSendingGate, setIsSendingGate] = useState(false);
+  const [gateError, setGateError] = useState("");
+  
+  // Elemzési állapot és kapu a 7. kérdés után
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisIndex, setAnalysisIndex] = useState(0);
+  const [showEmailGate, setShowEmailGate] = useState(false);
+
   const [selectedPkg, setSelectedPkg] = useState("premium");
   const [faqOpen, setFaqOpen] = useState(0);
 
@@ -734,9 +743,12 @@ function FitAnyaLanding() {
     setOrderSubmitted(false);
     setOrderError("");
     setWizardDone(false);
+    setShowEmailGate(false);
+    setIsAnalyzing(false);
     setStep(0);
     setGateEmail("");
     setGateSent(false);
+    setGateError("");
     setForm({
       age: "", height: "", weight: "", goalWeight: "",
       nursing: "", activity: "", sleep: "", snacking: "", kitchen: "", focus: ""
@@ -773,20 +785,42 @@ function FitAnyaLanding() {
     }
   }, [wizardDone, results.recommendedPkg]);
 
-  const handleSendGateEmail = async () => {
-    if (!gateEmail || !gateEmail.includes("@")) return;
+  // Elemzési varázsló indítása a 7. kérdés után
+  const handleStartAnalysis = () => {
+    if (!form.focus) return;
+    setIsAnalyzing(true);
+    setAnalysisIndex(0);
+
+    setTimeout(() => setAnalysisIndex(1), 700);
+    setTimeout(() => setAnalysisIndex(2), 1400);
+    setTimeout(() => {
+      setIsAnalyzing(false);
+      setShowEmailGate(true);
+    }, 2100);
+  };
+
+  // E-mail Kapu jóváhagyása és Eredmények feloldása
+  const handleUnlockResults = async () => {
+    if (!gateEmail || !gateEmail.includes("@") || !gateEmail.includes(".")) {
+      setGateError("Kérjük, valós e-mail címet adj meg a hozzáféréshez!");
+      return;
+    }
+    setGateError("");
     setIsSendingGate(true);
-    
-    setOrderForm((prev) => ({ ...prev, email: gateEmail.trim() }));
+
+    const cleanEmail = gateEmail.trim();
+    setOrderForm((prev) => ({ ...prev, email: cleanEmail }));
+
     try {
-      localStorage.setItem("fa_email", gateEmail.trim());
+      localStorage.setItem("fa_email", cleanEmail);
       localStorage.setItem("fa_gate_sent", "true");
+      localStorage.setItem("fa_done", "true");
     } catch (e) {}
-    
+
     try {
       sendLeadData({
         action: "gate_lead",
-        email: gateEmail.trim(),
+        email: cleanEmail,
         ...results,
         ...form,
       });
@@ -794,12 +828,16 @@ function FitAnyaLanding() {
       if (window.fbq) {
         window.fbq("track", "Lead");
       }
-
-      setGateSent(true);
     } catch (err) {
-      setGateSent(true);
+      console.warn(err);
     } finally {
       setIsSendingGate(false);
+      setGateSent(true);
+      setShowEmailGate(false);
+      setWizardDone(true);
+      setTimeout(() => {
+        wizardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
     }
   };
 
@@ -1089,17 +1127,23 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* 7 LÉPÉSES AUDIT WIZARD */}
+      {/* 7 LÉPÉSES AUDIT WIZARD + E-MAIL KAPU */}
       <section ref={wizardRef} className="max-w-2xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
         {!wizardDone ? (
           <div className="rounded-3xl p-6 sm:p-10" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4", boxShadow: "0 20px 48px -28px rgba(45,55,72,0.25)" }}>
-            <p className="text-center text-xs uppercase tracking-wide font-semibold mb-5 select-none" style={{ color: "#B99189" }}>
-              Lépés {step + 1} / 7 — {stepLabels[step]}
-            </p>
-            <WaveConnector steps={stepLabels} activeIndex={step} />
+            
+            {/* LÉPÉSEK MUTATÁSA (HA NEM AZ ELEMZÉS/KAPU FUT) */}
+            {!isAnalyzing && !showEmailGate && (
+              <>
+                <p className="text-center text-xs uppercase tracking-wide font-semibold mb-5 select-none" style={{ color: "#B99189" }}>
+                  Lépés {step + 1} / 7 — {stepLabels[step]}
+                </p>
+                <WaveConnector steps={stepLabels} activeIndex={step} />
+              </>
+            )}
 
             {/* 1. Alapadatok */}
-            {step === 0 && (
+            {step === 0 && !isAnalyzing && !showEmailGate && (
               <div className="grid grid-cols-2 gap-4 mt-8">
                 <h2 className="col-span-2 font-display font-semibold text-xl mb-1">Személyes adatok és célkitűzés</h2>
                 {[
@@ -1125,7 +1169,7 @@ function FitAnyaLanding() {
             )}
 
             {/* 2. Élethelyzet */}
-            {step === 1 && (
+            {step === 1 && !isAnalyzing && !showEmailGate && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
                   <Baby size={20} style={{ color: "#E07A5F" }} /> Milyen anyai / női életszakaszban vagy most?
@@ -1157,7 +1201,7 @@ function FitAnyaLanding() {
             )}
 
             {/* 3. Aktivitás */}
-            {step === 2 && (
+            {step === 2 && !isAnalyzing && !showEmailGate && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
                   <Activity size={20} style={{ color: "#E07A5F" }} /> Napi mozgás és fizikai aktivitás
@@ -1189,10 +1233,10 @@ function FitAnyaLanding() {
             )}
 
             {/* 4. Alvás & Stressz */}
-            {step === 3 && (
+            {step === 3 && !isAnalyzing && !showEmailGate && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
-                  <Moon size={20} style={{ color: "#E07A5F" }} /> Alvás &amp; hormonális kimerültség
+                  <Moon size={20} style={{ color: "#E07A5F" }} /> Alvás &amp; kimerültség
                 </h2>
                 <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>
                   Hogyan alakul az éjszakai pihenésed és energiaszinted?
@@ -1221,7 +1265,7 @@ function FitAnyaLanding() {
             )}
 
             {/* 5. Nassolás */}
-            {step === 4 && (
+            {step === 4 && !isAnalyzing && !showEmailGate && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
                   <Utensils size={20} style={{ color: "#E07A5F" }} /> Kalóriaszivárgás &amp; csipegetés
@@ -1253,7 +1297,7 @@ function FitAnyaLanding() {
             )}
 
             {/* 6. Konyhai idő */}
-            {step === 5 && (
+            {step === 5 && !isAnalyzing && !showEmailGate && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
                   <Clock size={20} style={{ color: "#E07A5F" }} /> Konyhai idő és kapacitás
@@ -1285,13 +1329,13 @@ function FitAnyaLanding() {
             )}
 
             {/* 7. Fő Fókusz */}
-            {step === 6 && (
+            {step === 6 && !isAnalyzing && !showEmailGate && (
               <div className="mt-8">
                 <h2 className="font-display font-semibold text-xl mb-1 flex items-center gap-2">
                   <Target size={20} style={{ color: "#E07A5F" }} /> Mi a legnagyobb személyes kihívásod?
                 </h2>
                 <p className="text-sm mb-4" style={{ color: "#6B5A52" }}>
-                  Jelöld be az elsődleges fókuszt, majd kattints a diagnosztika megtekintésére:
+                  Jelöld be az elsődleges fókuszt, majd kattints a diagnosztika véglegesítésére:
                 </p>
                 <div className="space-y-3">
                   {[
@@ -1316,38 +1360,117 @@ function FitAnyaLanding() {
               </div>
             )}
 
-            {/* ALSÓ VEZÉRLŐSÁV */}
-            <div className="flex items-center justify-between mt-8">
-              <button
-                onClick={() => setStep((s) => Math.max(0, s - 1))}
-                className="text-sm font-semibold px-4 py-2.5 cursor-pointer"
-                style={{ color: step === 0 ? "#D8C6BE" : "#8A7268", visibility: step === 0 ? "hidden" : "visible" }}
-              >
-                Vissza
-              </button>
+            {/* ANIMÁLT ELEMZÉS ÁLLAPOT (A 7. KÉRDÉS UTÁN) */}
+            {isAnalyzing && (
+              <div className="py-12 px-4 text-center animate-in fade-in duration-300">
+                <div className="w-16 h-16 rounded-full bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center mx-auto mb-5 animate-pulse">
+                  <Flame size={32} />
+                </div>
+                <h3 className="font-display font-semibold text-xl sm:text-2xl text-[#2D3748] mb-3">
+                  Élettani profilod kalkulálása folyamatban...
+                </h3>
+                <div className="w-full max-w-sm mx-auto h-2 bg-[#F0DCD4] rounded-full overflow-hidden mb-4">
+                  <div 
+                    className="h-full bg-[#E07A5F] transition-all duration-700 ease-out" 
+                    style={{ width: `${(analysisIndex + 1) * 33.3}%` }} 
+                  />
+                </div>
+                <p className="text-sm font-medium text-[#8A7268] min-h-[24px]">
+                  {analysisIndex === 0 && "Alapanyagcsere (BMR) számolása a Mifflin-St Jeor képlettel..."}
+                  {analysisIndex === 1 && "Anyagcsere-korrekció és szoptatási védelem beállítása..."}
+                  {analysisIndex === 2 && "Személyre szabott Tenyér-Makró adagok véglegesítése..."}
+                </p>
+              </div>
+            )}
 
-              {step === 0 && (
-                <button
-                  disabled={!canProceed}
-                  onClick={() => setStep(1)}
-                  className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl inline-flex items-center gap-2 disabled:opacity-40 cursor-pointer"
-                >
-                  Tovább <ChevronRight size={16} />
-                </button>
-              )}
+            {/* KÖZTES E-MAIL KAPU (LEAD GENERÁLÁS ÉS SZÁMOK FELOLDÁSA) */}
+            {showEmailGate && (
+              <div className="py-6 sm:py-8 px-2 text-center animate-in fade-in duration-300">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-[#F0F5F1] text-[#7C9885] shadow-sm">
+                  <Sparkles size={30} />
+                </div>
+                <span className="inline-block text-xs font-bold uppercase tracking-wider px-3.5 py-1 rounded-full bg-[#FDE8E1] text-[#E07A5F] mb-3 select-none">
+                  Kalkuláció Kész!
+                </span>
+                <h3 className="font-display font-semibold text-2xl sm:text-3xl text-[#2D3748] mb-2">
+                  A személyes terved elkészült! 🎉
+                </h3>
+                <p className="text-sm text-[#4A5568] max-w-md mx-auto mb-6 leading-relaxed">
+                  Add meg az e-mail címed, és <strong>azonnal megnyitjuk a pontos számaidat</strong> a képernyőn (napi kalóriakeret, tenyér-makrók, céldátum), valamint ingyen elküldjük a <strong>Heti Mester-Bevásárlólistát PDF-ben</strong>!
+                </p>
 
-              {step === 6 && (
+                <div className="max-w-md mx-auto space-y-3">
+                  <input
+                    type="email"
+                    value={gateEmail}
+                    onChange={(e) => { setGateEmail(e.target.value); setGateError(""); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleUnlockResults(); }}
+                    placeholder="hova küldhetjük? (pl. anna@gmail.com)"
+                    className="w-full rounded-xl px-4 py-3.5 text-sm bg-white border"
+                    style={{ borderColor: gateError ? "#C8624A" : "#F0DCD4" }}
+                  />
+                  {gateError && (
+                    <p className="text-xs text-[#C8624A] font-medium text-left px-1">{gateError}</p>
+                  )}
+                  <button
+                    type="button"
+                    disabled={isSendingGate || !gateEmail}
+                    onClick={handleUnlockResults}
+                    className="cta-btn w-full font-display font-semibold text-base text-white px-7 py-4 rounded-xl inline-flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-md"
+                  >
+                    {isSendingGate ? (
+                      <><Loader2 size={18} className="animate-spin" /> Eredmények feloldása...</>
+                    ) : (
+                      <>Kérem a számaimat és az anyagokat <ArrowRight size={18} /></>
+                    )}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-center gap-4 mt-5 text-xs text-[#8A7268] select-none">
+                  <span className="inline-flex items-center gap-1">
+                    <ShieldCheck size={14} className="text-[#7C9885]" /> Zéró spam garancia
+                  </span>
+                  <span>•</span>
+                  <span>Azonnali képernyős hozzáférés</span>
+                </div>
+              </div>
+            )}
+
+            {/* ALSÓ VEZÉRLŐSÁV A KÉRDÉSEK KÖZÖTT */}
+            {!isAnalyzing && !showEmailGate && (
+              <div className="flex items-center justify-between mt-8">
                 <button
-                  disabled={!form.focus}
-                  onClick={() => setWizardDone(true)}
-                  className="cta-btn font-display font-semibold text-sm text-white px-6 py-3.5 rounded-xl inline-flex items-center gap-2 disabled:opacity-40 cursor-pointer shadow-md"
+                  onClick={() => setStep((s) => Math.max(0, s - 1))}
+                  className="text-sm font-semibold px-4 py-2.5 cursor-pointer"
+                  style={{ color: step === 0 ? "#D8C6BE" : "#8A7268", visibility: step === 0 ? "hidden" : "visible" }}
                 >
-                  Diagnosztika &amp; Terv megtekintése <ChevronRight size={16} />
+                  Vissza
                 </button>
-              )}
-            </div>
+
+                {step === 0 && (
+                  <button
+                    disabled={!canProceed}
+                    onClick={() => setStep(1)}
+                    className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl inline-flex items-center gap-2 disabled:opacity-40 cursor-pointer"
+                  >
+                    Tovább <ChevronRight size={16} />
+                  </button>
+                )}
+
+                {step === 6 && (
+                  <button
+                    disabled={!form.focus}
+                    onClick={handleStartAnalysis}
+                    className="cta-btn font-display font-semibold text-sm text-white px-6 py-3.5 rounded-xl inline-flex items-center gap-2 disabled:opacity-40 cursor-pointer shadow-md"
+                  >
+                    Diagnosztika &amp; Terv véglegesítése <ChevronRight size={16} />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         ) : (
+          /* FELOLDOTT EREDMÉNYEK KÉPERNYŐJE (KIZÁRÓLAG E-MAIL MEGADÁSA UTÁN) */
           <div>
             <div className="text-center mb-8">
               <SectionEyebrow><Flame size={14} /> Személyes Élettani Térkép</SectionEyebrow>
@@ -1506,50 +1629,16 @@ function FitAnyaLanding() {
               </div>
             </div>
 
-            {/* E-MAIL KAPU (LEAD MAGNET) */}
-            {!gateSent ? (
-              <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#2D3748" }}>
-                <Mail size={28} className="mx-auto mb-3" style={{ color: "#F9D5CE" }} />
-                <h3 className="font-display font-semibold text-lg text-white mb-1">
-                  Kérem a Heti Mester-Bevásárlólistát &amp; 15 Perces Dobozolási Kisokost PDF-ben!
-                </h3>
-                <p className="text-sm mb-5" style={{ color: "#D8C6BE" }}>
-                  A személyes napi kalóriaterved mellé azonnal elküldjük a Lidl / Aldi / Spar zónatérképet és a 15 perces hétvégi előkészítési útmutatót ingyen az e-mail fiókodba.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                  <input
-                    type="email"
-                    value={gateEmail}
-                    onChange={(e) => setGateEmail(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") handleSendGateEmail(); }}
-                    placeholder="email@cimed.hu"
-                    className="flex-1 rounded-xl px-4 py-3 text-sm"
-                  />
-                  <button
-                    type="button"
-                    disabled={isSendingGate || !gateEmail}
-                    onClick={handleSendGateEmail}
-                    className="cta-btn font-display font-semibold text-sm text-white px-6 py-3 rounded-xl whitespace-nowrap inline-flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-                  >
-                    {isSendingGate ? (
-                      <><Loader2 size={16} className="animate-spin" /> Küldés...</>
-                    ) : (
-                      "Kérem a PDF Anyagokat"
-                    )}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#F0F5F1", border: "1px solid #7C9885" }}>
-                <CheckCircle2 size={26} className="mx-auto mb-2" style={{ color: "#7C9885" }} />
-                <p className="font-display font-semibold" style={{ color: "#2D3748" }}>
-                  Elküldtük a Mester-Bevásárlólistát és a kalóriatervedet!
-                </p>
-                <p className="text-sm mt-1" style={{ color: "#4A5568" }}>
-                  Nézd meg az e-mail fiókodat — a letöltési linket a 15 perces dobozolási útmutatóval már elküldtük.
-                </p>
-              </div>
-            )}
+            {/* VISSZAIGAZOLÁS A MEGADOTT E-MAIL CÍMRŐL */}
+            <div className="rounded-2xl p-5 sm:p-6 text-center" style={{ background: "#F0F5F1", border: "1px solid #7C9885" }}>
+              <CheckCircle2 size={24} className="mx-auto mb-2" style={{ color: "#7C9885" }} />
+              <p className="font-display font-semibold text-base" style={{ color: "#2D3748" }}>
+                A Heti Mester-Bevásárlólistát &amp; Dobozolási Kisokost elküldtük az e-mail fiókodba!
+              </p>
+              <p className="text-xs sm:text-sm mt-1" style={{ color: "#4A5568" }}>
+                Címzett: <strong>{orderForm.email || gateEmail}</strong> • Ha nem találod 2 percen belül, ellenőrizd a Promóciók és a Spam mappát is.
+              </p>
+            </div>
           </div>
         )}
       </section>
@@ -1593,7 +1682,7 @@ function FitAnyaLanding() {
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 size={16} className="text-[#7C9885] shrink-0 mt-0.5" />
-                    <span><strong>Kortizol-Reset &amp; Maradéktakarítás-stop:</strong> Éhgyomri kávécsapda kivédése</span>
+                    <span><strong>Reggeli Kávépuffer &amp; Maradéktakarítás-stop:</strong> Éhgyomri kávécsapda és délelőtti remegés kivédése</span>
                   </div>
                 </div>
               </div>
