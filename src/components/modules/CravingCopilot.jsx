@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Send, Loader2, AlertCircle, RefreshCw, Flame } from 'lucide-react';
 
-// Formázó komponens: a nyers ** és * Markdown jeleket HTML elemekké alakítja
+// Formázó komponens: kezeli a félkövér és dőlt jelöléseket
 function FormattedMessage({ content }) {
   if (!content) return null;
 
@@ -13,9 +13,7 @@ function FormattedMessage({ content }) {
         const trimmed = line.trim();
         if (!trimmed) return <div key={idx} className="h-1" />;
 
-        // Darabolás a **félkövér** és *dőlt* részek mentén
         const parts = line.split(/(\*\*[\s\S]*?\*\*|\*[^*]+?\*)/g);
-
         const isHighlightLine = trimmed.startsWith('🎯') || trimmed.startsWith('💡');
 
         return (
@@ -188,15 +186,18 @@ export default function CravingCopilot({ remaining = { protein: 1, veg: 2, carb:
           </button>
         </form>
       ) : (
-        /* AI Válasz kártya tiszta formázással */
+        /* AI Válasz kártya tiszta elrendezéssel */
         <div className="space-y-4">
           <div className="p-4 bg-[#fbf5f2] border border-[#f1ded6] rounded-2xl">
-            <div className="flex items-center justify-between mb-3">
+            {/* Fejléc - reszponzív, nem csúszik össze */}
+            <div className="flex flex-col gap-1 mb-3 pb-2.5 border-b border-[#f1ded6]">
               <span className="text-[11px] font-bold text-[#c3634c] uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
                 FitAnya Zsebedző javaslata
               </span>
-              <span className="text-[11px] text-stone-400">Sóvárgás: "{cravingInput}"</span>
+              <p className="text-xs text-stone-500 italic break-words">
+                Sóvárgás: "{cravingInput}"
+              </p>
             </div>
 
             <FormattedMessage content={response} />
@@ -213,7 +214,7 @@ export default function CravingCopilot({ remaining = { protein: 1, veg: 2, carb:
         </div>
       )}
 
-      {/* Hibaüzenet kezelés */}
+      {/* Hibaüzenet */}
       {error && (
         <div className="mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs flex items-start gap-2">
           <AlertCircle className="w-4 h-4 mt-0.5 text-amber-600 shrink-0" />
