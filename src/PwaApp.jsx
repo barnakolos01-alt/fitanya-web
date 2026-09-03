@@ -3,19 +3,17 @@ import { FitAnyaProvider } from "./context/FitAnyaContext";
 import { C, serif, sans } from "./styles/tokens";
 import CravingCopilot from "./components/modules/CravingCopilot";
 import PalmTrackerModule from "./components/modules/PalmTrackerModule";
-import EveningRescue from "./components/modules/EveningRescue";
 import HydrationEngine from "./components/modules/HydrationEngine";
 import { Smartphone, Download, Share, PlusSquare, X } from "lucide-react";
 
 const MODULES = [
-  { key: "craving", label: "Nassolás", Comp: CravingCopilot },
-  { key: "tracker", label: "Mérő", Comp: PalmTrackerModule },
-  { key: "evening", label: "Vacsora", Comp: EveningRescue },
+  { key: "craving", label: "Nasi SOS", Comp: CravingCopilot },
+  { key: "tracker", label: "Tányérom", Comp: PalmTrackerModule },
   { key: "hydration", label: "Víz", Comp: HydrationEngine },
 ];
 
 export default function PwaApp() {
-  const [tab, setTab] = useState("craving");
+  const [tab, setTab] = useState("tracker"); // A Tányérom a fő belépő modul
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIos, setIsIos] = useState(false);
@@ -31,7 +29,6 @@ export default function PwaApp() {
   const Active = MODULES.find((m) => m.key === tab).Comp;
 
   useEffect(() => {
-    // Ellenőrizzük, hogy már kezdőképernyőről (standalone appként) fut-e
     const checkStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       window.navigator.standalone === true;
@@ -41,12 +38,10 @@ export default function PwaApp() {
       return;
     }
 
-    // iOS eszköz felismerése
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIos(isIosDevice);
 
-    // Android / Chrome böngésző telepítési eseményének elkapása
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -92,7 +87,7 @@ export default function PwaApp() {
           @keyframes fitanya-fade { from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
         `}</style>
 
-        {/* TELEPÍTÉSI SÁV (CSAK HA MÉG NINCS TELEPÍTVE ÉS NEM ZÁRTÁK BE) */}
+        {/* TELEPÍTÉSI SÁV */}
         {!isStandalone && !bannerDismissed && (
           <aside
             aria-label="Kezdőképernyőre kitűzés"
@@ -146,13 +141,13 @@ export default function PwaApp() {
           )}
         </header>
 
-        {/* FIX, CSÚSZKAMENTES 4 OSZLOPOS MENÜ */}
-        <div className="px-5 grid grid-cols-4 gap-1.5 mb-6 select-none">
+        {/* TISZTA 3 GOMBOS MENÜ (NINCS CSÚSZKÁLÁS) */}
+        <div className="px-5 grid grid-cols-3 gap-2 mb-6 select-none">
           {MODULES.map((m) => (
             <button
               key={m.key}
               onClick={() => setTab(m.key)}
-              className="w-full text-center text-[12px] font-semibold py-2.5 px-1 rounded-2xl transition-all cursor-pointer truncate"
+              className="w-full text-center text-xs font-semibold py-2.5 px-2 rounded-2xl transition-all cursor-pointer truncate"
               style={
                 tab === m.key
                   ? { backgroundColor: C.coral, color: "#fff", boxShadow: "0 4px 12px -2px rgba(224,122,95,0.4)" }
