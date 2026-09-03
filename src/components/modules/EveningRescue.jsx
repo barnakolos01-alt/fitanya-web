@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Send, Loader2, AlertCircle, RefreshCw, UtensilsCrossed, Moon } from 'lucide-react';
 import { useFitAnya } from '../../context/FitAnyaContext';
 
-// Formázó segédkomponens: kezeli a félkövér és dőlt jelöléseket
+// Formázó segédkomponens: kezeli a Markdown címeket (#), felsorolásokat és a vastag/dőlt kiemeléseket
 function FormattedMessage({ content }) {
   if (!content) return null;
 
@@ -14,17 +14,37 @@ function FormattedMessage({ content }) {
         const trimmed = line.trim();
         if (!trimmed) return <div key={idx} className="h-1" />;
 
-        const parts = line.split(/(\*\*[\s\S]*?\*\*|\*[^*]+?\*)/g);
-        const isHighlightLine = trimmed.startsWith('🎯') || trimmed.startsWith('💡') || trimmed.startsWith('🍳');
+        // 1. Markdown címsorok (#, ##, ###) letisztítása és kiemelése
+        if (trimmed.startsWith('#')) {
+          const cleanHeading = trimmed.replace(/^#+\s*/, '');
+          return (
+            <h4
+              key={idx}
+              className="font-bold text-stone-900 text-sm mt-3 mb-1.5 pt-1.5 border-b border-[#f1ded6] pb-1 text-[#c3634c]"
+            >
+              {cleanHeading}
+            </h4>
+          );
+        }
+
+        // 2. Felsoroláspontok (- vagy * a sor elején)
+        const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('* ');
+        const textToParse = isBullet ? trimmed.slice(2) : line;
+
+        const parts = textToParse.split(/(\*\*[\s\S]*?\*\*|\*[^*]+?\*)/g);
+        const isHighlightLine =
+          trimmed.startsWith('🎯') ||
+          trimmed.startsWith('💡') ||
+          trimmed.startsWith('🍳') ||
+          trimmed.startsWith('🖐️');
 
         return (
           <p
             key={idx}
-            className={
-              isHighlightLine
-                ? 'mt-3 pt-2.5 border-t border-stone-200/80 font-medium text-stone-800'
-                : ''
-            }
+            className={`
+              ${isHighlightLine ? 'mt-2.5 pt-2 border-t border-[#f1ded6] font-medium text-stone-800' : ''}
+              ${isBullet ? 'pl-3 relative before:content-["•"] before:absolute before:left-0 before:text-[#c3634c] before:font-bold' : ''}
+            `}
           >
             {parts.map((part, pIdx) => {
               if (part.startsWith('**') && part.endsWith('**')) {
@@ -112,7 +132,7 @@ export default function FridgeRescue() {
   };
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-sm border border-stone-200/80 max-w-lg mx-auto">
+    <div className="bg-white rounded-3xl p-5 shadow-sm border border-stone-200/80 max-w-lg mx-auto">
       {/* Fejléc */}
       <div className="flex items-center gap-3 mb-5">
         <div className="w-10 h-10 rounded-2xl bg-[#fbf3ef] text-[#c3634c] flex items-center justify-center border border-[#f3e1d8]">
@@ -201,7 +221,7 @@ export default function FridgeRescue() {
         /* AI Válasz kártya tiszta elrendezéssel */
         <div className="space-y-4">
           <div className="p-4 bg-[#fbf5f2] border border-[#f1ded6] rounded-2xl">
-            {/* Fejléc - reszponzív, nem csúszik össze */}
+            {/* Fejléc */}
             <div className="flex flex-col gap-1 mb-3 pb-2.5 border-b border-[#f1ded6]">
               <span className="text-[11px] font-bold text-[#c3634c] uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 shrink-0" />
