@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Sparkles, RefreshCw, CheckCircle2, UtensilsCrossed, Coffee, Loader2, Send, AlertCircle } from "lucide-react";
+import { Sparkles, RefreshCw, CheckCircle2, UtensilsCrossed, Coffee, Loader2, Send } from "lucide-react";
 import { C, serif } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
 
@@ -62,34 +62,154 @@ export default function InteractivePlateBuilder() {
     setAiComment(null);
   };
 
-  // HELYI OFFLINE MENTŐÖV: Ha bármi hiba lenne, az app saját maga készít gombokat a beírt szavak alapján
-  const applySmartFallbackButtons = (text) => {
+  // Golyóálló magyar kulcsszó-értelmező
+  const buildSmartOptions = (text) => {
     const low = text.toLowerCase();
-    let fallbackOpts = [];
-    
-    if (low.includes("fehér") || low.includes("kenyér")) {
-       fallbackOpts.push({ label: "🍞 1 szelet fehér kenyér", fullText: "1 szelet fehér vagy félbarna kenyér", macroType: "carb" });
-       fallbackOpts.push({ label: "🍘 Puffasztott rizs", fullText: "3-4 db natúr puffasztott rizs", macroType: "carb" });
-    }
-    if (low.includes("túró") || low.includes("fehérje") || low.includes("sonka") || low.includes("tojás")) {
-       fallbackOpts.push({ label: "🥚 2-3 db főtt tojás", fullText: "2-3 db főtt tojás vagy tükörtojás", macroType: "protein" });
-       fallbackOpts.push({ label: "🥛 Görög joghurt", fullText: "1 kis doboz natúr görög joghurt", macroType: "protein" });
-       fallbackOpts.push({ label: "🥩 Pulykasonka", fullText: "3-4 szelet minőségi pulykasonka", macroType: "protein" });
-    }
-    if (low.includes("zöldség") || low.includes("uborka") || low.includes("paradicsom")) {
-       fallbackOpts.push({ label: "🍅 Koktélparadicsom", fullText: "2 marék édes koktélparadicsom", macroType: "veg" });
-       fallbackOpts.push({ label: "🥒 Csemegeuborka", fullText: "Nagy marék ropogós csemegeuborka", macroType: "veg" });
+    const opts = [];
+
+    // Fehérje detektálás (cottage cheese, túró, tojás, sonka, hal, joghurt, fehérje/fehérjét)
+    const mentionsProtein =
+      low.includes("fehérj") ||
+      low.includes("cottage") ||
+      low.includes("túró") ||
+      low.includes("turo") ||
+      low.includes("tojás") ||
+      low.includes("tojas") ||
+      low.includes("sonka") ||
+      low.includes("hús") ||
+      low.includes("hus") ||
+      low.includes("hal") ||
+      low.includes("tonhal") ||
+      low.includes("joghurt");
+
+    // Szénhidrát detektálás (kenyér, rizs, krumpli, pékáru - KIZÁRVA a fehérje szót!)
+    const mentionsCarb =
+      low.includes("kenyér") ||
+      low.includes("kenyer") ||
+      low.includes("pékáru") ||
+      low.includes("pekaru") ||
+      low.includes("zsömle") ||
+      low.includes("zsemle") ||
+      low.includes("kifli") ||
+      low.includes("pirítós") ||
+      low.includes("piritos") ||
+      low.includes("rizs") ||
+      low.includes("tészta") ||
+      low.includes("teszta") ||
+      low.includes("krumpli") ||
+      low.includes("burgonya") ||
+      low.includes("tortilla") ||
+      (low.includes("fehér") && !low.includes("fehérj")); // Csak akkor fehér kenyér, ha nem fehérje!
+
+    // Rost / Zöldség detektálás
+    const mentionsVeg =
+      low.includes("zöldség") ||
+      low.includes("zoldseg") ||
+      low.includes("uborka") ||
+      low.includes("paradicsom") ||
+      low.includes("paprika") ||
+      low.includes("saláta") ||
+      low.includes("salata") ||
+      low.includes("rost");
+
+    // 1. Ha fehérjét kért cserélni
+    if (mentionsProtein) {
+      if (!low.includes("tojás") && !low.includes("tojas")) {
+        opts.push({
+          label: "🥚 2-3 db Főtt tojás / rántotta",
+          fullText: "2-3 db főtt tojás vagy tükörtojás",
+          macroType: "protein",
+        });
+      }
+      if (!low.includes("sonka")) {
+        opts.push({
+          label: "🥩 3-4 szelet Csirkemellsonka",
+          fullText: "3-4 szelet minőségi csirkemellsonka",
+          macroType: "protein",
+        });
+      }
+      if (!low.includes("joghurt")) {
+        opts.push({
+          label: "🥛 Natúr görög joghurt (150g)",
+          fullText: "1 kis doboz zsírszegény natúr görög joghurt",
+          macroType: "protein",
+        });
+      }
+      if (!low.includes("tonhal") && !low.includes("hal")) {
+        opts.push({
+          label: "🐟 Tonhalkonzerv sós lében",
+          fullText: "1 doboz natúr tonhalkonzerv (sós lében)",
+          macroType: "protein",
+        });
+      }
     }
 
-    if (fallbackOpts.length === 0) {
-       fallbackOpts = [
-         { label: "🥚 Tojás (Fehérje)", fullText: "2 db főtt tojás", macroType: "protein" },
-         { label: "🍞 Fehér kenyér (Szénhidrát)", fullText: "1 szelet fehér kenyér", macroType: "carb" }
-       ];
+    // 2. Ha szénhidrátot kért cserélni
+    if (mentionsCarb) {
+      if (low.includes("fehér")) {
+        opts.push({
+          label: "🍞 1 szelet Fehér kenyér",
+          fullText: "1 szelet fehér vagy félbarna kenyér",
+          macroType: "carb",
+        });
+      } else {
+        opts.push({
+          label: "🍞 1 szelet Barna kenyér",
+          fullText: "1 szelet teljes kiőrlésű vagy rozskenyér",
+          macroType: "carb",
+        });
+      }
+      opts.push({
+        label: "🍘 3-4 db Puffasztott rizs",
+        fullText: "3-4 db natúr puffasztott rizs",
+        macroType: "carb",
+      });
+      opts.push({
+        label: "🫓 1 db Kis tortilla lap",
+        fullText: "1 db kis méretű tortilla lap",
+        macroType: "carb",
+      });
     }
-    
-    setAiComment("Itt van pár szuper alternatíva a kérésed alapján:");
-    setSuggestions(fallbackOpts);
+
+    // 3. Ha zöldséget kért
+    if (mentionsVeg) {
+      opts.push({
+        label: "🍅 Édes koktélparadicsom",
+        fullText: "2 marék édes koktélparadicsom",
+        macroType: "veg",
+      });
+      opts.push({
+        label: "🥒 Csemegeuborka",
+        fullText: "Nagy marék ropogós csemegeuborka",
+        macroType: "veg",
+      });
+      opts.push({
+        label: "🥗 Friss madársaláta / spenót",
+        fullText: "2 marék bébispenót vagy friss saláta",
+        macroType: "veg",
+      });
+    }
+
+    // Vészhelyzeti opciók, ha semmit nem ismert fel
+    if (opts.length === 0) {
+      opts.push({
+        label: "🥚 2-3 db Főtt tojás (Fehérje)",
+        fullText: "2-3 db főtt tojás vagy tükörtojás",
+        macroType: "protein",
+      });
+      opts.push({
+        label: "🥛 Görög joghurt (Fehérje)",
+        fullText: "1 kis doboz görög joghurt",
+        macroType: "protein",
+      });
+      opts.push({
+        label: "🍞 1 szelet kenyér (Szénhidrát)",
+        fullText: "1 szelet fehér vagy félbarna kenyér",
+        macroType: "carb",
+      });
+    }
+
+    return opts;
   };
 
   const handleAskSuggestions = async (e) => {
@@ -115,15 +235,17 @@ export default function InteractivePlateBuilder() {
       });
 
       const data = await res.json();
-      
+
       if (data.options && Array.isArray(data.options) && data.options.length > 0) {
         if (data.comment) setAiComment(data.comment);
         setSuggestions(data.options);
       } else {
-        applySmartFallbackButtons(userText);
+        setAiComment("Itt van pár szuper alternatíva a kérésed alapján:");
+        setSuggestions(buildSmartOptions(userText));
       }
-    } catch (err) {
-      applySmartFallbackButtons(userText);
+    } catch {
+      setAiComment("Itt van pár szuper alternatíva a kérésed alapján:");
+      setSuggestions(buildSmartOptions(userText));
     } finally {
       setAiLoading(false);
     }
@@ -134,6 +256,7 @@ export default function InteractivePlateBuilder() {
       ...prev,
       [item.macroType]: item.fullText,
     }));
+    // Csak a kiválasztott elemet vesszük le, a többi gomb megmarad a képernyőn
     setSuggestions((prev) => prev.filter((s) => s.label !== item.label));
     setAiComment(`Beállítva a tányérodra: ${item.label}`);
   };
@@ -314,7 +437,7 @@ export default function InteractivePlateBuilder() {
               {/* AI BEVITELI MEZŐ */}
               <form onSubmit={handleAskSuggestions} className="mt-3 pt-3 border-t border-stone-100">
                 <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
-                  Mit cserélnél? (pl. <em>„túró helyett mást, és fehér kenyeret”</em>):
+                  Mit cserélnél? (pl. <em>„nem szeretem a cottage cheese-t, kérek más fehérjét”</em>):
                 </label>
                 <div className="flex gap-2">
                   <input
