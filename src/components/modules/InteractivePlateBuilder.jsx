@@ -5,11 +5,11 @@ import { useFitAnya } from "../../context/FitAnyaContext";
 
 const PANTRY = {
   protein: [
-    "2 szelet pulyka- vagy csirkemellsonka",
-    "2 db főtt tojás vagy tükörtojás",
+    "2-3 szelet minőségi pulyka- vagy csirkemellsonka",
+    "2-3 db főtt tojás vagy tükörtojás",
     "4-5 ek zsírszegény túró vagy cottage cheese",
-    "1 kis doboz natúr tonhalkonzerv",
-    "1 kis doboz görög joghurt (150g)",
+    "1 doboz natúr tonhalkonzerv (lecsöpögtetve)",
+    "1 doboz natúr görög joghurt (150g)",
   ],
   veg: [
     "1 db felkarikázott kígyóuborka",
@@ -20,7 +20,7 @@ const PANTRY = {
   ],
   carb: [
     "1 szelet teljes kiőrlésű vagy rozskenyér",
-    "1 szelet fehér kenyér",
+    "1 szelet fehér vagy félbarna kenyér",
     "3-4 db natúr puffasztott rizs",
     "1 kis tortilla lap",
   ],
@@ -37,7 +37,7 @@ export default function InteractivePlateBuilder() {
   const [isOpen, setIsOpen] = useState(false);
   const [logged, setLogged] = useState(false);
 
-  // Aktuális tányér tételei
+  // Aktuális tányér elemei
   const [plate, setPlate] = useState({
     protein: PANTRY.protein[0],
     veg: PANTRY.veg[0],
@@ -45,7 +45,6 @@ export default function InteractivePlateBuilder() {
     fat: PANTRY.fat[0],
   });
 
-  // AI csere állapotai
   const [swapInput, setSwapInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiComment, setAiComment] = useState(null);
@@ -54,7 +53,7 @@ export default function InteractivePlateBuilder() {
   const isZeroRemaining =
     remaining.protein <= 0 && remaining.veg <= 0 && remaining.carb <= 0;
 
-  // Gyors offline csere
+  // Gyors offline csere gomb
   const cycleItem = (macro) => {
     const list = PANTRY[macro];
     const currentIdx = list.indexOf(plate[macro]);
@@ -64,7 +63,7 @@ export default function InteractivePlateBuilder() {
     setAiError(null);
   };
 
-  // AI csere kezelése golyóálló hibatűréssel
+  // AI csere logikája
   const handleAiSwap = async (e) => {
     e.preventDefault();
     if (!swapInput.trim() || aiLoading) return;
@@ -73,13 +72,15 @@ export default function InteractivePlateBuilder() {
     setAiComment(null);
     setAiError(null);
 
+    const userText = swapInput.trim();
+
     try {
       const res = await fetch("/api/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode: "plate_swap",
-          input: swapInput.trim(),
+          input: userText,
           remaining: remaining,
           currentPlate: plate,
         }),
@@ -92,12 +93,12 @@ export default function InteractivePlateBuilder() {
       const start = raw.indexOf("{");
       const end = raw.lastIndexOf("}");
 
-      // Ha sikerült JSON-t fogni a válaszból
+      let updatedSuccessfully = false;
+
+      // 1. Próbáljuk kinyerni a JSON-t
       if (start !== -1 && end !== -1) {
         try {
-          const jsonStr = raw.substring(start, end + 1);
-          const parsed = JSON.parse(jsonStr);
-
+          const parsed = JSON.parse(raw.substring(start, end + 1));
           setPlate((prev) => ({
             protein: parsed.protein?.trim() || prev.protein,
             veg: parsed.veg?.trim() || prev.veg,
@@ -105,40 +106,55 @@ export default function InteractivePlateBuilder() {
             fat: parsed.fat?.trim() || prev.fat,
           }));
 
-          if (parsed.comment) setAiComment(parsed.comment);
-          setSwapInput("");
-        } catch {
-          // Ha sérült a JSON, a szöveget írjuk ki és okosan cserélünk
-          handleFallbackSwap(swapInput, raw);
-        }
-      } else {
-        // Ha sima beszélgetős választ adott a Claude
-        handleFallbackSwap(swapInput, raw);
+          if (parsed.comment) {
+            setAiComment(parsed.comment.replace(/^#+\s*/g, ""));
+          }
+          updatedSuccessfully = true;
+        } catch {}
       }
+
+      // 2. Ha az AI mégis szöveget adott volna, azonnal átírjuk a kártyát
+      if (!updatedSuccessfully) {
+        applySmartFallback(userText, raw);
+      }
+
+      setSwapInput("");
     } catch (err) {
-      setAiError(err.message || "Nem sikerült a csere, próbáld újra!");
+      setAiError("Nem sikerült a csere, próbáld újra!");
     } finally {
       setAiLoading(false);
     }
   };
 
-  // Tartalék csere logika, ha az AI nem JSON formátumban válaszolna
-  const handleFallbackSwap = (userInput, aiText) => {
-    const lower = userInput.toLowerCase();
+  // Intelligens kártyacsere, ha a modell nem JSON-t adott
+  const applySmartFallback = (input, rawText) => {
+    const low = input.toLowerCase();
     setPlate((prev) => {
       const updated = { ...prev };
-      if (lower.includes("fehér") && lower.includes("kenyér")) {
-        updated.carb = "1 szelet fehér kenyér";
-      } else if (lower.includes("tojás")) {
-        updated.protein = "2 db tükörtojás vagy főtt tojás";
-      } else if (lower.includes("túró")) {
-        updated.protein = "4-5 ek zsírszegény túró";
+      if (low.includes("tojás")) {
+        updated.protein = "2-3 db főtt tojás vagy rántotta";
+      } else if (low.includes("túró") || low.includes("cottage")) {
+        updated.protein = "4-5 ek zsírszegény túró vagy cottage cheese";
+      } else if (low.includes("tonhal") || low.includes("hal")) {
+        updated.protein = "1 doboz natúr tonhalkonzerv";
+      } else if (low.includes("fehér") && low.includes("kenyér")) {
+        updated.carb = "1 szelet fehér vagy félbarna kenyér";
+      } else if (low.includes("rizs")) {
+        updated.carb = "3-4 db natúr puffasztott rizs";
+      } else {
+        // Ha csak annyit írt pl. "nincs sonkám", automatikusan tojásra váltunk
+        updated.protein = "2-3 db főtt tojás vagy tükörtojás";
       }
       return updated;
     });
 
-    setAiComment(aiText.replace(/[\{\}\[\]"]/g, "").trim());
-    setSwapInput("");
+    // Tisztított, max 1 mondatos üzenet
+    const cleanComment = rawText
+      .split("\n")[0]
+      .replace(/[\{\}\[\]"#*]/g, "")
+      .trim();
+
+    setAiComment(cleanComment || "Átírtam a kártyát a hűtőd szerint!");
   };
 
   const handleLogMeal = () => {
@@ -230,14 +246,14 @@ export default function InteractivePlateBuilder() {
           ) : (
             /* HA VAN MÉG HIÁNYZÓ KERET */
             <div className="space-y-3">
-              {/* FEHÉRJE */}
+              {/* FEHÉRJE KÁRTYA */}
               {remaining.protein > 0 && (
-                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3">
+                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
                     <span className="text-[10px] uppercase font-bold text-[#E07A5F] tracking-wide block">
                       🖐️ {remaining.protein} Tenyér Fehérje
                     </span>
-                    <p className="text-xs font-semibold text-stone-800 mt-0.5 leading-snug break-words">
+                    <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
                       {plate.protein}
                     </p>
                   </div>
@@ -251,14 +267,14 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* ROST */}
+              {/* ROST KÁRTYA */}
               {remaining.veg > 0 && (
-                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3">
+                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
                     <span className="text-[10px] uppercase font-bold text-[#7C9885] tracking-wide block">
                       ✊ {remaining.veg} Ököl Rost
                     </span>
-                    <p className="text-xs font-semibold text-stone-800 mt-0.5 leading-snug break-words">
+                    <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
                       {plate.veg}
                     </p>
                   </div>
@@ -272,14 +288,14 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* SZÉNHIDRÁT */}
+              {/* SZÉNHIDRÁT KÁRTYA */}
               {remaining.carb > 0 && (
-                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3">
+                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
                     <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wide block">
                       🤲 {remaining.carb} Marék Szénhidrát
                     </span>
-                    <p className="text-xs font-semibold text-stone-800 mt-0.5 leading-snug break-words">
+                    <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
                       {plate.carb}
                     </p>
                   </div>
@@ -293,14 +309,14 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* ZSÍR */}
+              {/* ZSÍR KÁRTYA */}
               {remaining.fat > 0 && (
-                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3">
+                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
                     <span className="text-[10px] uppercase font-bold text-stone-600 tracking-wide block">
                       👍 {remaining.fat} Hüvelykujj Zsír
                     </span>
-                    <p className="text-xs font-semibold text-stone-800 mt-0.5 leading-snug break-words">
+                    <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
                       {plate.fat}
                     </p>
                   </div>
@@ -314,10 +330,10 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* AI HŰTŐ-CSERE BEVITELI MEZŐ */}
+              {/* AI BEVITELI MEZŐ */}
               <form onSubmit={handleAiSwap} className="mt-2 pt-2 border-t border-stone-100">
                 <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
-                  Más van otthon? Írd be az AI-nak (pl. <em>„nincs rozskenyér, csak fehér”</em>):
+                  Nincs otthon valamelyik? Írd be (pl. <em>„nincs sonkám”</em> vagy <em>„csak tojás van”</em>):
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -352,7 +368,7 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* RÖGZÍTÉS GOMB */}
+              {/* LEVONÁS GOMB */}
               <button
                 type="button"
                 onClick={handleLogMeal}
