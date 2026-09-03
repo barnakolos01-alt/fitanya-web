@@ -4,7 +4,8 @@ import { C, serif, sans } from "./styles/tokens";
 import CravingCopilot from "./components/modules/CravingCopilot";
 import PalmTrackerModule from "./components/modules/PalmTrackerModule";
 import HydrationEngine from "./components/modules/HydrationEngine";
-import { Smartphone, Download, Share, PlusSquare, X } from "lucide-react";
+import SettingsModal from "./components/ui/SettingsModal";
+import { Smartphone, Download, Share, PlusSquare, X, Settings } from "lucide-react";
 
 const MODULES = [
   { key: "craving", label: "Nasi SOS", Comp: CravingCopilot },
@@ -13,11 +14,12 @@ const MODULES = [
 ];
 
 export default function PwaApp() {
-  const [tab, setTab] = useState("tracker"); // A Tányérom a fő belépő modul
+  const [tab, setTab] = useState("tracker");
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [showIosModal, setShowIosModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(() => {
     try {
       return localStorage.getItem("fa_pwa_banner_dismissed") === "true";
@@ -120,7 +122,7 @@ export default function PwaApp() {
           </aside>
         )}
 
-        {/* FEJLÉC */}
+        {/* FEJLÉC ÉS BEÁLLÍTÁSOK GOMB */}
         <header className="px-5 pt-5 pb-4 flex items-center justify-between gap-3">
           <div>
             <h1 style={{ fontFamily: serif, color: C.textDark }} className="text-xl font-bold">
@@ -131,17 +133,27 @@ export default function PwaApp() {
             </p>
           </div>
 
-          {!isStandalone && bannerDismissed && (
+          <div className="flex items-center gap-2 shrink-0">
+            {!isStandalone && bannerDismissed && (
+              <button
+                onClick={handleInstallClick}
+                className="text-[11px] font-semibold px-2.5 py-1.5 rounded-full border border-[#F0DCD4] bg-white text-[#E07A5F] hover:bg-[#FDE8E1] transition-colors cursor-pointer flex items-center gap-1 shadow-sm"
+              >
+                <Download size={12} /> Kitűzés
+              </button>
+            )}
             <button
-              onClick={handleInstallClick}
-              className="text-[11px] font-semibold px-3 py-1.5 rounded-full border border-[#F0DCD4] bg-white text-[#E07A5F] hover:bg-[#FDE8E1] transition-colors cursor-pointer flex items-center gap-1 shrink-0 shadow-sm"
+              type="button"
+              onClick={() => setShowSettingsModal(true)}
+              className="w-8 h-8 rounded-full border border-[#F0DCD4] bg-white text-stone-600 hover:text-[#E07A5F] hover:bg-[#FFF9F5] transition-colors flex items-center justify-center cursor-pointer shadow-sm"
+              title="Profil és keretek beállítása"
             >
-              <Download size={12} /> Kitűzés
+              <Settings size={15} />
             </button>
-          )}
+          </div>
         </header>
 
-        {/* TISZTA 3 GOMBOS MENÜ (NINCS CSÚSZKÁLÁS) */}
+        {/* FIX 3 OSZLOPOS MENÜ */}
         <div className="px-5 grid grid-cols-3 gap-2 mb-6 select-none">
           {MODULES.map((m) => (
             <button
@@ -163,6 +175,12 @@ export default function PwaApp() {
         <main className="px-5">
           <Active />
         </main>
+
+        {/* PROFIL & BEÁLLÍTÁSOK MODAL */}
+        <SettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+        />
 
         {/* iOS SAFARI TELEPÍTÉSI SEGÉD MODAL */}
         {showIosModal && (
@@ -187,7 +205,7 @@ export default function PwaApp() {
                 Kitűzés iPhone-on
               </h3>
               <p className="text-xs text-[#6B5A52] leading-relaxed mb-5">
-                Alig 5 másodperc, és a FitAnya ikonja megjelenik a telefonod főképernyőjén, mint egy igazi alkalmazás:
+                Alig 5 másodperc, és a FitAnya ikonja megjelenik a telefonod főképernyőjén:
               </p>
 
               <ol className="space-y-3.5 text-xs text-[#2D3748] mb-6">
