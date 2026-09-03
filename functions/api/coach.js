@@ -11,26 +11,35 @@ export async function onRequestPost(context) {
     }
 
     const body = await request.json();
-    const { mode, input, remaining, profile } = body;
+    const { mode, input, remaining } = body;
 
-    // Rendszerprompt: a FitAnya szakmai és lélektani szabályrendszere
-    const systemPrompt = `Te vagy a FitAnya digitális Zsebedzője: közvetlen, empatikus, bűntudatmentes és gyakorlatias mentor édesanyáknak.
-A válaszaid rövidek, 3-4 mondatosak, és azonnal alkalmazható alternatívát adnak.
-Alapszabályok:
-- Soha ne kelts bűntudatot! Az éhség és a sóvárgás nem akaraterő kérdése, hanem élettani reakció (alváshiány, stressz, kortizol).
-- Használd a FitAnya Tenyér-szabályát: tenyérnyi fehérje (izomvédelem/teltség), ökölnyi rost (emésztés), maréknyi szénhidrát (energia), hüvelykujjnyi egészséges zsír.
-- Nincs kalóriaszámolgatás, csak gyors, kézzelfogható megoldások.`;
+    // Rendszerprompt: közvetlen, laza, hús-vér magyar hangnem (semmi AI-szarság vagy fordításszagú szöveg)
+    const systemPrompt = `Te vagy a FitAnya digitális Zsebedzője: közvetlen, intelligens, laza és őszinte mentor édesanyáknak. 
+Úgy beszélj, mint egy okos barátnő, aki ismeri a biokémiát, de nem gépieskedik. Kerülj minden steril, fordításszagú fitnesz-szöveget (pl. ne használd a "normalizálja", "kombó", "optimális" kifejezéseket).
+A válaszaid rövidek, max 3-4 mondatosak.`;
 
     let userPrompt = "";
 
+    // Ellenőrizzük, hogy elfogyott-e minden keret mára
+    const isZeroRemaining = 
+      (remaining?.protein || 0) <= 0 && 
+      (remaining?.veg || 0) <= 0 && 
+      (remaining?.carb || 0) <= 0;
+
     if (mode === "craving") {
-      userPrompt = `Az anyuka ezt kívánja / ezt enné meg: "${input}".
-Maradék mai kerete: ${remaining?.protein || 0} tenyér fehérje, ${remaining?.veg || 0} ököl rost, ${remaining?.carb || 0} marék szénhidrát, ${remaining?.fat || 0} hüvelykujj zsír.
-Magyarázd el 1 mondatban empatikusan az élettani okát (pl. miért kívánja a sót/cukrot fáradtan), és adj 2 konkrét, 60 másodperc alatt elérhető bolti/otthoni alternatívát, ami kielégíti a vágyat anélkül, hogy megborítaná a napját!`;
+      userPrompt = `Az anyuka ezt kívánja éppen: "${input}".
+Maradék mai kerete: ${remaining?.protein || 0} fehérje, ${remaining?.veg || 0} rost, ${remaining?.carb || 0} szénhidrát, ${remaining?.fat || 0} zsír.
+Mondd el 1 mondatban laza stílusban az élettani okát (pl. fáradtság, stressz), és adj 1-2 gyors alternatívát, ami nem borítja fel a napját.`;
     } else if (mode === "dinner") {
-      userPrompt = `Esti hűtőmentés! Ez van otthon a hűtőben / ezt szeretné enni: "${input}".
-A mai napból hátralévő kerete: ${remaining?.protein || 0} tenyér fehérje, ${remaining?.veg || 0} ököl rost, ${remaining?.carb || 0} marék szénhidrát, ${remaining?.fat || 0} hüvelykujj zsír.
-Állíts össze belőle 3 mondatban egy gyors, 10 perces tányért a Tenyér-szabály arányaival!`;
+      if (isZeroRemaining) {
+        userPrompt = `Esti zárás, az anyuka ezt írta be: "${input}". 
+Figyelem: a mai kerete mára már teljesen betelt (mindenhol 0 vagy kevesebb van hátra)! 
+SZIGORÚAN TILOS újabb kaját vagy receptet ajánlanod! Helyette állj bele határozottan, de kedvesen: mondd meg neki, hogy mára lezárt a bolt, ez már nem éhség, hanem a fáradtság vagy az esti relax keresése. Küldd el egy pohár vízre, teára vagy aludni.`;
+      } else {
+        userPrompt = `Esti hűtőmentés! Ezt enné / ez van otthon: "${input}".
+Még hátralévő kerete: ${remaining?.protein || 0} fehérje, ${remaining?.veg || 0} rost, ${remaining?.carb || 0} szénhidrát, ${remaining?.fat || 0} zsír.
+Írj egy 3 mondatos, villámgyors vacsorát kizárólag a maradék keretéből, teljesen emberi nyelven!`;
+      }
     } else {
       userPrompt = input;
     }
