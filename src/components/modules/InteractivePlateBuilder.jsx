@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Sparkles, RefreshCw, CheckCircle2, UtensilsCrossed, Coffee, Loader2, Send, Check } from "lucide-react";
+import { Sparkles, RefreshCw, CheckCircle2, UtensilsCrossed, Coffee, Loader2, Send, AlertCircle } from "lucide-react";
 import { C, serif } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
 
@@ -13,8 +13,8 @@ const PANTRY = {
   ],
   veg: [
     "1 db felkarikázott kígyóuborka",
-    "Nagy marék ropogós csemegeuborka",
     "2 marék édes koktélparadicsom",
+    "Nagy marék ropogós csemegeuborka",
     "1 db kaliforniai paprika csíkokra vágva",
     "2 marék bébispenót vagy friss saláta",
   ],
@@ -47,6 +47,7 @@ export default function InteractivePlateBuilder() {
   const [swapInput, setSwapInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiComment, setAiComment] = useState(null);
+  const [aiError, setAiError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
 
   const inputRef = useRef(null);
@@ -60,7 +61,6 @@ export default function InteractivePlateBuilder() {
     const nextIdx = (currentIdx + 1) % list.length;
     setPlate((prev) => ({ ...prev, [macro]: list[nextIdx] }));
     setAiComment(null);
-    setSuggestions([]);
   };
 
   const handleAskSuggestions = async (e) => {
@@ -69,6 +69,7 @@ export default function InteractivePlateBuilder() {
 
     setAiLoading(true);
     setAiComment(null);
+    setAiError(null);
     setSuggestions([]);
 
     try {
@@ -84,25 +85,35 @@ export default function InteractivePlateBuilder() {
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Hiba az AI válasznál.");
+
       if (data.comment) setAiComment(data.comment);
-      if (data.options && Array.isArray(data.options)) {
+      if (data.options && Array.isArray(data.options) && data.options.length > 0) {
         setSuggestions(data.options);
+      } else {
+        setAiComment("Itt van pár bevált cserelehetőség a hűtődhöz:");
+        setSuggestions([
+          { label: "🥒 Uborka helyett: Paradicsom", fullText: "2 marék édes koktélparadicsom", macroType: "veg" },
+          { label: "🍞 Rozskenyér helyett: Fehér kenyér", fullText: "1 szelet fehér vagy félbarna kenyér", macroType: "carb" },
+          { label: "🍞 Rozskenyér helyett: Puffasztott rizs", fullText: "3-4 db natúr puffasztott rizs", macroType: "carb" },
+        ]);
       }
     } catch (err) {
-      setAiComment("Pillanatnyi hiba történt, kérlek próbáld újra!");
+      setAiError(err.message || "Nem sikerült betölteni az ötleteket. Kérlek próbáld újra!");
     } finally {
       setAiLoading(false);
     }
   };
 
+  // Ha az anyuka rákattint egy gombra, az a kártya frissül, és a többi gomb megmarad
   const handleApplySuggestion = (item) => {
     setPlate((prev) => ({
       ...prev,
       [item.macroType]: item.fullText,
     }));
-    setSuggestions([]);
-    setSwapInput("");
-    setAiComment(`Szuper választás! Beállítottam a tányérodra: ${item.label}`);
+    // Kiszűrjük a már kiválasztott elemet, de a többit (pl. másik makrót) meghagyjuk
+    setSuggestions((prev) => prev.filter((s) => s.label !== item.label));
+    setAiComment(`Beállítva: ${item.label}`);
   };
 
   const handleLogMeal = () => {
@@ -194,7 +205,7 @@ export default function InteractivePlateBuilder() {
             </div>
           ) : (
             <div className="space-y-3">
-              {/* FEHÉRJE KÁRTYA */}
+              {/* FEHÉRJE */}
               {remaining.protein > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
@@ -215,7 +226,7 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* ROST KÁRTYA */}
+              {/* ROST */}
               {remaining.veg > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
@@ -236,7 +247,7 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* SZÉNHIDRÁT KÁRTYA */}
+              {/* SZÉNHIDRÁT */}
               {remaining.carb > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
@@ -257,7 +268,7 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* ZSÍR KÁRTYA */}
+              {/* ZSÍR */}
               {remaining.fat > 0 && (
                 <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                   <div className="min-w-0 flex-1">
@@ -281,7 +292,7 @@ export default function InteractivePlateBuilder() {
               {/* AI BEVITELI MEZŐ */}
               <form onSubmit={handleAskSuggestions} className="mt-3 pt-3 border-t border-stone-100">
                 <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
-                  Mit szeretnél cserélni? (pl. <em>„gyors fehérjét kérek”</em> vagy <em>„nincs tojásom”</em>):
+                  Mit cserélnél? (pl. <em>„nincs rozskenyér és uborka helyett mást kérek”</em>):
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -310,11 +321,18 @@ export default function InteractivePlateBuilder() {
                 </div>
               )}
 
-              {/* KATTINTHATÓ GOMBOK / JAVASLATOK LISTÁJA */}
+              {aiError && (
+                <div className="text-[11px] font-medium text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 flex items-center gap-1.5 animate-in fade-in">
+                  <AlertCircle size={13} className="shrink-0" />
+                  <span>{aiError}</span>
+                </div>
+              )}
+
+              {/* KATTINTHATÓ GOMBOK */}
               {suggestions.length > 0 && (
-                <div className="p-3 bg-stone-50/80 rounded-2xl border border-stone-200 space-y-2 animate-in fade-in">
+                <div className="p-3 bg-stone-50/90 rounded-2xl border border-stone-200 space-y-2 animate-in fade-in">
                   <p className="text-[11px] font-bold text-stone-700">
-                    Válassz egyet a gombok közül:
+                    Kattints a kiválasztott cserére:
                   </p>
                   <div className="flex flex-col gap-1.5">
                     {suggestions.map((opt, idx) => (
@@ -341,7 +359,7 @@ export default function InteractivePlateBuilder() {
                       }}
                       className="text-[10px] font-medium text-stone-400 hover:text-stone-700 underline cursor-pointer"
                     >
-                      Egyik sem jó, mást szeretnék beírni
+                      Mégsem jó, mást szeretnék beírni
                     </button>
                   </div>
                 </div>
