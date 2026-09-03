@@ -7,6 +7,7 @@ import {
   Bell,
   BellRing,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { C, serif } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
@@ -17,6 +18,7 @@ export default function HydrationEngine() {
   const { profile, log, addWater, hydrationTargetMl } = useFitAnya();
   const [reminderIdx, setReminderIdx] = useState(0);
   const [notificationStatus, setNotificationStatus] = useState("default");
+  const [subscribing, setSubscribing] = useState(false);
 
   useEffect(() => {
     const id = setInterval(
@@ -35,32 +37,43 @@ export default function HydrationEngine() {
   }, []);
 
   const handleRequestNotification = async () => {
-    if (!("Notification" in window)) {
-      alert("A böngésződ nem támogatja a közvetlen push értesítéseket.");
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      alert("A készülékeden a közvetlen push értesítésekhez szükséges a PWA kezdőképernyőre tűzése.");
       return;
     }
+
+    setSubscribing(true);
 
     try {
       const permission = await Notification.requestPermission();
       setNotificationStatus(permission);
 
       if (permission === "granted") {
-        const title = "FitAnya Zsebedző 💧";
-        const options = {
-          body: "Szuper! Bekapcsoltad az emlékeztetőket. Időben szólni fogunk, hogy igyál egy kortyot!",
+        const registration = await navigator.serviceWorker.ready;
+
+        // Feliratkozási token kérése a Service Workertől
+        let subscription = await registration.pushManager.getSubscription();
+
+        // Beküldés a Cloudflare backendnek
+        if (subscription) {
+          await fetch("/api/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ subscription }),
+          });
+        }
+
+        // Azonnali megerősítő natív értesítés
+        registration.showNotification("FitAnya Zsebedző 💧", {
+          body: "Szuper! Az emlékeztetők aktívak. Időben szólni fogunk, hogy igyál egy pohár vizet!",
           icon: "/icons/icon-192.png",
           badge: "/icons/icon-192.png",
-        };
-
-        if ("serviceWorker" in navigator) {
-          const registration = await navigator.serviceWorker.ready;
-          registration.showNotification(title, options);
-        } else {
-          new Notification(title, options);
-        }
+        });
       }
     } catch (err) {
-      console.warn("Értesítési engedélykérés hiba:", err);
+      console.warn("Értesítési regisztráció hiba:", err);
+    } finally {
+      setSubscribing(false);
     }
   };
 
@@ -82,7 +95,7 @@ export default function HydrationEngine() {
         className="rounded-3xl p-5 mb-4 flex flex-col items-center select-none"
         style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}
       >
-        {/* VIZUÁLIS POHÁR / KULACS */}
+        {/* VIZUÁLIS POHÁR */}
         <div className="relative w-28 h-40 mb-3">
           <div
             className="absolute inset-0 rounded-b-3xl rounded-t-xl overflow-hidden shadow-inner"
@@ -124,7 +137,7 @@ export default function HydrationEngine() {
           </div>
         </div>
 
-        {/* AKTUÁLIS LITER ÉS HÁTRALÉVŐ KERET */}
+        {/* CÉL ÉS HÁTRALÉVŐ VÍZ */}
         <p
           className="text-base font-semibold mb-1"
           style={{ color: C.textDark, fontFamily: serif }}
@@ -196,11 +209,13 @@ export default function HydrationEngine() {
 
           <button
             type="button"
+            disabled={subscribing}
             onClick={handleRequestNotification}
-            className="text-[11px] font-bold px-3 py-1.5 rounded-xl text-white cursor-pointer shrink-0 shadow-sm"
+            className="text-[11px] font-bold px-3 py-1.5 rounded-xl text-white cursor-pointer shrink-0 shadow-sm flex items-center gap-1"
             style={{ backgroundColor: C.coral }}
           >
-            Bekapcsolás
+            {subscribing ? <Loader2 size={12} className="animate-spin" /> : null}
+            <span>Bekapcsolás</span>
           </button>
         </div>
       )}
@@ -212,7 +227,7 @@ export default function HydrationEngine() {
         </div>
       )}
 
-      {/* TÁMOGATÓ IDÉZET KÁRTYA */}
+      {/* TÁMOGATÓ IDÉZET */}
       <div
         className="rounded-2xl p-3.5 flex items-start gap-2.5"
         style={{ backgroundColor: C.sageSoft }}
