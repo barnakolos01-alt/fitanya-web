@@ -6,11 +6,11 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
-  Plus,
-  Minus,
   Moon,
   ChevronDown,
   ChevronUp,
+  Clock,
+  Trash2,
 } from "lucide-react";
 import { C } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
@@ -42,16 +42,32 @@ function FormattedMessage({ content }) {
         }
 
         const parts = line.split(/(\*\*[\s\S]*?\*\*|\*[^*]+?\*)/g);
-        const isHighlight = trimmed.startsWith("🖐️") || trimmed.startsWith("💡") || trimmed.startsWith("🎯");
+        const isHighlight =
+          trimmed.startsWith("🖐️") || trimmed.startsWith("💡") || trimmed.startsWith("🎯");
 
         return (
-          <p key={idx} className={isHighlight ? "mt-2 pt-2 border-t border-[#f1ded6] font-medium text-stone-800" : ""}>
+          <p
+            key={idx}
+            className={
+              isHighlight
+                ? "mt-2 pt-2 border-t border-[#f1ded6] font-medium text-stone-800"
+                : ""
+            }
+          >
             {parts.map((part, pIdx) => {
               if (part.startsWith("**") && part.endsWith("**")) {
-                return <strong key={pIdx} className="font-semibold text-stone-900">{part.slice(2, -2)}</strong>;
+                return (
+                  <strong key={pIdx} className="font-semibold text-stone-900">
+                    {part.slice(2, -2)}
+                  </strong>
+                );
               }
               if (part.startsWith("*") && part.endsWith("*")) {
-                return <em key={pIdx} className="italic text-stone-800">{part.slice(1, -1)}</em>;
+                return (
+                  <em key={pIdx} className="italic text-stone-800">
+                    {part.slice(1, -1)}
+                  </em>
+                );
               }
               return part;
             })}
@@ -63,7 +79,7 @@ function FormattedMessage({ content }) {
 }
 
 export default function PalmTrackerModule() {
-  const { logPortion, remaining } = useFitAnya();
+  const { log, logPortion, removeEntry, remaining } = useFitAnya();
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(null);
   const [logged, setLogged] = useState(false);
@@ -87,7 +103,7 @@ export default function PalmTrackerModule() {
 
   const handleLogPreset = () => {
     if (!selected) return;
-    logPortion(DISHES[selected].delta);
+    logPortion(DISHES[selected].delta, selected);
     setLogged(true);
     setTimeout(() => setLogged(false), 2200);
   };
@@ -122,7 +138,7 @@ export default function PalmTrackerModule() {
   };
 
   const handleLogCustomAiDelta = () => {
-    logPortion(customDelta);
+    logPortion(customDelta, query.trim() || "Egyedi étkezés");
     setLogged(true);
     setTimeout(() => setLogged(false), 2200);
   };
@@ -134,6 +150,15 @@ export default function PalmTrackerModule() {
     }));
   };
 
+  const renderDeltaTags = (delta) => {
+    const tags = [];
+    if (delta.protein) tags.push(`+${delta.protein} Fehérje`);
+    if (delta.veg) tags.push(`+${delta.veg} Rost`);
+    if (delta.carb) tags.push(`+${delta.carb} Szénhidrát`);
+    if (delta.fat) tags.push(`+${delta.fat} Zsír`);
+    return tags.join(", ");
+  };
+
   return (
     <div>
       <SectionHeader
@@ -143,11 +168,67 @@ export default function PalmTrackerModule() {
       />
       <TrackerHeader />
 
-      <div className="rounded-3xl p-4 sm:p-5 mb-5" style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}>
-        <label className="text-xs font-medium mb-1.5 flex items-center gap-1.5" style={{ color: C.textSoft }}>
+      {/* MAI ÉTKEZÉSI NAPLÓ (DAILY LOG HISTORY) */}
+      {log.entries && log.entries.length > 0 && (
+        <div
+          className="rounded-3xl p-4 mb-4"
+          style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}
+        >
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-stone-100">
+            <span className="text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
+              <Clock size={13} className="text-[#E07A5F]" /> Mai naplózott ételek
+            </span>
+            <span className="text-[11px] text-stone-400 font-medium">
+              {log.entries.length} tétel
+            </span>
+          </div>
+
+          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+            {log.entries.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex items-center justify-between p-2.5 rounded-2xl bg-[#FFFDFB] border border-[#F5EBE6] text-xs transition-all hover:bg-stone-50"
+              >
+                <div className="min-w-0 pr-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-stone-800 truncate">
+                      {entry.label}
+                    </span>
+                    <span className="text-[10px] text-stone-400 font-mono">
+                      {entry.time}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#C3634C] mt-0.5 truncate">
+                    {renderDeltaTags(entry.delta)}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => removeEntry(entry.id)}
+                  className="w-7 h-7 rounded-xl bg-stone-100 hover:bg-red-50 text-stone-400 hover:text-red-500 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                  title="Tétel visszavonása"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ÉTEL KERESŐ ÉS RÖGZÍTŐ KÁRTYA */}
+      <div
+        className="rounded-3xl p-4 sm:p-5 mb-5"
+        style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}
+      >
+        <label
+          className="text-xs font-medium mb-1.5 flex items-center gap-1.5"
+          style={{ color: C.textSoft }}
+        >
           <Search size={13} /> Mit eszel ma a családdal?
         </label>
-        
+
         <div className="relative mb-3">
           <input
             value={query}
@@ -222,7 +303,10 @@ export default function PalmTrackerModule() {
 
         {/* PRESET ÉTEL */}
         {selected && !aiResponse && (
-          <div className="rounded-2xl p-3.5 mb-3" style={{ backgroundColor: "#FFF9F5", border: `1px solid ${C.border}` }}>
+          <div
+            className="rounded-2xl p-3.5 mb-3"
+            style={{ backgroundColor: "#FFF9F5", border: `1px solid ${C.border}` }}
+          >
             <p className="text-xs font-semibold mb-1" style={{ color: C.coralDeep }}>
               Így szedd ki a tányérodra (20 mp):
             </p>
@@ -261,36 +345,92 @@ export default function PalmTrackerModule() {
                 <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#f1ded6] text-xs">
                   <span>🖐️ Fehérje:</span>
                   <div className="flex items-center gap-1.5">
-                    <button type="button" onClick={() => updateDelta("protein", -1)} className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold">-</button>
-                    <span className="font-semibold w-4 text-center">{customDelta.protein}</span>
-                    <button type="button" onClick={() => updateDelta("protein", 1)} className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold">+</button>
+                    <button
+                      type="button"
+                      onClick={() => updateDelta("protein", -1)}
+                      className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold"
+                    >
+                      -
+                    </button>
+                    <span className="font-semibold w-4 text-center">
+                      {customDelta.protein}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => updateDelta("protein", 1)}
+                      className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#f1ded6] text-xs">
                   <span>✊ Rost:</span>
                   <div className="flex items-center gap-1.5">
-                    <button type="button" onClick={() => updateDelta("veg", -1)} className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold">-</button>
-                    <span className="font-semibold w-4 text-center">{customDelta.veg}</span>
-                    <button type="button" onClick={() => updateDelta("veg", 1)} className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold">+</button>
+                    <button
+                      type="button"
+                      onClick={() => updateDelta("veg", -1)}
+                      className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold"
+                    >
+                      -
+                    </button>
+                    <span className="font-semibold w-4 text-center">
+                      {customDelta.veg}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => updateDelta("veg", 1)}
+                      className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#f1ded6] text-xs">
                   <span>🤲 Szénhidrát:</span>
                   <div className="flex items-center gap-1.5">
-                    <button type="button" onClick={() => updateDelta("carb", -1)} className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold">-</button>
-                    <span className="font-semibold w-4 text-center">{customDelta.carb}</span>
-                    <button type="button" onClick={() => updateDelta("carb", 1)} className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold">+</button>
+                    <button
+                      type="button"
+                      onClick={() => updateDelta("carb", -1)}
+                      className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold"
+                    >
+                      -
+                    </button>
+                    <span className="font-semibold w-4 text-center">
+                      {customDelta.carb}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => updateDelta("carb", 1)}
+                      className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#f1ded6] text-xs">
                   <span>👍 Zsír:</span>
                   <div className="flex items-center gap-1.5">
-                    <button type="button" onClick={() => updateDelta("fat", -1)} className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold">-</button>
-                    <span className="font-semibold w-4 text-center">{customDelta.fat}</span>
-                    <button type="button" onClick={() => updateDelta("fat", 1)} className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold">+</button>
+                    <button
+                      type="button"
+                      onClick={() => updateDelta("fat", -1)}
+                      className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold"
+                    >
+                      -
+                    </button>
+                    <span className="font-semibold w-4 text-center">
+                      {customDelta.fat}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => updateDelta("fat", 1)}
+                      className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center font-bold"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
               </div>
@@ -315,8 +455,11 @@ export default function PalmTrackerModule() {
         )}
 
         {logged && (
-          <p className="text-xs mt-2 text-center font-medium flex items-center justify-center gap-1" style={{ color: C.sageText }}>
-            <CheckCircle2 size={13} /> Levonva a mai keretedből!
+          <p
+            className="text-xs mt-2 text-center font-medium flex items-center justify-center gap-1"
+            style={{ color: C.sageText }}
+          >
+            <CheckCircle2 size={13} /> Levonva a mai keretedből és rögzítve a naplóban!
           </p>
         )}
       </div>
@@ -342,7 +485,10 @@ export default function PalmTrackerModule() {
                 </p>
               </div>
             </div>
-            <ChevronDown size={16} className="text-[#E07A5F] group-hover:translate-y-0.5 transition-transform shrink-0" />
+            <ChevronDown
+              size={16}
+              className="text-[#E07A5F] group-hover:translate-y-0.5 transition-transform shrink-0"
+            />
           </button>
         ) : (
           <div>
