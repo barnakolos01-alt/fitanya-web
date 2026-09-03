@@ -18,34 +18,28 @@ export async function onRequestPost(context) {
     const carb = Number(remaining?.carb ?? 0);
     const fat = Number(remaining?.fat ?? 0);
 
-    const isZeroRemaining = prot <= 0 && veg <= 0 && carb <= 0;
-    const isFatOver = fat <= 0;
-    const isCarbOver = carb <= 0;
-
-    // 1. INTERAKTÍV GOMB-AJÁNLÓ (TOOL CALLING)
+    // 1. INTERAKTÍV GOMB-AJÁNLÓ (SUGGEST OPTIONS)
     if (mode === "plate_swap" || mode === "suggest_options") {
-      let constraints = "";
-      if (isFatOver) {
-        constraints += " KRITIKUS: A zsírkeret BETELT vagy TÚLLÉPVE! SZIGORÚAN TILOS diót, mandulát, magvakat, vajat, olajat, zsíros sajtokat, egész tojást és csokit ajánlani! Csak zsírszegény opciók mehetnek.";
-      }
-      if (isCarbOver) {
-        constraints += " KRITIKUS: A szénhidrátkeret BETELT! SZIGORÚAN TILOS kenyeret, müzlit, tésztát, rizst, banánt és pékárut ajánlani!";
-      }
+      let macroNotes = [];
+      if (fat <= 0) macroNotes.push("A zsírkeret betelt: olaj, vaj, magvak és zsíros sajt helyett zsírszegény opciókat ajánlj!");
+      if (carb <= 0) macroNotes.push("A szénhidrátkeret betelt: ha kenyeret kér, ajánlj nagyon könnyű alternatívát (pl. puffasztott rizs vagy plusz zöldség ropogtatni)!");
 
-      const prompt = `Az anyuka étel-alternatívákat kér a tányérjához.
-Hiányzó kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát, ${fat} zsír.
-${constraints}
+      const prompt = `Az anyuka a tányérján lévő ételeket szeretné cserélni a hűtője szerint.
+Jelenlegi keretei: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát, ${fat} zsír.
+${macroNotes.join(" ")}
 
-Jelenlegi tételek:
+Jelenlegi tételek a tányérján:
 - Fehérje: "${currentPlate?.protein || "nincs"}"
 - Rost: "${currentPlate?.veg || "nincs"}"
 - Szénhidrát: "${currentPlate?.carb || "nincs"}"
 - Zsír: "${currentPlate?.fat || "nincs"}"
 
-Az anyuka kérése / helyzete: "${input}"
+Az anyuka ezt írta: "${input}"
 
-Feladat: Adj 3 vagy 4 konkrét, egymástól jól megkülönböztethető, 100%-ban hétköznapi bolti/kamra opciót gombokként, amire azonnal rákattinthat!
-Hívd meg a suggest_food_options függvényt!`;
+SZABÁLYOK:
+- Ha több dolgot is említett (pl. rozskenyér ÉS uborka), adj opciókat mindkettőre!
+- A gombok felirata (label) legyen egyértelmű, pl: "🥒 Uborka helyett: Paradicsom" vagy "🍞 Kenyér helyett: Puffasztott rizs".
+- Hívd meg a suggest_food_options eszközt 3-4 konkrét opcióval!`;
 
       const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -56,8 +50,8 @@ Hívd meg a suggest_food_options függvényt!`;
         },
         body: JSON.stringify({
           model: "claude-3-5-haiku-20241022",
-          max_tokens: 350,
-          temperature: 0.1,
+          max_tokens: 800, // Bőven elég hely a részletes opcióknak
+          temperature: 0.2,
           tools: [
             {
               name: "suggest_food_options",
@@ -67,16 +61,16 @@ Hívd meg a suggest_food_options függvényt!`;
                 properties: {
                   comment: {
                     type: "string",
-                    description: "1etlen tömör, barátságos mondat (pl. Mivel a zsírod már betelt, ezekkel a zsírszegény fehérjékkel maradsz egyensúlyban:)",
+                    description: "1 tömör barátságos mondat, ami visszaigazolja a cserét.",
                   },
                   options: {
                     type: "array",
                     items: {
                       type: "object",
                       properties: {
-                        label: { type: "string", description: "Rövid név a gombra (pl. 4 ek zsírszegény túró)" },
-                        fullText: { type: "string", description: "Teljes szöveg a kártyára (pl. 4-5 ek zsírszegény túró vagy light cottage cheese)" },
-                        macroType: { type: "string", enum: ["protein", "veg", "carb", "fat"], description: "Melyik tápanyag kártyáját cseréli" },
+                        label: { type: "string", description: "Rövid gombfelirat, pl: 🥒 Uborka helyett: Koktélparadicsom" },
+                        fullText: { type: "string", description: "A tányér kártyájára kerülő teljes tétel pontos adaggal" },
+                        macroType: { type: "string", enum: ["protein", "veg", "carb", "fat"], description: "Melyik kártyát módosítja" },
                       },
                       required: ["label", "fullText", "macroType"],
                     },
@@ -91,9 +85,24 @@ Hívd meg a suggest_food_options függvényt!`;
         }),
       });
 
+      if (!anthropicResponse.ok) {
+        const errText = await anthropicResponse.text();
+        return new Response(JSON.stringify({ error: "AI hiba", details: errText }), {
+          status: 502,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
       const data = await anthropicResponse.json();
       const toolUse = data.content?.find((c) => c.type === "tool_use");
-      const result = toolUse?.input || { comment: "", options: [] };
+      const result = toolUse?.input || {
+        comment: "Itt van pár szuper alternatíva a hűtődhöz:",
+        options: [
+          { label: "🥒 Uborka helyett: Paradicsom", fullText: "2 marék édes koktélparadicsom", macroType: "veg" },
+          { label: "🍞 Rozskenyér helyett: Fehér kenyér", fullText: "1 szelet fehér vagy félbarna kenyér", macroType: "carb" },
+          { label: "🍞 Rozskenyér helyett: Puffasztott rizs", fullText: "3-4 db natúr puffasztott rizs", macroType: "carb" },
+        ],
+      };
 
       return new Response(JSON.stringify(result), {
         status: 200,
@@ -118,9 +127,9 @@ A végén kötelező sor:
         },
         body: JSON.stringify({
           model: "claude-3-5-haiku-20241022",
-          max_tokens: 300,
+          max_tokens: 350,
           temperature: 0.2,
-          system: "Te a FitAnya Zsebedzője vagy. Semmi AI-zsargon, csak életszerű magyar tálalási tanács.",
+          system: "Te a FitAnya Zsebedzője vagy. Semmi AI-zsargon, csak életszerű tálalási tanács.",
           messages: [{ role: "user", content: userPrompt }],
         }),
       });
@@ -146,9 +155,9 @@ Hátralévő kerete: ${prot} fehérje, ${veg} rost, ${carb} szénhidrát.
         },
         body: JSON.stringify({
           model: "claude-3-5-haiku-20241022",
-          max_tokens: 300,
+          max_tokens: 350,
           temperature: 0.2,
-          system: "Te a FitAnya Zsebedzője vagy. Nulla bűntudat, praktikus segítség.",
+          system: "Te a FitAnya Zsebedzője vagy. Nulla bűntudat, csak gyors segítség.",
           messages: [{ role: "user", content: userPrompt }],
         }),
       });
