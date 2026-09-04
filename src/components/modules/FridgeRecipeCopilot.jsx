@@ -193,11 +193,11 @@ export default function FridgeRecipeCopilot() {
                       ))}
                     </ul>
 
-                    {/* ELKÉSZÍTÉS */}
+                    {/* ELKÉSZÍTÉS (DUPLA SZÁMOZÁS LEVÁGÁSÁVAL) */}
                     <p className="font-bold text-stone-800 mb-1">Elkészítés tömören:</p>
                     <ol className="list-decimal list-inside text-stone-600 space-y-1 mb-4 leading-relaxed">
                       {recipe.instructions.map((ins, i) => (
-                        <li key={i}>{ins}</li>
+                        <li key={i}>{ins.replace(/^(\d+[\.\)]\s*)+/, "")}</li>
                       ))}
                     </ol>
 
