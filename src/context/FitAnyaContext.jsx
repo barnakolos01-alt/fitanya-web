@@ -2,25 +2,79 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from "
 import { calculateProfileFromForm, getTodayKey } from "../utils/calculateProfile";
 
 const FitAnyaContext = createContext(null);
+export const MAX_FREE_AI_CREDITS = 3;
 
 export function FitAnyaProvider({ children }) {
-  // Aktív PWA fül vezérlése modulok között (alapértelmezett: tányér)
   const [activeTab, setActiveTab] = useState("tracker");
+  const [isPaywallOpen, setIsPaywallOpen] = useState(false);
 
-  // 1. Profil betöltése
+  // 1. PRÉMIUM STÁTUSZ KEZELÉSE (LocalStorage + Stripe URL paraméter figyelés)
+  const [isPremium, setIsPremium] = useState(() => {
+    try {
+      return localStorage.getItem("fa_is_premium") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  // Stripe visszatérés figyelése (?access=unlocked vagy ?session_id)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("access") === "unlocked" || params.get("session_id")) {
+        localStorage.setItem("fa_is_premium", "true");
+        setIsPremium(true);
+        // URL tisztítása újratöltés nélkül
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } catch (e) {
+      console.warn("URL paraméter hiba:", e);
+    }
+  }, []);
+
+  // 2. INGYENES AI KVÓTA SZÁMLÁLÓ
+  const [aiUsageCount, setAiUsageCount] = useState(() => {
+    try {
+      return parseInt(localStorage.getItem("fa_ai_usage") || "0", 10);
+    } catch {
+      return 0;
+    }
+  });
+
+  // AI kredit levonásának logikája
+  const consumeAiCredit = () => {
+    if (isPremium) return true;
+
+    if (aiUsageCount >= MAX_FREE_AI_CREDITS) {
+      setIsPaywallOpen(true);
+      return false;
+    }
+
+    const next = aiUsageCount + 1;
+    setAiUsageCount(next);
+    try {
+      localStorage.setItem("fa_ai_usage", String(next));
+    } catch {}
+    return true;
+  };
+
+  const unlockPremium = () => {
+    setIsPremium(true);
+    try {
+      localStorage.setItem("fa_is_premium", "true");
+    } catch {}
+    setIsPaywallOpen(false);
+  };
+
+  // 3. PROFIL ÉS NAPI LOG
   const [profile, setProfile] = useState(() => {
     try {
       const savedForm = localStorage.getItem("fa_form");
-      if (savedForm) {
-        return calculateProfileFromForm(JSON.parse(savedForm));
-      }
-    } catch (e) {
-      console.warn("Hiba a profil betöltésekor:", e);
-    }
+      if (savedForm) return calculateProfileFromForm(JSON.parse(savedForm));
+    } catch (e) {}
     return calculateProfileFromForm(null);
   });
 
-  // 2. Napi napló (napváltáskor nullázódik)
   const [log, setLog] = useState(() => {
     const defaultLog = {
       protein: 0,
@@ -42,9 +96,7 @@ export function FitAnyaProvider({ children }) {
           entries: Array.isArray(parsed.entries) ? parsed.entries : [],
         };
       }
-    } catch (e) {
-      console.warn("Hiba a napi log betöltésekor:", e);
-    }
+    } catch (e) {}
     return defaultLog;
   });
 
@@ -58,12 +110,9 @@ export function FitAnyaProvider({ children }) {
     try {
       localStorage.setItem("fa_form", JSON.stringify(formData));
       setProfile(calculateProfileFromForm(formData));
-    } catch (e) {
-      console.error("Hiba a profil frissítésekor:", e);
-    }
+    } catch (e) {}
   };
 
-  // Ételadag rögzítése
   const logPortion = (delta, label = null) => {
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -90,7 +139,6 @@ export function FitAnyaProvider({ children }) {
     }));
   };
 
-  // Egy tétel visszavonása
   const removeEntry = (entryId) => {
     setLog((prev) => {
       const target = (prev.entries || []).find((e) => e.id === entryId);
@@ -110,11 +158,8 @@ export function FitAnyaProvider({ children }) {
   const addWater = (ml) =>
     setLog((prev) => ({ ...prev, waterMl: Math.max(0, prev.waterMl + ml) }));
 
-  // Intelligens italnaplózás (víz + rejtett makrók + cukorsokk számláló)
   const logDrink = ({ name, ml, delta = {}, sugarGrams = 0 }) => {
-    if (ml !== 0) {
-      addWater(ml);
-    }
+    if (ml !== 0) addWater(ml);
     if (delta.carb || delta.fat || delta.protein || delta.veg) {
       logPortion(delta, `Folyadék: ${name}`);
     }
@@ -160,6 +205,13 @@ export function FitAnyaProvider({ children }) {
     hydrationTargetMl,
     activeTab,
     setActiveTab,
+    // Paywall & AI kvóta mezők:
+    isPremium,
+    aiUsageCount,
+    consumeAiCredit,
+    unlockPremium,
+    isPaywallOpen,
+    setIsPaywallOpen,
   };
 
   return <FitAnyaContext.Provider value={value}>{children}</FitAnyaContext.Provider>;
