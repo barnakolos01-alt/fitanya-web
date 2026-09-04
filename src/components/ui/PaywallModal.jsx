@@ -1,33 +1,59 @@
 import React, { useState } from "react";
-import { X, Sparkles, Check, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { X, Sparkles, Check, Lock, ArrowRight, ShieldCheck, Crown, Loader2 } from "lucide-react";
 import { C, serif } from "../../styles/tokens";
 import { useFitAnya, MAX_FREE_AI_CREDITS } from "../../context/FitAnyaContext";
 
-// Cseréld le a saját Stripe Payment Link-edre a Stripe Dashboardról!
-const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/test_placeholder";
+// A TE ÉLES STRIPE FIZETÉSI LINKED
+const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/14AbJ36Gc8rJ4Pja1K9ws04";
 
 export default function PaywallModal() {
   const { isPaywallOpen, setIsPaywallOpen, unlockPremium, aiUsageCount } = useFitAnya();
   const [promoCode, setPromoCode] = useState("");
+  const [loadingCode, setLoadingCode] = useState(false);
   const [promoError, setPromoError] = useState(false);
+  const [promoSuccess, setPromoSuccess] = useState(false);
 
   if (!isPaywallOpen) return null;
 
-  const handleApplyCode = (e) => {
+  const handleApplyCode = async (e) => {
     e.preventDefault();
-    // Vész-feloldókód teszteléshez vagy VIP ügyfeleknek
-    if (promoCode.trim().toUpperCase() === "FITANYA" || promoCode.trim().toUpperCase() === "PREMIUM2026") {
-      unlockPremium();
-    } else {
+    const clean = promoCode.trim().toUpperCase();
+    if (!clean) return;
+
+    setLoadingCode(true);
+    setPromoError(false);
+
+    try {
+      // Biztonságos backend ellenőrzés (a frontend kódban NINCSENEK kódok!)
+      const res = await fetch("/api/verify-vip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: clean }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setPromoSuccess(true);
+        setTimeout(() => {
+          unlockPremium();
+          setPromoSuccess(false);
+        }, 1000);
+      } else {
+        setPromoError(true);
+        setTimeout(() => setPromoError(false), 2500);
+      }
+    } catch {
       setPromoError(true);
       setTimeout(() => setPromoError(false), 2500);
+    } finally {
+      setLoadingCode(false);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black/65 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200">
       <div
-        className="bg-white max-w-sm w-full rounded-3xl p-6 shadow-2xl relative border border-[#F0DCD4] animate-in slide-in-from-bottom duration-300 select-none max-h-[90vh] overflow-y-auto"
+        className="bg-white max-w-sm w-full rounded-3xl p-6 shadow-2xl relative border border-[#F0DCD4] animate-in slide-in-from-bottom duration-300 select-none max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -40,7 +66,7 @@ export default function PaywallModal() {
 
         {/* KVÓTA JELZÉS */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF3EE] text-[#E07A5F] text-[11px] font-bold mb-3">
-          <Lock size={12} /> {aiUsageCount}/{MAX_FREE_AI_CREDITS} ingyenes AI kóstoló felhasználva
+          <Lock size={12} /> {aiUsageCount}/{MAX_FREE_AI_CREDITS} ingyenes AI próba felhasználva
         </div>
 
         <h2 style={{ fontFamily: serif }} className="text-xl font-bold text-stone-900 mb-2 leading-snug">
@@ -51,7 +77,7 @@ export default function PaywallModal() {
           A FitAnya alapprogram ingyenes. A mesterséges intelligenciával működő konyhai funkciók a <strong>Prémium Zsebedző</strong> részei.
         </p>
 
-        {/* ÉRTÉKAJÁNLATOK */}
+        {/* ÉRTÉKEK */}
         <div className="space-y-2.5 mb-5 text-xs text-stone-700 bg-[#FFFDFB] p-3.5 rounded-2xl border border-[#F5EBE6]">
           <div className="flex items-start gap-2.5">
             <div className="w-5 h-5 rounded-full bg-[#F0F5F1] text-[#7C9885] flex items-center justify-center shrink-0 mt-0.5">
@@ -64,7 +90,7 @@ export default function PaywallModal() {
             <div className="w-5 h-5 rounded-full bg-[#F0F5F1] text-[#7C9885] flex items-center justify-center shrink-0 mt-0.5">
               <Check size={12} />
             </div>
-            <span><strong>Bármilyen étel elemzése:</strong> azonnali tenyér-számítás konyhamérleg nélkül.</span>
+            <span><strong>Bármilyen étel azonnali elemzése:</strong> tenyér-számítás konyhamérleg nélkül.</span>
           </div>
 
           <div className="flex items-start gap-2.5">
@@ -75,45 +101,53 @@ export default function PaywallModal() {
           </div>
         </div>
 
-        {/* FŐ CTA GOMB - STRIPE CHECKOUT */}
+        {/* STRIPE GOMB */}
         <a
           href={STRIPE_CHECKOUT_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full py-3.5 rounded-2xl font-bold text-xs text-white flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform active:scale-98 text-center mb-3"
+          className="w-full py-3.5 rounded-2xl font-bold text-xs text-white flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform active:scale-98 text-center mb-2"
           style={{ backgroundColor: C.coral }}
         >
-          <Sparkles size={15} /> Csatlakozom a Prémiumhoz (3 490 Ft) <ArrowRight size={14} />
+          <Sparkles size={15} /> Csatlakozom a Prémiumhoz (2 490 Ft / hó) <ArrowRight size={14} />
         </a>
 
-        <div className="flex items-center justify-center gap-1.5 text-[10px] text-stone-400 mb-4">
-          <ShieldCheck size={12} /> Biztonságos Stripe bankkártyás fizetés • Azonnali hozzáférés
+        <div className="flex items-center justify-center gap-1.5 text-[10px] text-stone-400 mb-5">
+          <ShieldCheck size={12} /> Bármikor 1 kattintással lemondható • Biztonságos Stripe fizetés
         </div>
 
-        {/* KÓD MEGADÁSA (ha már vásárolt vagy tesztel) */}
-        <form onSubmit={handleApplyCode} className="pt-3 border-t border-stone-100">
-          <p className="text-[11px] text-stone-500 mb-1.5 text-center">
-            Már vásároltál, vagy van feloldó kódod?
+        {/* VIP FORM */}
+        <form onSubmit={handleApplyCode} className="pt-3.5 border-t border-stone-100">
+          <p className="text-[11px] font-semibold text-stone-600 mb-1.5 flex items-center justify-center gap-1">
+            <Crown size={13} className="text-[#E07A5F]" /> Van VIP tagságod vagy kuponkódod?
           </p>
           <div className="flex gap-1.5">
             <input
               type="text"
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value)}
-              placeholder="Feloldó kód (pl. FITANYA)"
-              className="flex-1 text-xs px-3 py-2 bg-stone-50 border rounded-xl outline-none"
+              placeholder="VIP Kód (pl. FITANYA)"
+              className="flex-1 text-xs px-3 py-2 bg-stone-50 border rounded-xl outline-none uppercase font-mono"
               style={{ borderColor: promoError ? "#E07A5F" : C.border }}
             />
             <button
               type="submit"
-              className="px-3 py-2 bg-stone-800 text-white rounded-xl text-xs font-bold cursor-pointer"
+              disabled={loadingCode}
+              className="px-3.5 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors disabled:opacity-50 flex items-center gap-1"
             >
-              Aktiválom
+              {loadingCode ? <Loader2 size={12} className="animate-spin" /> : "Aktiválás"}
             </button>
           </div>
+
+          {promoSuccess && (
+            <p className="text-[11px] text-[#7C9885] font-bold mt-1.5 text-center animate-in fade-in">
+              ✓ VIP Hozzáférés sikeresen aktiválva!
+            </p>
+          )}
+
           {promoError && (
-            <p className="text-[10px] text-red-500 mt-1 text-center">
-              Érvénytelen kód. Kérlek ellenőrizd!
+            <p className="text-[10px] text-red-500 mt-1.5 text-center">
+              Érvénytelen kód. Ellenőrizd a betűket!
             </p>
           )}
         </form>
