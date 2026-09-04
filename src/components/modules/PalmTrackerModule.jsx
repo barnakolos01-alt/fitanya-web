@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Utensils,
   Search,
@@ -26,6 +26,16 @@ export default function PalmTrackerModule() {
   const [logged, setLogged] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
+  // 1. LOKÁLIS AI-GYORSÍTÓTÁR BETÖLTÉSE
+  const [customDishes, setCustomDishes] = useState(() => {
+    try {
+      const saved = localStorage.getItem("fa_custom_dishes");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [customDelta, setCustomDelta] = useState({
     protein: 1,
     veg: 1,
@@ -33,8 +43,18 @@ export default function PalmTrackerModule() {
     fat: 0,
   });
 
-  // Helyi keresés az 586 tételes katalógusban
-  const matchingDishes = searchDishes(query);
+  // 2. KERESÉS EGYESÍTÉSE: Saját korábbi AI ételek + 586-os alapkatalógus
+  const trimmedQuery = query.trim().toLowerCase();
+  const matchedCustom = trimmedQuery.length >= 2
+    ? customDishes.filter((d) =>
+        d.name.toLowerCase().includes(trimmedQuery) ||
+        d.keywords?.some((k) => k.toLowerCase().includes(trimmedQuery))
+      )
+    : [];
+
+  const catalogMatches = searchDishes(query);
+  // Összefésülés úgy, hogy a saját AI ételek kerüljenek legfelülre
+  const matchingDishes = [...matchedCustom, ...catalogMatches];
 
   const handleSelectDish = (dish) => {
     setSelectedDish(dish);
@@ -43,6 +63,7 @@ export default function PalmTrackerModule() {
     setQuery(dish.name);
   };
 
+  // 3. AI ELEMZÉS ÉS AUTOMATIKUS MENTÉS
   const handleAskClaude = async () => {
     if (!query || !query.trim()) return;
     setIsAiLoading(true);
@@ -56,6 +77,19 @@ export default function PalmTrackerModule() {
 
       const data = await res.json();
       if (data.success && data.dish) {
+        // Mentés a helyi memóriába (duplikációk kiszűrésével)
+        const updatedCustom = [
+          data.dish,
+          ...customDishes.filter((d) => d.name.toLowerCase() !== data.dish.name.toLowerCase()),
+        ].slice(0, 50); // Legutóbbi 50 egyedi étel megőrzése
+
+        setCustomDishes(updatedCustom);
+        try {
+          localStorage.setItem("fa_custom_dishes", JSON.stringify(updatedCustom));
+        } catch (e) {
+          console.error("LocalStorage mentési hiba:", e);
+        }
+
         handleSelectDish(data.dish);
       } else {
         alert("Nem sikerült elemezni az ételt. Kérlek írd le pontosabban az alapanyagokat!");
@@ -161,6 +195,7 @@ export default function PalmTrackerModule() {
         className="rounded-3xl p-4 sm:p-5 mb-3"
         style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}
       >
+        {/* SZEMÉLYESEBB CÍMKE */}
         <label
           className="text-xs font-medium mb-2 flex items-center gap-1.5"
           style={{ color: C.textSoft }}
@@ -175,39 +210,49 @@ export default function PalmTrackerModule() {
               setQuery(e.target.value);
               setSelectedDish(null);
             }}
-            placeholder="pl. Gulyás, Bolognai, Rántott sajt, Rakott kel..."
+            placeholder="pl. Bolognai, Zöldborsófőzelék, Rántott sajt..."
             className="w-full text-sm outline-none bg-stone-50/60 border rounded-xl px-3.5 py-3"
             style={{ color: C.textDark, borderColor: C.border }}
           />
         </div>
 
-        {/* AUTOMATIKUS TALÁLATI LISTA GÉPELÉSRE */}
+        {/* TALÁLATI LISTA */}
         {query.trim().length >= 2 && !selectedDish && (
           <div className="mb-3 space-y-1.5 animate-in fade-in">
             {matchingDishes.length > 0 ? (
               <>
-                {matchingDishes.map((dish) => (
-                  <button
-                    key={dish.id}
-                    type="button"
-                    onClick={() => handleSelectDish(dish)}
-                    className="w-full text-left p-3 rounded-2xl bg-[#FFFDFB] hover:bg-[#FDE8E1] border border-[#F0DCD4] flex items-center justify-between cursor-pointer transition-all shadow-xs group"
-                  >
-                    <div className="min-w-0 pr-2">
-                      <p className="text-xs font-bold text-stone-800 group-hover:text-[#E07A5F]">
-                        {dish.name}
-                      </p>
-                      <p className="text-[10px] text-stone-400 mt-0.5">
-                        🖐️ {dish.delta.protein}T | ✊ {dish.delta.veg}Ö | 🤲 {dish.delta.carb}M | 👍 {dish.delta.fat}H
-                      </p>
-                    </div>
-                    <span className="text-[11px] font-bold text-[#E07A5F] px-2.5 py-1 rounded-xl bg-white border border-[#F0DCD4] shrink-0">
-                      Kiválasztom
-                    </span>
-                  </button>
-                ))}
+                {matchingDishes.map((dish) => {
+                  const isCustom = String(dish.id).startsWith("ai_");
+                  return (
+                    <button
+                      key={dish.id}
+                      type="button"
+                      onClick={() => handleSelectDish(dish)}
+                      className="w-full text-left p-3 rounded-2xl bg-[#FFFDFB] hover:bg-[#FDE8E1] border border-[#F0DCD4] flex items-center justify-between cursor-pointer transition-all shadow-xs group"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs font-bold text-stone-800 group-hover:text-[#E07A5F] truncate">
+                            {dish.name}
+                          </p>
+                          {isCustom && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-[#FDE8E1] text-[#E07A5F] shrink-0">
+                              ✨ Saját AI
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-stone-400 mt-0.5">
+                          🖐️ {dish.delta.protein}T | ✊ {dish.delta.veg}Ö | 🤲 {dish.delta.carb}M | 👍 {dish.delta.fat}H
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-bold text-[#E07A5F] px-2.5 py-1 rounded-xl bg-white border border-[#F0DCD4] shrink-0">
+                        Kiválasztom
+                      </span>
+                    </button>
+                  );
+                })}
 
-                {/* HA VAN TALÁLAT, DE EGYIK SEM AZ IGAZI: */}
+                {/* AI GOMB A LISTA ALJÁN (ha van találat, de nem az övé) */}
                 <button
                   type="button"
                   onClick={handleAskClaude}
@@ -226,7 +271,7 @@ export default function PalmTrackerModule() {
                 </button>
               </>
             ) : (
-              /* 0 TALÁLAT ESETÉN MEGJELENŐ NAGY KÁRTYA */
+              /* 0 TALÁLAT ESETÉN */
               <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 text-center">
                 <p className="text-xs text-stone-600 mb-1 font-medium">
                   Nincs a recepttárban: <span className="font-bold text-stone-800">"{query}"</span>
@@ -270,7 +315,7 @@ export default function PalmTrackerModule() {
           </div>
         )}
 
-        {/* KIVÁLASZTOTT ÉTEL FITANYA ADAGOLÁSI KÁRTYÁJA */}
+        {/* KIVÁLASZTOTT ÉTEL TÁLALÁSI KÁRTYÁJA */}
         {selectedDish && (
           <div className="mt-3 rounded-2xl p-4 bg-[#FBF5F2] border border-[#F1DED6] animate-in fade-in">
             <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-[#F1DED6]">
@@ -406,7 +451,7 @@ export default function PalmTrackerModule() {
           </div>
         )}
 
-        {/* EGYÉNI TÁLALÁS (HA AZ ÉTEL NINCS A LISTÁBAN) */}
+        {/* KÉZI BEÁLLÍTÁS */}
         {isCustomMode && !selectedDish && (
           <div className="mt-3 rounded-2xl p-4 bg-stone-50 border border-stone-200 animate-in fade-in">
             <p className="text-xs font-bold text-stone-800 mb-1">
