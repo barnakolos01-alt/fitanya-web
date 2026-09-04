@@ -5,6 +5,7 @@ import FridgeRecipeCopilot from "./components/modules/FridgeRecipeCopilot";
 import PalmTrackerModule from "./components/modules/PalmTrackerModule";
 import HydrationEngine from "./components/modules/HydrationEngine";
 import SettingsModal from "./components/ui/SettingsModal";
+import PaywallModal from "./components/ui/PaywallModal";
 import { Smartphone, Download, Share, PlusSquare, X, Settings } from "lucide-react";
 
 const MODULES = [
@@ -67,7 +68,7 @@ function PwaContent() {
       setShowIosModal(true);
     } else {
       alert(
-        "A böngésződ menüjében (jobb felső sarok) válaszd az 'Alkalmazás telepítése' vagy 'Hozzáadás a kezdőképernyőhöz' lehetőséget!"
+        "A böngésződ menüjében válaszd az 'Alkalmazás telepítése' vagy 'Hozzáadás a kezdőképernyőhöz' lehetőséget!"
       );
     }
   };
@@ -84,10 +85,6 @@ function PwaContent() {
       className="max-w-md mx-auto min-h-screen pb-12 relative"
       style={{ backgroundColor: C.bg, fontFamily: sans }}
     >
-      <style>{`
-        @keyframes fitanya-fade { from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
-      `}</style>
-
       {/* TELEPÍTÉSI SÁV */}
       {!isStandalone && !bannerDismissed && (
         <aside
@@ -155,7 +152,7 @@ function PwaContent() {
         </div>
       </header>
 
-      {/* 3 OSZLOPOS MENÜVÁLASZTÓ (Tányérom | Hűtőmentő | Folyadék) */}
+      {/* MENÜVÁLASZTÓ */}
       <div className="px-5 grid grid-cols-3 gap-2 mb-6 select-none">
         {MODULES.map((m) => (
           <button
@@ -174,7 +171,7 @@ function PwaContent() {
         ))}
       </div>
 
-      {/* AKTÍV MODUL TARTALMA */}
+      {/* AKTÍV MODUL */}
       <main className="px-5">
         <Active />
       </main>
@@ -184,6 +181,9 @@ function PwaContent() {
         isOpen={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
       />
+
+      {/* FIZETÉSI MODAL (PAYWALL) */}
+      <PaywallModal />
 
       {/* iOS SAFARI TELEPÍTÉSI SEGÉD MODAL */}
       {showIosModal && (
