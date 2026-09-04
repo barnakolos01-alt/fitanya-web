@@ -104,7 +104,7 @@ export default function HydrationEngine() {
   }, []);
 
   useEffect(() => {
-    if ("Notification" in window) {
+    if (typeof window !== "undefined" && "Notification" in window) {
       setNotificationStatus(Notification.permission);
     } else {
       setNotificationStatus("unsupported");
@@ -112,8 +112,8 @@ export default function HydrationEngine() {
   }, []);
 
   const handleRequestNotification = async () => {
-    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
-      alert("A push értesítésekhez szükséges a PWA kezdőképernyőre tűzése.");
+    if (!("Notification" in window)) {
+      alert("A böngésződ sajnos nem támogatja az értesítéseket. Mentsd a PWA-t a kezdőképernyőre!");
       return;
     }
 
@@ -123,25 +123,55 @@ export default function HydrationEngine() {
       setNotificationStatus(permission);
 
       if (permission === "granted") {
-        const registration = await navigator.serviceWorker.ready;
-        let subscription = await registration.pushManager.getSubscription();
-
-        if (subscription) {
-          await fetch("/api/subscribe", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ subscription }),
-          });
-        }
-
-        registration.showNotification("FitAnya Folyadék 💧", {
-          body: "Szuper! Az emlékeztetők aktívak. Időben szólni fogunk inni!",
+        const title = "FitAnya Folyadék 💧";
+        const options = {
+          body: "Szuper! Az emlékeztető aktív, szólni fogunk, hogy igyál!",
           icon: "/icons/icon-192.png",
           badge: "/icons/icon-192.png",
-        });
+        };
+
+        // Megerősítő értesítés (Service Worker vagy fallback)
+        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+          const registration = await navigator.serviceWorker.getRegistration();
+          if (registration) {
+            registration.showNotification(title, options);
+          } else {
+            new Notification(title, options);
+          }
+        } else {
+          new Notification(title, options);
+        }
+
+        // Időzített értesítés (2 óránként = 7200000 ms)
+        setInterval(() => {
+          const reminderText = "Itt az idő egy pohár vízre! Felfrissít és segít az energiaszintedben. 💧";
+          if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.getRegistration().then((reg) => {
+              if (reg) {
+                reg.showNotification("FitAnya Vízidő 💧", {
+                  body: reminderText,
+                  icon: "/icons/icon-192.png",
+                });
+              } else {
+                new Notification("FitAnya Vízidő 💧", {
+                  body: reminderText,
+                  icon: "/icons/icon-192.png",
+                });
+              }
+            });
+          } else {
+            new Notification("FitAnya Vízidő 💧", {
+              body: reminderText,
+              icon: "/icons/icon-192.png",
+            });
+          }
+        }, 7200000);
+      } else if (permission === "denied") {
+        alert("Az értesítések le vannak tiltva a böngésződben. A címsor melletti beállítások ikonra kattintva tudod engedélyezni!");
       }
     } catch (err) {
-      console.warn(err);
+      console.error("Értesítés hiba:", err);
+      alert("Nem sikerült bekapcsolni az értesítéseket. Ellenőrizd a böngésző engedélyeit!");
     } finally {
       setSubscribing(false);
     }
@@ -293,27 +323,39 @@ export default function HydrationEngine() {
       </div>
 
       {/* ÉRTESÍTÉSEK */}
-      {notificationStatus !== "unsupported" && notificationStatus !== "granted" && (
+      {notificationStatus !== "unsupported" && (
         <div className="mb-3 p-3.5 rounded-2xl bg-[#FFF9F5] border border-[#F0DCD4] flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center shrink-0">
-              <Bell size={16} />
+              {notificationStatus === "granted" ? <BellRing size={16} /> : <Bell size={16} />}
             </div>
             <div>
-              <p className="text-xs font-bold text-[#2D3748]">Kérsz ivás emlékeztetőt?</p>
-              <p className="text-[11px] text-[#6B5A52]">Szólunk, ha elfelejtenél inni.</p>
+              <p className="text-xs font-bold text-[#2D3748]">
+                {notificationStatus === "granted" ? "Vízivás emlékeztető aktív" : "Kérsz ivás emlékeztetőt?"}
+              </p>
+              <p className="text-[11px] text-[#6B5A52]">
+                {notificationStatus === "granted" ? "2 óránként szólunk, hogy hidratálj." : "Szólunk, ha elfelejtenél inni."}
+              </p>
             </div>
           </div>
 
           <button
             type="button"
-            disabled={subscribing}
+            disabled={subscribing || notificationStatus === "granted"}
             onClick={handleRequestNotification}
-            className="text-[11px] font-bold px-3 py-1.5 rounded-xl text-white cursor-pointer shrink-0 shadow-sm flex items-center gap-1"
-            style={{ backgroundColor: C.coral }}
+            className={`text-[11px] font-bold px-3 py-1.5 rounded-xl cursor-pointer shrink-0 shadow-sm flex items-center gap-1 transition-all ${
+              notificationStatus === "granted"
+                ? "bg-[#7C9885] text-white cursor-default"
+                : "text-white"
+            }`}
+            style={{ backgroundColor: notificationStatus === "granted" ? "#7C9885" : C.coral }}
           >
-            {subscribing ? <Loader2 size={12} className="animate-spin" /> : null}
-            <span>Bekapcsolás</span>
+            {subscribing ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : notificationStatus === "granted" ? (
+              <CheckCircle2 size={12} />
+            ) : null}
+            <span>{notificationStatus === "granted" ? "Bekapcsolva" : "Bekapcsolás"}</span>
           </button>
         </div>
       )}
