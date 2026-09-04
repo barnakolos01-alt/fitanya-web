@@ -95,19 +95,35 @@ Mai maradék kerete: ${remaining?.protein ?? 1} tenyér fehérje, ${remaining?.v
           );
         }
 
-        const systemPrompt = `Te a "FitAnya Módszer" szigorú táplálkozási szakértő AI motorja vagy.
-A feladatod egy egyedi étel azonnali elemzése a FitAnya Tenyér-szabály szerint.
+        const systemPrompt = `Te a "FitAnya Módszer" közvetlen, gasztronómiailag és élettanilag felkészült táplálkozási szakértő AI motorja vagy.
+Feladatod a beírt étel Tenyér-szabály szerinti azonnali elemzése és egy 1-2 mondatos, gyakorlatias tálalási tipp adása édesanyáknak.
 
-Visszatérési formátum: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vissza felvezető szöveg vagy lezárás nélkül, szigorúan ebben a formátumban:
+SZIGORÚ GASZTRO-SZABÁLYOK A TIPPEKHEZ ("tip"):
+1. Édességek, desszertek, édes tészták (pl. túrógombóc, palacsinta, gofri, torták, tejberizs):
+   - SOHA NE AJÁNLJ HOZZÁ HÚST VAGY ZÖLDSÉGSALÁTÁT! Ez abszurd kombináció.
+   - Vércukor-stabilizáló fehérjének KIZÁRÓLAG natúr görög joghurtot, zsírszegény túrót, skyr-t vagy egy adag fehérjeturmixot javasolj.
+   - Adagnak javasolj 1 zárt maroknyi mennyiséget élvezetből fogyasztva, bűntudat nélkül.
+2. Bő olajban sült ételek (pl. rántott hús, rántott sajt, sült krumpli, lángos):
+   - Javasold az air fryerben vagy sütőpapíron, sütőben sütést, amivel azonnal megspórol 1 teljes hüvelykujjnyi rejtett sütőolajat.
+3. Nehéz magyaros, zsíros ételek (pl. pörkölt, babgulyás, csülök, rakott zöldségek):
+   - Rostnak savanyúságot (kovászos uborka, csalamádé, almapaprika) vagy gyors friss kevert salátát ajánlj.
+   - Hívd fel a figyelmét, hogy a tányér alján maradt zsíros szaftot hagyja ott, ne tunkolja ki kenyérrel.
+4. Könnyű / száraz ételek (pl. grillezett csirkemell, natúr köretek):
+   - Javasolj 1 teáskanál minőségi olívaolajat, avokádót vagy magvakat, hogy meglegyen az esszenciális zsír.
+5. Hangnem:
+   - Mindig közvetlen, bűntudatmentes, életszerű és segítőkész ("anya az anyának").
+
+VISSZATÉRÉSI FORMÁTUM:
+KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vissza, semmilyen felvezető szöveg, lezárás vagy markdown kódblokk (\`\`\`json) NÉLKÜL:
 {
-  "name": "Étel neve tisztítva",
+  "name": "Étel pontos, tisztított neve",
   "delta": {
-    "protein": 0 és 2 közötti szám (Tenyérnyi fehérje),
-    "veg": 0 és 2 közötti szám (Ökölnyi zöldség/rost),
-    "carb": 0 és 2.5 közötti szám (Maréknyi szénhidrát),
-    "fat": 0 és 2 közötti szám (Hüvelykujjnyi minőségi zsír)
+    "protein": 0 és 2 közötti szám 0.5-ös léptékekben (Tenyérnyi fehérje),
+    "veg": 0 és 2 közötti szám 0.5-ös léptékekben (Ökölnyi zöldség/rost),
+    "carb": 0 és 2.5 közötti szám 0.5-ös léptékekben (Maréknyi szénhidrát),
+    "fat": 0 és 2 közötti szám 0.5-ös léptékekben (Hüvelykujjnyi minőségi zsír)
   },
-  "tip": "1-2 mondatos, közvetlen, gyakorlatias FitAnya tálalási tanács az édesanyának az adagoláshoz."
+  "tip": "1-2 mondatos, közvetlen FitAnya tálalási tanács a fenti szabályok betartásával."
 }`;
 
         const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
@@ -121,7 +137,7 @@ Visszatérési formátum: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vi
             model: "claude-haiku-4-5-20251001",
             max_tokens: 300,
             system: systemPrompt,
-            messages: [{ role: "user", content: `Elemezd ezt az ételt: "${dishName.trim()}"` }],
+            messages: [{ role: "user", content: `Elemezd ezt az ételt a FitAnya Tenyér-szabály szerint: "${dishName.trim()}"` }],
           }),
         });
 
@@ -136,7 +152,10 @@ Visszatérési formátum: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vi
 
         const data = await anthropicResponse.json();
         const rawText = data.content?.[0]?.text?.trim() || "{}";
-        const cleanJson = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+        
+        // Golyóálló JSON kinyerés (levágja a felesleges markdown és szöveges sallangot)
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        const cleanJson = jsonMatch ? jsonMatch[0] : rawText;
         const parsed = JSON.parse(cleanJson);
 
         return new Response(
@@ -146,8 +165,13 @@ Visszatérési formátum: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vi
               id: "ai_" + Date.now(),
               name: parsed.name || dishName.trim(),
               keywords: [dishName.toLowerCase()],
-              delta: parsed.delta,
-              tip: parsed.tip,
+              delta: {
+                protein: Number(parsed.delta?.protein ?? 0),
+                veg: Number(parsed.delta?.veg ?? 0),
+                carb: Number(parsed.delta?.carb ?? 0),
+                fat: Number(parsed.delta?.fat ?? 0),
+              },
+              tip: parsed.tip || "Figyelj a tenyérnyi arányokra és fogyaszd bűntudat nélkül!",
             },
           }),
           { status: 200, headers: { "Content-Type": "application/json" } }
