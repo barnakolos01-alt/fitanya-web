@@ -416,9 +416,9 @@ function FaqItem({ q, a, open, onToggle }) {
   );
 }
 
-function OrderSuccessPanel({ orderForm, selectedPkg, onRestart }) {
+function OrderSuccessPanel({ email, selectedPkg, onRestart }) {
   const pkgData = PACKAGE_CONTENTS[selectedPkg] || PACKAGE_CONTENTS.premium;
-  const buyerEmail = orderForm.email || "a megadott e-mail címedre";
+  const buyerEmail = email || "a megadott e-mail címedre";
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -503,11 +503,7 @@ function OrderSuccessPanel({ orderForm, selectedPkg, onRestart }) {
   );
 }
 
-export default function FitAnyaLandingRoot() {
-  return <FitAnyaLanding />;
-}
-
-function FitAnyaLanding() {
+export default function LandingPage() {
   const [step, setStep] = useState(() => {
     try {
       const savedStep = localStorage.getItem("fa_step");
@@ -557,20 +553,6 @@ function FitAnyaLanding() {
 
   const [selectedPkg, setSelectedPkg] = useState("premium");
   const [faqOpen, setFaqOpen] = useState(0);
-
-  const [orderForm, setOrderForm] = useState(() => {
-    const defaultOrder = { name: "", email: "" };
-    try {
-      const saved = localStorage.getItem("fa_order_form");
-      if (saved) return JSON.parse(saved);
-      const savedEmail = localStorage.getItem("fa_email");
-      return savedEmail ? { name: "", email: savedEmail } : defaultOrder;
-    } catch {
-      return defaultOrder;
-    }
-  });
-
-  const [orderError, setOrderError] = useState("");
   const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
@@ -593,12 +575,6 @@ function FitAnyaLanding() {
       localStorage.setItem("fa_form", JSON.stringify(form));
     } catch (e) {}
   }, [step, wizardDone, form]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("fa_order_form", JSON.stringify(orderForm));
-    } catch (e) {}
-  }, [orderForm]);
 
   useEffect(() => {
     if (wizardRef.current && step > 0 && !wizardDone) {
@@ -717,7 +693,7 @@ function FitAnyaLanding() {
         window.fbq("track", "InitiateCheckout", { value: price, currency: "HUF" });
       }
 
-      const rawEmail = (gateEmail || orderForm.email || "").trim();
+      const rawEmail = (gateEmail || "").trim();
       const checkoutUrl = rawEmail 
         ? `${baseUrl}?prefilled_email=${encodeURIComponent(rawEmail)}` 
         : baseUrl;
@@ -733,13 +709,11 @@ function FitAnyaLanding() {
       localStorage.removeItem("fa_step");
       localStorage.removeItem("fa_done");
       localStorage.removeItem("fa_form");
-      localStorage.removeItem("fa_order_form");
       localStorage.removeItem("fa_email");
       localStorage.removeItem("fa_gate_sent");
     } catch (e) {}
 
     setOrderSubmitted(false);
-    setOrderError("");
     setWizardDone(false);
     setShowEmailGate(false);
     setIsAnalyzing(false);
@@ -751,7 +725,7 @@ function FitAnyaLanding() {
       age: "", height: "", weight: "", goalWeight: "",
       nursing: "", activity: "", sleep: "", snacking: "", kitchen: "", focus: ""
     });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.location.href = "/";
   };
 
   const stepLabels = [
@@ -805,7 +779,6 @@ function FitAnyaLanding() {
     setIsSendingGate(true);
 
     const cleanEmail = gateEmail.trim();
-    setOrderForm((prev) => ({ ...prev, email: cleanEmail }));
 
     try {
       localStorage.setItem("fa_email", cleanEmail);
@@ -1123,9 +1096,15 @@ function FitAnyaLanding() {
         </div>
       </section>
 
-      {/* 7 LÉPÉSES AUDIT WIZARD + E-MAIL KAPU */}
-      <section ref={wizardRef} className="max-w-2xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
-        {!wizardDone ? (
+      {/* SIKERES RENDELÉS VAGY 7 LÉPÉSES AUDIT WIZARD */}
+      <section ref={orderSubmitted ? orderRef : wizardRef} className="max-w-2xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+        {orderSubmitted ? (
+          <OrderSuccessPanel
+            email={gateEmail}
+            selectedPkg={selectedPkg}
+            onRestart={handleRestart}
+          />
+        ) : !wizardDone ? (
           <div className="rounded-3xl p-6 sm:p-10" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4", boxShadow: "0 20px 48px -28px rgba(45,55,72,0.25)" }}>
             
             {!isAnalyzing && !showEmailGate && (
@@ -1480,7 +1459,7 @@ function FitAnyaLanding() {
                 <span>A Heti Mester-Bevásárlólistát &amp; Dobozolási Kisokost elküldtük az e-mail címedre!</span>
               </div>
               <p className="text-xs text-[#526356] mt-1">
-                📬 Címzett: <strong>{orderForm.email || gateEmail}</strong> — <span className="font-semibold text-[#8A4B4F]">Ne lépj ki a leveleződbe</span>, a számaid és a kedvezményes tálalási programod kizárólag ezen az oldalon érhető el!
+                📬 Címzett: <strong>{gateEmail}</strong> — <span className="font-semibold text-[#8A4B4F]">Ne lépj ki a leveleződbe</span>, a számaid és a kedvezményes tálalási programod kizárólag ezen az oldalon érhető el!
               </p>
             </div>
 
