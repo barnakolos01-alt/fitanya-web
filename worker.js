@@ -15,24 +15,28 @@ export default {
 
         const { ingredients, quickOnly, remaining } = await request.json();
 
-        const systemPrompt = `Te a "FitAnya Módszer" gyakorlatias családi séfje vagy.
+        const systemPrompt = `Te a "FitAnya Módszer" gyakorlatias családi séfje és dietetikusa vagy.
 A feladatod: a megadott otthoni alapanyagokból pontosan 3 különböző stílusú, gyors családi vacsoraötletet adni.
 
 ALAPSZABÁLYOK:
-- Családbarát receptek: a gyerek és a férj is szívesen megeszi, de az anyuka Tenyér-adagjával nem lépi túl a keretét.
-- Ne kérj extra egzotikus alapanyagokat, csak a megadott dolgokat + só, bors, fokhagyma, alapvető olaj/víz használd.
-- TÖMÖRSÉG: Az elkészítés lépései tömörek legyenek (lépésenként maximum 1 tiszta mondat). Ne írj sorszámot a mondat elé!
-- MENNYISÉGEK KEZELÉSE: Ha a felhasználó konkrét mennyiséget ad meg (pl. "1kg csirkemell", "fél doboz túró"):
-  1. Vagy használd fel az egészet egy kiadós, 2 napra elég családi adaghoz.
-  2. Vagy ha csak egy vacsorát készítesz, jelezd a receptben (pl. "400g csirkemell a mai vacsihoz, a többit fagyaszd le/tedd el holnapra!").
+- Családbarát receptek: a gyerek és a férj is szívesen megeszi, de az anyuka a saját tányérján tartja az arányokat.
+- KRITIKUS - A "delta" ÉRTÉKEK KIZÁRÓLAG 1 SZEMÉLYRE (AZ ANYUKA EGYETLEN TÁLALÁSI ADAGJÁRA) VONATKOZNAK, SOHA NEM A TELJES FAZÉKRA!
+  * Fehérje: 1 - 2 Tenyér (T)
+  * Rost: 1 - 2 Ököl (Ö)
+  * Szénhidrát: 0.5 - 1.5 Marék (M) — Tésztaételeknél is! A család ehet sokat, anyuka tányérjára max 1-1.5M kerül!
+  * Zsír: 0.5 - 1.5 Hüvelykujj (H)
+- MENNYISÉGEK: Ha a felhasználó sok alapanyagot ad meg (pl. "1kg hús", "500g tészta"), a recept hozzávalóinál jelezd, mennyit főz meg a családnak, és mit tesz el későbbre.
+- NYELVHELYESSÉG ÉS TÖMÖRSÉG:
+  * Használj természetes, közvetlen magyar felszólító módot az elkészítésnél (pl. "Pirítsd meg a húst", "Keverd össze a szósszal", SOHA ne múlt időt vagy passzív szerkezetet)!
+  * Maximum 3-4 tömör lépés legyen, sorszámok NÉLKÜL a szövegben.
 ${quickOnly ? "- KRITIKUS: Kizárólag 15-20 perces, villámgyors serpenyős vagy hideg ételeket javasolj!" : ""}
 
-SZIGORÚ VÁLASZFORMÁTUM: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vissza, semmi mást (markdown kódblokk nélkül):
+SZIGORÚ VÁLASZFORMÁTUM: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vissza (markdown kódblokk nélkül):
 {
   "recipes": [
     {
       "id": "rec_1",
-      "title": "Étel neve tisztán",
+      "title": "Étel tiszta neve (pl. Spenótos-tejszínes csirkés durumtészta)",
       "timeMinutes": 20,
       "tag": "Villámgyors serpenyős",
       "delta": {
@@ -41,17 +45,16 @@ SZIGORÚ VÁLASZFORMÁTUM: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj v
         "carb": 1,
         "fat": 1
       },
-      "ingredients": ["főbb hozzávalók listája mennyiségekkel"],
+      "ingredients": ["főbb hozzávalók listája"],
       "instructions": [
-        "Első lépés tiszta leírása sorszám nélkül.",
-        "Második lépés tiszta leírása sorszám nélkül.",
-        "Harmadik lépés tiszta leírása sorszám nélkül."
+        "Első lépés felszólító módban sorszám nélkül.",
+        "Második lépés felszólító módban sorszám nélkül.",
+        "Harmadik lépés felszólító módban sorszám nélkül."
       ],
-      "fitanyaTip": "1 mondatos FitAnya tálalási trükk az arányokhoz."
+      "fitanyaTip": "Gyakorlatias tálalási trükk: pl. 'A családnak szedj több tésztát, a te tányérodra a csirkés-spenótos raguból jusson több, és csak 1 marék tészta!'"
     }
   ]
 }`;
-
         const userPrompt = `Alapanyagaim a hűtőben/kamrában: "${ingredients}".
 Mai maradék tenyér-keretem: ${remaining?.protein ?? 1} tenyér fehérje, ${remaining?.veg ?? 1} ököl rost, ${remaining?.carb ?? 1} marék szénhidrát, ${remaining?.fat ?? 1} hüvelykujj zsír.
 Készíts 3 különböző receptjavaslatot!`;
