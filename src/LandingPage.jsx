@@ -38,6 +38,7 @@ import {
   HelpCircle,
   Info,
   Bookmark,
+  Smartphone,
 } from "lucide-react";
 
 // AZ ÉLES GOOGLE APPS SCRIPT WEBHOOK URL:
@@ -176,6 +177,7 @@ const PACKAGE_CONTENTS = {
       "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)",
       "4 Hetes FitAnya Szokásformáló Rendszer (PDF)",
       "Heti Mester-Bevásárlólista & 15 Perces Dobozolási Kisokos (PDF)",
+      "Bónusz: FitAnya Zsebedző Prémium Hozzáférés",
     ],
   },
   vip: {
@@ -189,6 +191,7 @@ const PACKAGE_CONTENTS = {
       "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)",
       "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)",
       "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)",
+      "Bónusz: Teljes FitAnya Zsebedző Prémium Éves Hozzáférés",
     ],
   },
 };
@@ -363,7 +366,7 @@ function PricingCard({ tier, isRecommended, onCheckout, isCheckingOut }) {
         {tier.price.toLocaleString("hu-HU")} Ft
       </p>
       <p className="text-xs font-medium mt-1" style={{ color: "#8A7268" }}>
-        Egyszeri fizetés • Nincs havidíj
+        Egyszeri fizetés • Nincs rejtett díj
       </p>
 
       <ul className="mt-5 space-y-3 flex-1">
@@ -375,7 +378,6 @@ function PricingCard({ tier, isRecommended, onCheckout, isCheckingOut }) {
         ))}
       </ul>
 
-      {/* 1-KATTINTÁSOS STRIPE GOMB */}
       <button
         disabled={isCheckingOut}
         onClick={() => onCheckout(tier.id)}
@@ -433,7 +435,7 @@ function OrderSuccessPanel({ email, selectedPkg, onRestart }) {
           Sikeres megrendelés! 🎉
         </h3>
         <p className="text-sm max-w-md mx-auto leading-relaxed" style={{ color: "#6B5A52" }}>
-          A fizetés sikeresen megtörtént. A(z) <strong style={{ color: "#E07A5F" }}>{pkgData.title}</strong> letöltési linkjeit elküldtük az e-mail fiókodba:
+          A fizetés sikeresen megtörtént. A(z) <strong style={{ color: "#E07A5F" }}>{pkgData.title}</strong> letöltési linkjeit és hozzáférését elküldtük az e-mail fiókodba:
         </p>
         <div className="mt-3 inline-block px-4 py-2 rounded-xl bg-white/80 border border-[#F0DCD4] font-semibold text-sm text-[#2D3748]">
           📬 {buyerEmail}
@@ -455,7 +457,7 @@ function OrderSuccessPanel({ email, selectedPkg, onRestart }) {
           </li>
           <li className="flex items-start gap-2.5">
             <span className="font-bold text-[#E07A5F]">3.</span>
-            <span>Kattints a levélben lévő letöltési linkekre, és mentsd le a PDF-eket a telefonodra vagy számítógépedre.</span>
+            <span>Kattints a levélben lévő letöltési linkekre, és használd a mellékelt applikáció aktivációs kódot.</span>
           </li>
         </ol>
       </div>
@@ -486,7 +488,7 @@ function OrderSuccessPanel({ email, selectedPkg, onRestart }) {
           <Mail size={20} style={{ color: "#7C9885" }} className="mb-2" />
           <p className="font-display font-semibold text-sm mb-1 text-[#2D3748]">Ügyfélszolgálat</p>
           <p className="text-xs text-[#8A7268] leading-relaxed">
-            Nem érkezett meg a levél? Írj nekünk: <strong>ugyfelszolgalat@fitanyamodszer.hu</strong>
+            Kérdésed van? Írj nekünk: <strong>ugyfelszolgalat@fitanyamodszer.hu</strong>
           </p>
         </div>
       </div>
@@ -503,7 +505,7 @@ function OrderSuccessPanel({ email, selectedPkg, onRestart }) {
   );
 }
 
-export default function LandingPage() {
+export default function LandingPage({ onOpenApp }) {
   const [step, setStep] = useState(() => {
     try {
       const savedStep = localStorage.getItem("fa_step");
@@ -568,7 +570,6 @@ export default function LandingPage() {
 
   const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  // BFCache / Visszalépés érzékelése: Töltési állapot azonnali feloldása
   useEffect(() => {
     const handlePageShow = () => {
       setIsCheckingOut(false);
@@ -605,7 +606,6 @@ export default function LandingPage() {
     }
   }, [wizardDone]);
 
-  // Sikeres fizetés érzékelése URL paraméterből (Stripe Redirect)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("status") === "success") {
@@ -692,7 +692,6 @@ export default function LandingPage() {
     }, 220);
   };
 
-  // 1-KATTINTÁSOS STRIPE CHECKOUT FUNKCIÓ (AUTOMATIKUS VISSZAÁLLÍTÁSSAL)
   const handleDirectCheckout = (pkgId) => {
     const targetPkg = pkgId || selectedPkg;
     const baseUrl = STRIPE_PAYMENT_LINKS[targetPkg];
@@ -713,7 +712,6 @@ export default function LandingPage() {
         ? `${baseUrl}?prefilled_email=${encodeURIComponent(rawEmail)}` 
         : baseUrl;
 
-      // Biztonsági reset, ha 4 mp után még ezen az oldalon tartózkodik a felhasználó
       setTimeout(() => {
         setIsCheckingOut(false);
       }, 4000);
@@ -721,6 +719,23 @@ export default function LandingPage() {
       setTimeout(() => {
         window.location.href = checkoutUrl;
       }, 150);
+    }
+  };
+
+  // KÖZVETLEN APP-ÁTLÉPÉS A TESZT EREDMÉNYEIVEL
+  const handleOpenApp = () => {
+    try {
+      localStorage.setItem("fa_form", JSON.stringify(form));
+      localStorage.setItem("fa_done", "true");
+      localStorage.setItem("fa_opened_app", "true");
+    } catch (e) {}
+
+    if (typeof onOpenApp === "function") {
+      onOpenApp();
+    } else if (window.location.pathname !== "/app") {
+      window.location.href = "/app";
+    } else {
+      window.location.search = "?view=app";
     }
   };
 
@@ -837,7 +852,7 @@ export default function LandingPage() {
       price: 4990,
       features: [
         "FitAnya Alapprogram (30 Családi Gyorsrecept & Tenyér-szabály PDF)",
-        "Interaktív Tenyér-Makró Kalkulátor hozzáférés",
+        "Interaktív Tenyér-Makró Útmutató",
       ],
     },
     {
@@ -850,6 +865,7 @@ export default function LandingPage() {
         "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)",
         "4 Hetes FitAnya Szokásformáló Rendszer (PDF)",
         "Heti Mester-Bevásárlólista & 15 Perces Dobozolási Kisokos (PDF)",
+        "Ajándék: FitAnya Zsebedző Prémium App Hozzáférés",
       ],
     },
     {
@@ -862,6 +878,7 @@ export default function LandingPage() {
         "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)",
         "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)",
         "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)",
+        "Ajándék: FitAnya Zsebedző VIP App Hozzáférés",
       ],
     },
   ];
@@ -887,6 +904,10 @@ export default function LandingPage() {
     {
       q: "Szoptatás alatt is biztonságosan alkalmazható?",
       a: "Igen! A kalkulátorunk automatikusan hozzáad +250–450 kcal élettani kalóriapótlékot szoptató anyukáknak, így a fogyás kizárólag a zsírraktárakból történik, a tejtermelés és a tápanyagellátás teljes biztonsága mellett.",
+    },
+    {
+      q: "Mi ez az új FitAnya Zsebedző applikáció?",
+      a: "Egy modern PWA applikáció, amit nem kell letöltened semmilyen áruházból: közvetlenül a telefonod böngészőjéből megnyitható, és kiteheted a kezdőképernyődre. Tartalmazza a Claude AI Hűtőmentőt (15 perces receptek abból, ami otthon van), a tányérkövetőt és az ivás emlékeztetőt.",
     },
     {
       q: "Mi történik a fizetés után? Hogyan kapom meg az anyagokat?",
@@ -931,7 +952,7 @@ export default function LandingPage() {
           </h1>
           <p className="text-base sm:text-lg max-w-2xl" style={{ color: "#4A5568" }}>
             Tudományos alapú, családbarát rendszer kifejezetten időhiánnyal küzdő nőknek és édesanyáknak.
-            Töltsd ki az élettani auditot, és nézd meg a személyre szabott Tenyér-Makró tervedet!
+            Töltsd ki az élettani auditot, és aktiváld az ingyenes Zsebedző applikációt!
           </p>
           
           <button 
@@ -943,7 +964,7 @@ export default function LandingPage() {
 
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm select-none" style={{ color: "#6B5A52" }}>
             <span className="inline-flex items-center gap-1.5"><ShieldCheck size={16} style={{ color: "#7C9885" }} /> Tudományosan igazolt élettani alapok</span>
-            <span className="inline-flex items-center gap-1.5"><Heart size={16} style={{ color: "#7C9885" }} /> 100% Pénzvisszafizetési Garancia</span>
+            <span className="inline-flex items-center gap-1.5"><Smartphone size={16} style={{ color: "#7C9885" }} /> Ingyenes PWA Zsebedző App</span>
             <span className="inline-flex items-center gap-1.5"><Zap size={16} style={{ color: "#E07A5F" }} /> Külön főzés és koplalás nélkül</span>
           </div>
         </div>
@@ -1472,14 +1493,14 @@ export default function LandingPage() {
               <p className="font-display italic text-xl sm:text-2xl mt-1" style={{ color: "#E07A5F" }}>{results.profile}</p>
             </div>
 
-            {/* JAVÍTOTT ANTI-BOUNCE BANNER (NEM ÜLDI EL A VEVŐT A GMAILBE) */}
+            {/* ANTI-BOUNCE BANNER */}
             <div className="rounded-2xl p-4 sm:p-5 mb-6 text-center shadow-xs" style={{ background: "#F0F5F1", border: "1.5px solid #7C9885" }}>
               <div className="flex items-center justify-center gap-2 text-sm font-bold text-[#2D3748]">
                 <CheckCircle2 size={18} style={{ color: "#7C9885" }} />
                 <span>A Heti Mester-Bevásárlólistát &amp; Dobozolási Kisokost elküldtük az e-mail címedre!</span>
               </div>
               <p className="text-xs text-[#526356] mt-1">
-                📬 Címzett: <strong>{gateEmail}</strong> — <span className="font-semibold text-[#8A4B4F]">Ne lépj ki a leveleződbe</span>, a számaid és a kedvezményes tálalási programod kizárólag ezen az oldalon érhető el!
+                📬 Címzett: <strong>{gateEmail}</strong> — <span className="font-semibold text-[#8A4B4F]">Ne lépj ki a leveleződbe</span>, a személyre szabott Zsebedződ azonnal elérhető lentebb!
               </p>
             </div>
 
@@ -1585,39 +1606,68 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* NEKED AJÁNLOTT CSOMAG (AZONNALI STRIPE INDÍTÁSSAL) */}
-            <div className="rounded-3xl p-6 sm:p-8 mb-6 border-2 bg-gradient-to-br from-[#FFF9F5] to-[#FDE8E1] border-[#E07A5F] relative">
+            {/* FŐ CTA: AZ ÚJ FITANYA ZSEBEDZŐ APP INGYENES AKTIVÁLÁSA */}
+            <div className="rounded-3xl p-6 sm:p-8 mb-6 border-2 bg-gradient-to-br from-[#FFFDFB] via-[#FFF5F2] to-[#FDE8E1] border-[#E07A5F] shadow-lg relative overflow-hidden">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display px-3.5 py-1 rounded-full bg-[#E07A5F] text-white mb-3 select-none">
-                <Sparkles size={13} /> Algoritmus által kijelölt csomag
+                <Sparkles size={13} /> Újdonság • Digitális Zsebedző
               </span>
-              <h3 className="font-display font-semibold text-xl text-[#2D3748] mb-2">
-                Miért a <strong className="text-[#E07A5F]">{mainPackages.find(p => p.id === results.recommendedPkg)?.name}</strong> a tökéletes választás számodra?
+              <h3 className="font-display font-semibold text-xl sm:text-2xl text-[#2D3748] mb-2">
+                A tenyér-számaidat betöltöttük az applikációba! 📲
               </h3>
               <p className="text-sm text-[#4A5568] leading-relaxed mb-5">
-                {results.pkgReason}
+                Nem kell fejben számolnod: a <strong>FitAnya Zsebedző PWA</strong>-ban 1 koppintással követheted a napi arányokat, a beépített <strong>Claude AI Hűtőmentő</strong> 15 perces vacsorát tervez a maradékaidból, és az ivás emlékeztető segít az energiaszinted megőrzésében.
               </p>
-              
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-6 text-xs text-[#2D3748] font-medium select-none">
+                <div className="flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-[#F0DCD4]">
+                  <CheckCircle2 size={16} className="text-[#7C9885] shrink-0" />
+                  <span>0 Ft Belépés · Nem kell letölteni</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-[#F0DCD4]">
+                  <CheckCircle2 size={16} className="text-[#7C9885] shrink-0" />
+                  <span>AI Hűtőmentő Receptgenerátor</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-[#F0DCD4]">
+                  <CheckCircle2 size={16} className="text-[#7C9885] shrink-0" />
+                  <span>Személyre szabott tányérkövető</span>
+                </div>
+              </div>
+
               <button
-                disabled={isCheckingOut}
-                onClick={() => handleDirectCheckout(results.recommendedPkg)}
-                className="cta-btn font-display font-semibold text-sm sm:text-base text-white px-7 py-4 rounded-xl inline-flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-60"
+                type="button"
+                onClick={handleOpenApp}
+                className="cta-btn w-full font-display font-bold text-base text-white px-7 py-4 rounded-xl inline-flex items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] transition-transform"
               >
-                {isCheckingOut ? (
-                  <><Loader2 size={18} className="animate-spin" /> Átirányítás a biztonságos fizetéshez...</>
-                ) : (
-                  <>Kérem a nekem ajánlott csomagot ({mainPackages.find(p => p.id === results.recommendedPkg)?.price.toLocaleString("hu-HU")} Ft) <ArrowRight size={18} /></>
-                )}
+                <span>Megnyitom a FitAnya Zsebedzőt (Kipróbálom 0 Ft-ért)</span>
+                <ArrowRight size={18} />
               </button>
 
-              <div className="mt-4 pt-4 border-t border-[#F0DCD4]/80 flex flex-col sm:flex-row items-center justify-between gap-2">
-                <span className="text-xs text-[#6B5A52] text-center sm:text-left">
-                  Inkább a többi csomagot és a Sulikezdő akciót néznéd meg?
+              <p className="text-[11px] text-center text-[#8A7268] mt-3">
+                Közvetlenül a böngésződben fut · Egyetlen gombbal a kezdőképernyőre tehető
+              </p>
+            </div>
+
+            {/* MÁSODLAGOS AJÁNLÓ: NYOMTATHATÓ KÉZIKÖNYVEK ÉS RECEPTEK */}
+            <div className="rounded-3xl p-6 sm:p-7 mb-6 border bg-[#FFFDFB] border-[#F0DCD4]">
+              <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                <h4 className="font-display font-semibold text-lg text-[#2D3748]">
+                  Szeretnéd a nyomtatható családi recepteket &amp; kisokosokat is?
+                </h4>
+                <span className="text-xs font-bold text-[#E07A5F]">PDF Csomagok</span>
+              </div>
+              <p className="text-xs sm:text-sm text-[#4A5568] leading-relaxed mb-4">
+                Ha szereted a hűtőre kitett heti menütervezőket, a bolti polctérképet és a kész családi receptfüzetet, válaszd ki a célodnak megfelelő kézikönyv-csomagot:
+              </p>
+              
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[#F0DCD4]">
+                <span className="text-xs text-[#6B5A52]">
+                  Neked ajánlott: <strong>{mainPackages.find(p => p.id === results.recommendedPkg)?.name}</strong> ({mainPackages.find(p => p.id === results.recommendedPkg)?.price.toLocaleString("hu-HU")} Ft)
                 </span>
                 <button
                   onClick={() => scrollTo(pricingRef)}
-                  className="text-xs font-bold text-[#E07A5F] hover:underline inline-flex items-center gap-1 cursor-pointer shrink-0"
+                  className="w-full sm:w-auto text-xs font-bold px-4 py-2.5 rounded-xl border border-[#E07A5F] text-[#E07A5F] hover:bg-[#FDE8E1] transition-colors cursor-pointer inline-flex items-center justify-center gap-1 shrink-0"
                 >
-                  Ugrás a csomagokhoz <ArrowRight size={13} />
+                  Csomagok &amp; Sulikezdő akció megtekintése <ArrowRight size={13} />
                 </button>
               </div>
             </div>
@@ -1900,15 +1950,19 @@ export default function LandingPage() {
             </span>
             <span className="text-[11px] font-semibold text-[#E07A5F]">
               {wizardDone 
-                ? `${allPackages.find(p => p.id === selectedPkg)?.name} • ${(allPackages.find(p => p.id === selectedPkg)?.price ?? 7990).toLocaleString("hu-HU")} Ft`
+                ? "Digitális Zsebedző applikáció"
                 : "3 490 Ft-tól • 14 nap garancia"}
             </span>
           </div>
           <button
-            onClick={() => scrollTo(pricingRef)}
+            onClick={wizardDone ? handleOpenApp : () => scrollTo(wizardRef)}
             className="cta-btn font-display font-bold text-sm text-white px-5 py-3 rounded-xl inline-flex items-center gap-1.5 shadow-md cursor-pointer shrink-0"
           >
-            Csomagok <ArrowRight size={16} />
+            {wizardDone ? (
+              <>Belépés az Appba <ArrowRight size={16} /></>
+            ) : (
+              <>Teszt kitöltése <ArrowRight size={16} /></>
+            )}
           </button>
         </div>
       )}
