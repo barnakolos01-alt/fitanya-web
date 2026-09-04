@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Utensils,
   Search,
@@ -19,14 +19,15 @@ import TrackerHeader from "../ui/TrackerHeader";
 import { searchDishes } from "../../data/dishesCatalog";
 
 export default function PalmTrackerModule() {
-  const { log, logPortion, removeEntry, remaining } = useFitAnya();
+  // 1. BEHÍVJUK A KVÓTAKEZELŐT (consumeAiCredit)
+  const { log, logPortion, removeEntry, remaining, consumeAiCredit } = useFitAnya();
   const [query, setQuery] = useState("");
   const [selectedDish, setSelectedDish] = useState(null);
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [logged, setLogged] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  // 1. LOKÁLIS AI-GYORSÍTÓTÁR BETÖLTÉSE
+  // LOKÁLIS GYORSÍTÓTÁR (0 token, ha már egyszer elemezte)
   const [customDishes, setCustomDishes] = useState(() => {
     try {
       const saved = localStorage.getItem("fa_custom_dishes");
@@ -43,7 +44,7 @@ export default function PalmTrackerModule() {
     fat: 0,
   });
 
-  // 2. KERESÉS EGYESÍTÉSE: Saját korábbi AI ételek + 586-os alapkatalógus
+  // KERESÉS: Saját korábbi AI ételek + 586 alapadatbázis (ez mindig 100% ingyenes marad!)
   const trimmedQuery = query.trim().toLowerCase();
   const matchedCustom = trimmedQuery.length >= 2
     ? customDishes.filter((d) =>
@@ -53,7 +54,6 @@ export default function PalmTrackerModule() {
     : [];
 
   const catalogMatches = searchDishes(query);
-  // Összefésülés úgy, hogy a saját AI ételek kerüljenek legfelülre
   const matchingDishes = [...matchedCustom, ...catalogMatches];
 
   const handleSelectDish = (dish) => {
@@ -63,9 +63,15 @@ export default function PalmTrackerModule() {
     setQuery(dish.name);
   };
 
-  // 3. AI ELEMZÉS ÉS AUTOMATIKUS MENTÉS
+  // 2. AI ÉTELELEMZÉS PAYWALL VÉDELEMMEL
   const handleAskClaude = async () => {
     if (!query || !query.trim()) return;
+
+    // Ha elfogyott a 3 ingyenes AI kóstoló, felugrik a Paywall és megáll a hívás
+    if (!consumeAiCredit()) {
+      return;
+    }
+
     setIsAiLoading(true);
 
     try {
@@ -77,11 +83,10 @@ export default function PalmTrackerModule() {
 
       const data = await res.json();
       if (data.success && data.dish) {
-        // Mentés a helyi memóriába (duplikációk kiszűrésével)
         const updatedCustom = [
           data.dish,
           ...customDishes.filter((d) => d.name.toLowerCase() !== data.dish.name.toLowerCase()),
-        ].slice(0, 50); // Legutóbbi 50 egyedi étel megőrzése
+        ].slice(0, 50);
 
         setCustomDishes(updatedCustom);
         try {
@@ -92,7 +97,7 @@ export default function PalmTrackerModule() {
 
         handleSelectDish(data.dish);
       } else {
-        alert("Nem sikerült elemezni az ételt. Kérlek írd le pontosabban az alapanyagokat!");
+        alert("Nem sikerült elemezni az ételt. Kérlek írd le pontosabban!");
       }
     } catch (e) {
       console.error("AI hiba:", e);
@@ -195,7 +200,6 @@ export default function PalmTrackerModule() {
         className="rounded-3xl p-4 sm:p-5 mb-3"
         style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}
       >
-        {/* SZEMÉLYESEBB CÍMKE */}
         <label
           className="text-xs font-medium mb-2 flex items-center gap-1.5"
           style={{ color: C.textSoft }}
@@ -252,7 +256,6 @@ export default function PalmTrackerModule() {
                   );
                 })}
 
-                {/* AI GOMB A LISTA ALJÁN (ha van találat, de nem az övé) */}
                 <button
                   type="button"
                   onClick={handleAskClaude}
@@ -271,7 +274,6 @@ export default function PalmTrackerModule() {
                 </button>
               </>
             ) : (
-              /* 0 TALÁLAT ESETÉN */
               <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 text-center">
                 <p className="text-xs text-stone-600 mb-1 font-medium">
                   Nincs a recepttárban: <span className="font-bold text-stone-800">"{query}"</span>
@@ -315,7 +317,7 @@ export default function PalmTrackerModule() {
           </div>
         )}
 
-        {/* KIVÁLASZTOTT ÉTEL TÁLALÁSI KÁRTYÁJA */}
+        {/* KIVÁLASZTOTT ÉTEL ADAGOLÓ KÁRTYA */}
         {selectedDish && (
           <div className="mt-3 rounded-2xl p-4 bg-[#FBF5F2] border border-[#F1DED6] animate-in fade-in">
             <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-[#F1DED6]">
@@ -329,12 +331,11 @@ export default function PalmTrackerModule() {
               💡 {selectedDish.tip}
             </p>
 
-            {/* ZSÍRKERET TÚLLÉPÉS FIGYELMEZTETÉS */}
             {remaining.fat <= 0 && selectedDish.delta.fat > 0 && (
               <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl mb-3 flex items-start gap-2 text-[11px] text-amber-900 font-medium">
                 <Info size={14} className="text-amber-600 shrink-0 mt-0.5" />
                 <span>
-                  Figyelem: A mai zsírkereted már betelt! A szaftot és olajos levet hagyd a tányéron, ne tunkold ki!
+                  Figyelem: A mai zsírkereted már betelt! A szaftot és olajos levet hagyd a tányéron!
                 </span>
               </div>
             )}
@@ -344,7 +345,6 @@ export default function PalmTrackerModule() {
                 Javasolt levonás a tányérodról:
               </p>
 
-              {/* 4 SZÁMLÁLÓ GOMB */}
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#F1DED6] text-xs">
                   <span>🖐️ Fehérje:</span>
@@ -458,7 +458,7 @@ export default function PalmTrackerModule() {
               Egyéni tálalás a Tenyér-szabály szerint:
             </p>
             <p className="text-[11px] text-stone-500 mb-3">
-              Állítsd be, miből mennyit szedtél a tányérodra a fazékból:
+              Állítsd be, miből mennyit szedtél a tányérodra:
             </p>
 
             <div className="grid grid-cols-2 gap-2 mb-3">
@@ -517,7 +517,7 @@ export default function PalmTrackerModule() {
         )}
       </div>
 
-      {/* MIT EHETEK MÉG MA? (INTERAKTÍV TÁNYÉRÉPÍTŐ) */}
+      {/* MIT EHETEK MÉG MA? */}
       <InteractivePlateBuilder />
     </div>
   );
