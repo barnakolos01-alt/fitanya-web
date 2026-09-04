@@ -185,27 +185,48 @@ export default function PalmTrackerModule() {
         {query.trim().length >= 2 && !selectedDish && (
           <div className="mb-3 space-y-1.5 animate-in fade-in">
             {matchingDishes.length > 0 ? (
-              matchingDishes.map((dish) => (
+              <>
+                {matchingDishes.map((dish) => (
+                  <button
+                    key={dish.id}
+                    type="button"
+                    onClick={() => handleSelectDish(dish)}
+                    className="w-full text-left p-3 rounded-2xl bg-[#FFFDFB] hover:bg-[#FDE8E1] border border-[#F0DCD4] flex items-center justify-between cursor-pointer transition-all shadow-xs group"
+                  >
+                    <div className="min-w-0 pr-2">
+                      <p className="text-xs font-bold text-stone-800 group-hover:text-[#E07A5F]">
+                        {dish.name}
+                      </p>
+                      <p className="text-[10px] text-stone-400 mt-0.5">
+                        🖐️ {dish.delta.protein}T | ✊ {dish.delta.veg}Ö | 🤲 {dish.delta.carb}M | 👍 {dish.delta.fat}H
+                      </p>
+                    </div>
+                    <span className="text-[11px] font-bold text-[#E07A5F] px-2.5 py-1 rounded-xl bg-white border border-[#F0DCD4] shrink-0">
+                      Kiválasztom
+                    </span>
+                  </button>
+                ))}
+
+                {/* HA VAN TALÁLAT, DE EGYIK SEM AZ IGAZI: */}
                 <button
-                  key={dish.id}
                   type="button"
-                  onClick={() => handleSelectDish(dish)}
-                  className="w-full text-left p-3 rounded-2xl bg-[#FFFDFB] hover:bg-[#FDE8E1] border border-[#F0DCD4] flex items-center justify-between cursor-pointer transition-all shadow-xs group"
+                  onClick={handleAskClaude}
+                  disabled={isAiLoading}
+                  className="w-full mt-2 p-2.5 rounded-2xl bg-[#FFF9F5] hover:bg-[#FDE8E1] border border-dashed border-[#E07A5F] text-[#C3634C] text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs"
                 >
-                  <div className="min-w-0 pr-2">
-                    <p className="text-xs font-bold text-stone-800 group-hover:text-[#E07A5F]">
-                      {dish.name}
-                    </p>
-                    <p className="text-[10px] text-stone-400 mt-0.5">
-                      🖐️ {dish.delta.protein}T | ✊ {dish.delta.veg}Ö | 🤲 {dish.delta.carb}M | 👍 {dish.delta.fat}H
-                    </p>
-                  </div>
-                  <span className="text-[11px] font-bold text-[#E07A5F] px-2.5 py-1 rounded-xl bg-white border border-[#F0DCD4] shrink-0">
-                    Kiválasztom
-                  </span>
+                  {isAiLoading ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin text-[#E07A5F]" /> Elemzés folyamatban...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={13} className="text-[#E07A5F]" /> Nem ezeket keresed? Kiszámolom AI-val: <strong>"{query}"</strong>
+                    </>
+                  )}
                 </button>
-              ))
+              </>
             ) : (
+              /* 0 TALÁLAT ESETÉN MEGJELENŐ NAGY KÁRTYA */
               <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 text-center">
                 <p className="text-xs text-stone-600 mb-1 font-medium">
                   Nincs a recepttárban: <span className="font-bold text-stone-800">"{query}"</span>
