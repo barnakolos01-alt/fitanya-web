@@ -165,7 +165,7 @@ export default function PalmTrackerModule() {
           className="text-xs font-medium mb-2 flex items-center gap-1.5"
           style={{ color: C.textSoft }}
         >
-          <Search size={13} /> Mit eszik ma a család? (Kezdd el gépelni a nevét)
+          <Search size={13} /> Mit ettél? (Kezdd el gépelni az étel nevét)
         </label>
 
         <div className="relative mb-2">
