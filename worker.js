@@ -16,12 +16,16 @@ export default {
         const { ingredients, quickOnly, remaining } = await request.json();
 
         const systemPrompt = `Te a "FitAnya Módszer" gyakorlatias családi séfje vagy.
-A feladatod: a megadott otthoni alapanyagokból 3 különböző stílusú, gyors családi vacsoraötletet adni.
-Alapszabályok:
-- Családbarát receptek: a gyerek és a férj is megeszi, de az anyuka Tenyér-adagjával nem lépi túl a keretét.
+A feladatod: a megadott otthoni alapanyagokból pontosan 3 különböző stílusú, gyors családi vacsoraötletet adni.
+
+ALAPSZABÁLYOK:
+- Családbarát receptek: a gyerek és a férj is szívesen megeszi, de az anyuka Tenyér-adagjával nem lépi túl a keretét.
 - Ne kérj extra egzotikus alapanyagokat, csak a megadott dolgokat + só, bors, fokhagyma, alapvető olaj/víz használd.
-- TÖMÖRSÉG: Az elkészítés maximum 3 rövid, lényegretörő mondat legyen!
-${quickOnly ? "- KRITIKUS: Kizárólag 15-20 perces, villámgyors serpenyős vagy sütőmentes ételeket javasolj!" : ""}
+- TÖMÖRSÉG: Az elkészítés lépései tömörek legyenek (lépésenként maximum 1 tiszta mondat). Ne írj sorszámot a mondat elé!
+- MENNYISÉGEK KEZELÉSE: Ha a felhasználó konkrét mennyiséget ad meg (pl. "1kg csirkemell", "fél doboz túró"):
+  1. Vagy használd fel az egészet egy kiadós, 2 napra elég családi adaghoz.
+  2. Vagy ha csak egy vacsorát készítesz, jelezd a receptben (pl. "400g csirkemell a mai vacsihoz, a többit fagyaszd le/tedd el holnapra!").
+${quickOnly ? "- KRITIKUS: Kizárólag 15-20 perces, villámgyors serpenyős vagy hideg ételeket javasolj!" : ""}
 
 SZIGORÚ VÁLASZFORMÁTUM: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vissza, semmi mást (markdown kódblokk nélkül):
 {
@@ -37,18 +41,18 @@ SZIGORÚ VÁLASZFORMÁTUM: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj v
         "carb": 1,
         "fat": 1
       },
-      "ingredients": ["főbb hozzávalók listája"],
+      "ingredients": ["főbb hozzávalók listája mennyiségekkel"],
       "instructions": [
-        "1. tömör mondat az előkészítésről.",
-        "2. tömör mondat a sütésről/főzésről.",
-        "3. tálalási mozdulat."
+        "Első lépés tiszta leírása sorszám nélkül.",
+        "Második lépés tiszta leírása sorszám nélkül.",
+        "Harmadik lépés tiszta leírása sorszám nélkül."
       ],
       "fitanyaTip": "1 mondatos FitAnya tálalási trükk az arányokhoz."
     }
   ]
 }`;
 
-        const userPrompt = `Alapanyagaim: "${ingredients}".
+        const userPrompt = `Alapanyagaim a hűtőben/kamrában: "${ingredients}".
 Mai maradék tenyér-keretem: ${remaining?.protein ?? 1} tenyér fehérje, ${remaining?.veg ?? 1} ököl rost, ${remaining?.carb ?? 1} marék szénhidrát, ${remaining?.fat ?? 1} hüvelykujj zsír.
 Készíts 3 különböző receptjavaslatot!`;
 
