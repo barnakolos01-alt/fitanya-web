@@ -8,7 +8,7 @@ export function FitAnyaProvider({ children }) {
   const [activeTab, setActiveTab] = useState("tracker");
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
 
-  // 1. PRÉMIUM STÁTUSZ KEZELÉSE (LocalStorage + Stripe URL paraméter figyelés)
+  // 1. PRÉMIUM STÁTUSZ KEZELÉSE (LocalStorage + Biztonságos Stripe URL figyelés)
   const [isPremium, setIsPremium] = useState(() => {
     try {
       return localStorage.getItem("fa_is_premium") === "true";
@@ -17,14 +17,14 @@ export function FitAnyaProvider({ children }) {
     }
   });
 
-  // Stripe visszatérés figyelése (?access=unlocked vagy ?session_id)
+  // Stripe visszatérés figyelése a titkosított kulccsal (?access=fa_sec_k98m2q7x vagy ?session_id)
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      if (params.get("access") === "unlocked" || params.get("session_id")) {
+      if (params.get("access") === "fa_sec_k98m2q7x" || params.get("session_id")) {
         localStorage.setItem("fa_is_premium", "true");
         setIsPremium(true);
-        // URL tisztítása újratöltés nélkül
+        // URL azonnali tisztítása a címsorból (hogy ne lehessen továbbküldeni)
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     } catch (e) {
@@ -205,7 +205,6 @@ export function FitAnyaProvider({ children }) {
     hydrationTargetMl,
     activeTab,
     setActiveTab,
-    // Paywall & AI kvóta mezők:
     isPremium,
     aiUsageCount,
     consumeAiCredit,
