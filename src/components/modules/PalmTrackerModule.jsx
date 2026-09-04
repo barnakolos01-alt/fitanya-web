@@ -144,9 +144,16 @@ export default function PalmTrackerModule() {
       />
 
       <WeeklySummaryCard />
+      
+      {/* 1. TENYÉR SZÁMLÁLÓK (4 DOBOZ) */}
       <TrackerHeader />
 
-      {/* MAI NAPLÓZOTT TÉTELEK */}
+      {/* 2. ÚJ HELY: MIT EHETEK MÉG MA? (KÖZVETLENÜL A SZÁMOK ALATT) */}
+      <div className="mb-3 mt-1">
+        <InteractivePlateBuilder />
+      </div>
+
+      {/* 3. MAI NAPLÓZOTT TÉTELEK */}
       {log.entries && log.entries.length > 0 && (
         <div
           className="rounded-3xl p-4 mb-4"
@@ -195,7 +202,7 @@ export default function PalmTrackerModule() {
         </div>
       )}
 
-      {/* CSALÁDI FAZÉK KERESŐ KÁRTYA */}
+      {/* 4. CSALÁDI FAZÉK KERESŐ KÁRTYA */}
       <div
         className="rounded-3xl p-4 sm:p-5 mb-3"
         style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}
@@ -516,9 +523,6 @@ export default function PalmTrackerModule() {
           </p>
         )}
       </div>
-
-      {/* MIT EHETEK MÉG MA? */}
-      <InteractivePlateBuilder />
     </div>
   );
 }
