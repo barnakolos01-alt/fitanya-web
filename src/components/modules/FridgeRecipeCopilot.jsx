@@ -14,7 +14,8 @@ import { useFitAnya } from "../../context/FitAnyaContext";
 import SectionHeader from "../ui/SectionHeader";
 
 export default function FridgeRecipeCopilot() {
-  const { remaining, logPortion, setActiveTab } = useFitAnya();
+  // 1. BEHÍVJUK A KVÓTAKEZELŐT
+  const { remaining, logPortion, setActiveTab, consumeAiCredit } = useFitAnya();
   const [ingredients, setIngredients] = useState("");
   const [quickOnly, setQuickOnly] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,6 +26,11 @@ export default function FridgeRecipeCopilot() {
   const handleGenerate = async (e) => {
     e.preventDefault();
     if (!ingredients.trim()) return;
+
+    // 2. PAYWALL KAPU: Ha elfogyott a 3 ingyenes és nem prémium, megnyitja a fizetési ablakot és megáll
+    if (!consumeAiCredit()) {
+      return;
+    }
 
     setLoading(true);
     setRecipes([]);
@@ -193,7 +199,7 @@ export default function FridgeRecipeCopilot() {
                       ))}
                     </ul>
 
-                    {/* ELKÉSZÍTÉS (DUPLA SZÁMOZÁS LEVÁGÁSÁVAL) */}
+                    {/* ELKÉSZÍTÉS */}
                     <p className="font-bold text-stone-800 mb-1">Elkészítés tömören:</p>
                     <ol className="list-decimal list-inside text-stone-600 space-y-1 mb-4 leading-relaxed">
                       {recipe.instructions.map((ins, i) => (
