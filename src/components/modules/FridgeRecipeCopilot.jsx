@@ -4,7 +4,6 @@ import {
   Sparkles,
   Clock,
   ArrowRight,
-  Flame,
   CheckCircle2,
   Loader2,
   ChevronDown,
@@ -43,17 +42,15 @@ export default function FridgeRecipeCopilot() {
       });
 
       const data = await res.json();
-      if (data.success && data.recipes) {
+      if (data.success && data.recipes && data.recipes.length > 0) {
         setRecipes(data.recipes);
-        if (data.recipes.length > 0) {
-          setExpandedId(data.recipes[0].id);
-        }
+        setExpandedId(data.recipes[0].id);
       } else {
-        alert("Nem sikerült recepteket generálni. Írj be kicsit több alapanyagot!");
+        alert("Hiba: " + (data.error || "Nem sikerült feldolgozni a recepteket. Próbáld újra egy pillanat múlva!"));
       }
     } catch (err) {
-      console.error(err);
-      alert("Hálózati hiba a receptek készítése közben.");
+      console.error("Recept hívási hiba:", err);
+      alert("Hálózati hiba történt a receptek generálása közben.");
     } finally {
       setLoading(false);
     }
@@ -86,11 +83,11 @@ export default function FridgeRecipeCopilot() {
             Mi van most otthon a hűtőben és a kamrában?
           </label>
           <textarea
-            rows={2}
+            rows={3}
             value={ingredients}
             onChange={(e) => setIngredients(e.target.value)}
-            placeholder="pl. csirkemell, tejföl, mirelit zöldbab, rizs, tojás..."
-            className="w-full text-sm outline-none bg-stone-50/60 border rounded-2xl p-3 mb-3 resize-none"
+            placeholder="pl. 1kg csirkemell, spenót, tejszín, cheddar sajt, rizs..."
+            className="w-full text-sm outline-none bg-stone-50/60 border rounded-2xl p-3.5 mb-3 resize-none"
             style={{ color: C.textDark, borderColor: C.border }}
           />
 
@@ -102,7 +99,7 @@ export default function FridgeRecipeCopilot() {
                 onChange={(e) => setQuickOnly(e.target.checked)}
                 className="w-4 h-4 rounded text-[#E07A5F] focus:ring-0 cursor-pointer"
               />
-              <span>⚡ Csak gyors recept (max. 15-20 perc)</span>
+              <span>⚡ Csak villámgyors recept (max. 15-20 perc)</span>
             </label>
           </div>
 
@@ -114,7 +111,7 @@ export default function FridgeRecipeCopilot() {
           >
             {loading ? (
               <>
-                <Loader2 size={15} className="animate-spin" /> Ötletelés a hűtődből...
+                <Loader2 size={15} className="animate-spin" /> Főzési opciók tervezése...
               </>
             ) : (
               <>
@@ -145,7 +142,7 @@ export default function FridgeRecipeCopilot() {
                   borderColor: isExpanded ? C.coral : C.border,
                 }}
               >
-                {/* FEJLÉC SÁV */}
+                {/* FEJLÉC */}
                 <div
                   onClick={() => setExpandedId(isExpanded ? null : recipe.id)}
                   className="p-4 flex items-center justify-between cursor-pointer hover:bg-stone-50/50"
@@ -172,15 +169,15 @@ export default function FridgeRecipeCopilot() {
                   </div>
                 </div>
 
-                {/* LENYÍLÓ RECEPT RÉSZLETEK */}
+                {/* LENYÍLÓ RECEPT TARTALOM */}
                 {isExpanded && (
                   <div className="px-4 pb-4 pt-1 border-t border-stone-100 animate-in fade-in text-xs">
-                    {/* TENYÉR ADAG */}
-                    <div className="p-2 rounded-xl bg-stone-50 border border-stone-200 mb-3 flex items-center justify-around font-medium text-stone-600 text-[11px]">
-                      <span>🖐️ {recipe.delta.protein}T</span>
-                      <span>✊ {recipe.delta.veg}Ö</span>
-                      <span>🤲 {recipe.delta.carb}M</span>
-                      <span>👍 {recipe.delta.fat}H</span>
+                    {/* TENYÉR METRIKA */}
+                    <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 mb-3 flex items-center justify-around font-medium text-stone-700 text-[11px]">
+                      <span>🖐️ {recipe.delta.protein}T Fehérje</span>
+                      <span>✊ {recipe.delta.veg}Ö Rost</span>
+                      <span>🤲 {recipe.delta.carb}M Szénhidrát</span>
+                      <span>👍 {recipe.delta.fat}H Zsír</span>
                     </div>
 
                     {/* FITANYA TÁLALÁSI HACK */}
@@ -197,14 +194,14 @@ export default function FridgeRecipeCopilot() {
                     </ul>
 
                     {/* ELKÉSZÍTÉS */}
-                    <p className="font-bold text-stone-800 mb-1">Elkészítés 3 lépésben:</p>
+                    <p className="font-bold text-stone-800 mb-1">Elkészítés tömören:</p>
                     <ol className="list-decimal list-inside text-stone-600 space-y-1 mb-4 leading-relaxed">
                       {recipe.instructions.map((ins, i) => (
                         <li key={i}>{ins}</li>
                       ))}
                     </ol>
 
-                    {/* AKCIÓGOMB */}
+                    {/* KÖZVETLEN ÁTKÖTÉS A TÁNYÉRRA */}
                     <button
                       type="button"
                       disabled={isLogged}
@@ -214,7 +211,7 @@ export default function FridgeRecipeCopilot() {
                     >
                       {isLogged ? (
                         <>
-                          <CheckCircle2 size={14} /> Áttéve a Tányérodra! Váltás...
+                          <CheckCircle2 size={14} /> Áttéve a Tányérodra! Átirányítás...
                         </>
                       ) : (
                         <>
