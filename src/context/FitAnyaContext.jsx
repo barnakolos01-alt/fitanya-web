@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { calculateProfileFromForm, getTodayKey } from "../utils/calculateProfile";
 
-// ---------------------------------------------------------------------------
-// Megosztott állapot — FitAnyaContext valódi perzisztenciával & Napi Naplóval
-// ---------------------------------------------------------------------------
 const FitAnyaContext = createContext(null);
 
 export function FitAnyaProvider({ children }) {
-  // 1. Profil betöltése a landing page auditjából (fa_form)
+  // Aktív PWA fül vezérlése modulok között (alapértelmezett: tányér)
+  const [activeTab, setActiveTab] = useState("tracker");
+
+  // 1. Profil betöltése
   const [profile, setProfile] = useState(() => {
     try {
       const savedForm = localStorage.getItem("fa_form");
@@ -20,7 +20,7 @@ export function FitAnyaProvider({ children }) {
     return calculateProfileFromForm(null);
   });
 
-  // 2. Napi napló betöltése a mai nap kulcsából (napváltáskor automatikusan nullázódik)
+  // 2. Napi napló (napváltáskor nullázódik)
   const [log, setLog] = useState(() => {
     const defaultLog = {
       protein: 0,
@@ -28,7 +28,8 @@ export function FitAnyaProvider({ children }) {
       carb: 0,
       fat: 0,
       waterMl: 0,
-      entries: [], // Tételes napi előzmények listája
+      sugarGrams: 0,
+      entries: [],
     };
     try {
       const todayKey = getTodayKey();
@@ -47,15 +48,12 @@ export function FitAnyaProvider({ children }) {
     return defaultLog;
   });
 
-  // Log mentése valahányszor változik
   useEffect(() => {
     try {
-      const todayKey = getTodayKey();
-      localStorage.setItem(todayKey, JSON.stringify(log));
+      localStorage.setItem(getTodayKey(), JSON.stringify(log));
     } catch (e) {}
   }, [log]);
 
-  // Profil frissítése a Beállításokból
   const updateProfile = (formData) => {
     try {
       localStorage.setItem("fa_form", JSON.stringify(formData));
@@ -65,7 +63,7 @@ export function FitAnyaProvider({ children }) {
     }
   };
 
-  // Étkezés / adag rögzítése (opcionális névvel és időbélyeggel)
+  // Ételadag rögzítése
   const logPortion = (delta, label = null) => {
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -92,7 +90,7 @@ export function FitAnyaProvider({ children }) {
     }));
   };
 
-  // Egyetlen tétel visszavonása a naplóból
+  // Egy tétel visszavonása
   const removeEntry = (entryId) => {
     setLog((prev) => {
       const target = (prev.entries || []).find((e) => e.id === entryId);
@@ -112,8 +110,24 @@ export function FitAnyaProvider({ children }) {
   const addWater = (ml) =>
     setLog((prev) => ({ ...prev, waterMl: Math.max(0, prev.waterMl + ml) }));
 
+  // Intelligens italnaplózás (víz + rejtett makrók + cukorsokk számláló)
+  const logDrink = ({ name, ml, delta = {}, sugarGrams = 0 }) => {
+    if (ml !== 0) {
+      addWater(ml);
+    }
+    if (delta.carb || delta.fat || delta.protein || delta.veg) {
+      logPortion(delta, `Folyadék: ${name}`);
+    }
+    if (sugarGrams > 0) {
+      setLog((prev) => ({
+        ...prev,
+        sugarGrams: (prev.sugarGrams || 0) + sugarGrams,
+      }));
+    }
+  };
+
   const resetDay = () => {
-    const fresh = { protein: 0, veg: 0, carb: 0, fat: 0, waterMl: 0, entries: [] };
+    const fresh = { protein: 0, veg: 0, carb: 0, fat: 0, waterMl: 0, sugarGrams: 0, entries: [] };
     setLog(fresh);
     try {
       localStorage.setItem(getTodayKey(), JSON.stringify(fresh));
@@ -138,11 +152,14 @@ export function FitAnyaProvider({ children }) {
     updateProfile,
     log,
     logPortion,
+    logDrink,
     removeEntry,
     addWater,
     resetDay,
     remaining,
     hydrationTargetMl,
+    activeTab,
+    setActiveTab,
   };
 
   return <FitAnyaContext.Provider value={value}>{children}</FitAnyaContext.Provider>;
