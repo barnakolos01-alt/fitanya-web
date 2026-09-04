@@ -39,6 +39,7 @@ import {
   Info,
   Bookmark,
   Smartphone,
+  Gift,
 } from "lucide-react";
 
 // AZ ÉLES GOOGLE APPS SCRIPT WEBHOOK URL:
@@ -109,20 +110,20 @@ function computeAudit(data) {
   // Intelligens csomagajánló logika
   let profile = "Családi Egyensúly Profil";
   let recommendedPkg = "premium";
-  let pkgReason = "A te helyzetedben a legfontosabb a rohanó hétköznapok rendszerezése és a rejtett nassolási szivárgások azonnali megállítása.";
+  let pkgReason = "A te helyzetedben a legfontosabb a rohanó hétköznapok rendszerezése és a rejtett nassolási szivárgások azonnali megállítása a 4 hetes szokásrendszerrel.";
 
   if (data.focus === "bor_puffadas" || data.focus === "torna_has") {
     profile = "Regenerációs & Bőrfeszesítő Profil";
     recommendedPkg = "vip";
-    pkgReason = "A szöveti regeneráció, a feszesebb hasfal és az SOS puffadásmentesítés miatt a 7 az 1-ben VIP csomag nyújtja a legteljesebb megoldást.";
+    pkgReason = "A szöveti regeneráció, a feszesebb hasfal és az SOS puffadásmentesítés miatt a 7 az 1-ben VIP csomag nyújtja a legteljesebb megoldást 3 hónapos app hozzáféréssel.";
   } else if (data.snacking === "folyamatos" || data.kitchen === "15perc") {
     profile = "Időhiányos Gyors-Megoldás Profil";
     recommendedPkg = "premium";
-    pkgReason = "A 15 perces receptek, a bolti nassolási kalauz és a mester-bevásárlólista garantálja, hogy dupla főzés nélkül is elérd a célodat.";
+    pkgReason = "A 15 perces receptek, a bolti nassolási kalauz és a 2 hónap Zsebedző app hozzáférés garantálja, hogy dupla főzés nélkül is elérd a célodat.";
   } else if (weightToLose <= 4 && data.sleep === "atalussza") {
     profile = "Könnyed Finomhangoló Profil";
     recommendedPkg = "basic";
-    pkgReason = "Mivel kis súlyfeleslegről van szó és stabil az alvásod, az alap tenyér-szabály és a 30 gyorsrecept tökéletesen elegendő számodra.";
+    pkgReason = "Mivel kis súlyfeleslegről van szó és stabil az alvásod, az alap tenyér-szabály és az 1 hónapos app támogatás tökéletesen elegendő számodra.";
   }
 
   return {
@@ -159,15 +160,16 @@ const PACKAGE_CONTENTS = {
     title: "Sulikezdő Túlélőcsomag (Szeptemberi Különkiadás)",
     items: [
       "2 az 1-ben Uzsidoboz & Anya-Tízórai Rendszer (PDF)",
-      "15 Maszatmentes Recept & Bolti Polctérkép",
-      "Reggeli Kávépuffer & Maradéktakarítás-Stop Kisokos",
+      "15 Maszatmentes Recept & Bolti Polctérkép (PDF)",
+      "Reggeli Kávépuffer & Maradéktakarítás-Stop Kisokos (PDF)",
     ],
   },
   basic: {
     title: "FitAnya Alapprogram",
     items: [
       "FitAnya Alapprogram – 30 Családi Gyorsrecept & Tenyér-szabály (PDF)",
-      "Interaktív Tenyér-Makró Útmutató",
+      "Interaktív Tenyér-Makró Útmutató (PDF)",
+      "🎁 AJÁNDÉK: 1 hónap FitAnya Zsebedző Prémium App hozzáférés (2 490 Ft értékben)",
     ],
   },
   premium: {
@@ -177,7 +179,7 @@ const PACKAGE_CONTENTS = {
       "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)",
       "4 Hetes FitAnya Szokásformáló Rendszer (PDF)",
       "Heti Mester-Bevásárlólista & 15 Perces Dobozolási Kisokos (PDF)",
-      "Bónusz: FitAnya Zsebedző Prémium Hozzáférés",
+      "🎁 AJÁNDÉK: 2 hónap FitAnya Zsebedző Prémium App hozzáférés (4 980 Ft értékben)",
     ],
   },
   vip: {
@@ -191,7 +193,7 @@ const PACKAGE_CONTENTS = {
       "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)",
       "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)",
       "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)",
-      "Bónusz: Teljes FitAnya Zsebedző Prémium Éves Hozzáférés",
+      "🎁 AJÁNDÉK: 3 hónap Teljes VIP Zsebedző App hozzáférés (7 470 Ft értékben)",
     ],
   },
 };
@@ -366,16 +368,23 @@ function PricingCard({ tier, isRecommended, onCheckout, isCheckingOut }) {
         {tier.price.toLocaleString("hu-HU")} Ft
       </p>
       <p className="text-xs font-medium mt-1" style={{ color: "#8A7268" }}>
-        Egyszeri fizetés • Nincs rejtett díj
+        Egyszeri fizetés • Nincs rejtett költség
       </p>
 
       <ul className="mt-5 space-y-3 flex-1">
-        {tier.features.map((f, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "#4A5568" }}>
-            <CheckCircle2 size={17} className="mt-0.5 shrink-0" style={{ color: "#7C9885" }} />
-            <span>{f}</span>
-          </li>
-        ))}
+        {tier.features.map((f, i) => {
+          const isGift = f.includes("🎁");
+          return (
+            <li key={i} className={`flex items-start gap-2 text-sm ${isGift ? "font-semibold text-[#8A4B4F] bg-[#FFF5F2] p-2 rounded-xl border border-[#F0DCD4]" : "text-[#4A5568]"}`}>
+              {isGift ? (
+                <Gift size={17} className="mt-0.5 shrink-0 text-[#E07A5F]" />
+              ) : (
+                <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-[#7C9885]" />
+              )}
+              <span>{f}</span>
+            </li>
+          );
+        })}
       </ul>
 
       <button
@@ -435,7 +444,7 @@ function OrderSuccessPanel({ email, selectedPkg, onRestart }) {
           Sikeres megrendelés! 🎉
         </h3>
         <p className="text-sm max-w-md mx-auto leading-relaxed" style={{ color: "#6B5A52" }}>
-          A fizetés sikeresen megtörtént. A(z) <strong style={{ color: "#E07A5F" }}>{pkgData.title}</strong> letöltési linkjeit és hozzáférését elküldtük az e-mail fiókodba:
+          A fizetés sikeresen megtörtént. A(z) <strong style={{ color: "#E07A5F" }}>{pkgData.title}</strong> letöltési linkjeit és az applikáció aktivációs hozzáférését elküldtük az e-mail fiókodba:
         </p>
         <div className="mt-3 inline-block px-4 py-2 rounded-xl bg-white/80 border border-[#F0DCD4] font-semibold text-sm text-[#2D3748]">
           📬 {buyerEmail}
@@ -457,7 +466,7 @@ function OrderSuccessPanel({ email, selectedPkg, onRestart }) {
           </li>
           <li className="flex items-start gap-2.5">
             <span className="font-bold text-[#E07A5F]">3.</span>
-            <span>Kattints a levélben lévő letöltési linkekre, és használd a mellékelt applikáció aktivációs kódot.</span>
+            <span>Kattints a levélben lévő PDF letöltési linkekre, valamint az 1-kattintásos aktiváló linkre, amivel azonnal prémium státuszba lép a Zsebedző applikációd.</span>
           </li>
         </ol>
       </div>
@@ -488,7 +497,7 @@ function OrderSuccessPanel({ email, selectedPkg, onRestart }) {
           <Mail size={20} style={{ color: "#7C9885" }} className="mb-2" />
           <p className="font-display font-semibold text-sm mb-1 text-[#2D3748]">Ügyfélszolgálat</p>
           <p className="text-xs text-[#8A7268] leading-relaxed">
-            Kérdésed van? Írj nekünk: <strong>ugyfelszolgalat@fitanyamodszer.hu</strong>
+            Kérdésed van? Írj nekünk bátran: <strong>ugyfelszolgalat@fitanyamodszer.hu</strong>
           </p>
         </div>
       </div>
@@ -722,7 +731,6 @@ export default function LandingPage({ onOpenApp }) {
     }
   };
 
-  // KÖZVETLEN APP-ÁTLÉPÉS A TESZT EREDMÉNYEIVEL
   const handleOpenApp = () => {
     try {
       localStorage.setItem("fa_form", JSON.stringify(form));
@@ -852,7 +860,8 @@ export default function LandingPage({ onOpenApp }) {
       price: 4990,
       features: [
         "FitAnya Alapprogram (30 Családi Gyorsrecept & Tenyér-szabály PDF)",
-        "Interaktív Tenyér-Makró Útmutató",
+        "Interaktív Tenyér-Makró Útmutató (PDF)",
+        "🎁 AJÁNDÉK: 1 hónap FitAnya Zsebedző Prémium App hozzáférés (2 490 Ft értékben)",
       ],
     },
     {
@@ -865,7 +874,7 @@ export default function LandingPage({ onOpenApp }) {
         "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)",
         "4 Hetes FitAnya Szokásformáló Rendszer (PDF)",
         "Heti Mester-Bevásárlólista & 15 Perces Dobozolási Kisokos (PDF)",
-        "Ajándék: FitAnya Zsebedző Prémium App Hozzáférés",
+        "🎁 AJÁNDÉK: 2 hónap FitAnya Zsebedző Prémium App hozzáférés (4 980 Ft értékben)",
       ],
     },
     {
@@ -878,7 +887,7 @@ export default function LandingPage({ onOpenApp }) {
         "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)",
         "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)",
         "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)",
-        "Ajándék: FitAnya Zsebedző VIP App Hozzáférés",
+        "🎁 AJÁNDÉK: 3 hónap Teljes VIP Zsebedző App hozzáférés (7 470 Ft értékben)",
       ],
     },
   ];
@@ -906,8 +915,8 @@ export default function LandingPage({ onOpenApp }) {
       a: "Igen! A kalkulátorunk automatikusan hozzáad +250–450 kcal élettani kalóriapótlékot szoptató anyukáknak, így a fogyás kizárólag a zsírraktárakból történik, a tejtermelés és a tápanyagellátás teljes biztonsága mellett.",
     },
     {
-      q: "Mi ez az új FitAnya Zsebedző applikáció?",
-      a: "Egy modern PWA applikáció, amit nem kell letöltened semmilyen áruházból: közvetlenül a telefonod böngészőjéből megnyitható, és kiteheted a kezdőképernyődre. Tartalmazza a Claude AI Hűtőmentőt (15 perces receptek abból, ami otthon van), a tányérkövetőt és az ivás emlékeztetőt.",
+      q: "Hogyan működik az ajándék Zsebedző app hozzáférés?",
+      a: "A csomag megvásárlása után az e-mailben kapott linken keresztül a megvásárolt csomagtól függően 1, 2 vagy 3 hónapig ingyenesen és korlátlanul használhatod a digitális zsebedzőt (Claude AI Hűtőmentő, Tányérkövető, Ivás emlékeztető).",
     },
     {
       q: "Mi történik a fizetés után? Hogyan kapom meg az anyagokat?",
@@ -1653,10 +1662,10 @@ export default function LandingPage({ onOpenApp }) {
                 <h4 className="font-display font-semibold text-lg text-[#2D3748]">
                   Szeretnéd a nyomtatható családi recepteket &amp; kisokosokat is?
                 </h4>
-                <span className="text-xs font-bold text-[#E07A5F]">PDF Csomagok</span>
+                <span className="text-xs font-bold text-[#E07A5F]">PDF Csomagok + Ajándék App</span>
               </div>
               <p className="text-xs sm:text-sm text-[#4A5568] leading-relaxed mb-4">
-                Ha szereted a hűtőre kitett heti menütervezőket, a bolti polctérképet és a kész családi receptfüzetet, válaszd ki a célodnak megfelelő kézikönyv-csomagot:
+                Ha szereted a hűtőre kitett heti menütervezőket, a bolti polctérképet és a kész családi receptfüzetet, válaszd ki a csomagodat, és az átfogó PDF kézikönyvek mellé <strong>1–3 hónap Prémium Zsebedző hozzáférést adunk ajándékba</strong>!
               </p>
               
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[#F0DCD4]">
@@ -1747,6 +1756,9 @@ export default function LandingPage({ onOpenApp }) {
           <div className="text-center mb-14">
             <SectionEyebrow>Komplett Életmód Csomagok</SectionEyebrow>
             <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-3">Válaszd ki, meddig szeretnél eljutni</h2>
+            <p className="text-sm sm:text-base text-[#6B5A52] mt-2 max-w-xl mx-auto">
+              Minden csomag tartalmazza a nyomtatható útmutatókat és a megfelelő időtartamú <strong>FitAnya Zsebedző Prémium</strong> applikáció hozzáférést!
+            </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-5 items-start">
             {mainPackages.map((p) => (
@@ -1826,7 +1838,7 @@ export default function LandingPage({ onOpenApp }) {
           <div className="p-6 rounded-2xl bg-white border border-[#F0DCD4]">
             <div className="w-12 h-12 rounded-full bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center font-bold text-lg mx-auto mb-3">2</div>
             <h4 className="font-semibold text-base text-[#2D3748] mb-1">Azonnali kézbesítés</h4>
-            <p className="text-xs text-[#6B5A52]">A hozzáférési linkek automatikusan megérkeznek az e-mail fiókodba.</p>
+            <p className="text-xs text-[#6B5A52]">A letöltési linkek és az app aktivációs hozzáférés automatikusan megérkezik.</p>
           </div>
           <div className="p-6 rounded-2xl bg-white border border-[#F0DCD4]">
             <div className="w-12 h-12 rounded-full bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center font-bold text-lg mx-auto mb-3">3</div>
