@@ -8,6 +8,7 @@ import {
   Sliders,
   Sparkles,
   Info,
+  Loader2,
 } from "lucide-react";
 import WeeklySummaryCard from "../ui/WeeklySummaryCard";
 import InteractivePlateBuilder from "./InteractivePlateBuilder";
@@ -23,6 +24,7 @@ export default function PalmTrackerModule() {
   const [selectedDish, setSelectedDish] = useState(null);
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [logged, setLogged] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   const [customDelta, setCustomDelta] = useState({
     protein: 1,
@@ -31,7 +33,7 @@ export default function PalmTrackerModule() {
     fat: 0,
   });
 
-  // Helyi keresés a 300 ételes katalógusban (0 hálózati forgalom, 0 késleltetés)
+  // Helyi keresés az 586 tételes katalógusban
   const matchingDishes = searchDishes(query);
 
   const handleSelectDish = (dish) => {
@@ -39,6 +41,31 @@ export default function PalmTrackerModule() {
     setCustomDelta({ ...dish.delta });
     setIsCustomMode(false);
     setQuery(dish.name);
+  };
+
+  const handleAskClaude = async () => {
+    if (!query || !query.trim()) return;
+    setIsAiLoading(true);
+
+    try {
+      const res = await fetch("/api/analyze-dish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dishName: query.trim() }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.dish) {
+        handleSelectDish(data.dish);
+      } else {
+        alert("Nem sikerült elemezni az ételt. Kérlek írd le pontosabban az alapanyagokat!");
+      }
+    } catch (e) {
+      console.error("AI hiba:", e);
+      alert("Hálózati hiba történt az AI elemzés közben.");
+    } finally {
+      setIsAiLoading(false);
+    }
   };
 
   const updateDelta = (field, amount) => {
@@ -179,20 +206,44 @@ export default function PalmTrackerModule() {
                 </button>
               ))
             ) : (
-              <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 text-center">
-                <p className="text-xs text-stone-500 mb-2">
-                  Ez az étel nincs a 300-as listában.
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 text-center">
+                <p className="text-xs text-stone-600 mb-1 font-medium">
+                  Nincs a recepttárban: <span className="font-bold text-stone-800">"{query}"</span>
                 </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCustomMode(true);
-                    setSelectedDish(null);
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-[#E07A5F] text-white font-bold text-xs flex items-center gap-1.5 mx-auto cursor-pointer"
-                >
-                  <Sliders size={12} /> Beállítom a tányérom kézzel (10 mp)
-                </button>
+                <p className="text-[11px] text-stone-400 mb-3">
+                  Elemeztessük a FitAnya mesterséges intelligenciával, vagy állítsd be kézzel!
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAskClaude}
+                    disabled={isAiLoading}
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#E07A5F] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:opacity-95 transition-opacity disabled:opacity-50"
+                  >
+                    {isAiLoading ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" /> Elemzés folyamatban...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={13} /> Kiszámolom a Tenyér-adagját! ✨
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCustomMode(true);
+                      setSelectedDish(null);
+                    }}
+                    disabled={isAiLoading}
+                    className="w-full sm:w-auto px-3 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer hover:bg-stone-100 transition-colors"
+                  >
+                    <Sliders size={12} /> Beállítom kézzel
+                  </button>
+                </div>
               </div>
             )}
           </div>
