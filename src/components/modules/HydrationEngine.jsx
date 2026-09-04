@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Droplet,
-  Plus,
-  Minus,
   Bell,
   BellRing,
   CheckCircle2,
@@ -14,45 +12,84 @@ import { useFitAnya } from "../../context/FitAnyaContext";
 import SectionHeader from "../ui/SectionHeader";
 import { REMINDERS } from "../../utils/reminders";
 
-// FOLYADÉK PRESETEK: Hidratáció + Makrólevonás + Cukor gramm
+// ANYUKA-BARÁT PRESETEK: Nincs ml matekozás, tiszta hétköznapi mértékek
 const DRINKS = [
-  { id: "water", name: "Tiszta víz", icon: "💧", ml: 250, delta: {}, sugar: 0, desc: "0 kalória" },
-  { id: "water_big", name: "Kulacs víz", icon: "🚰", ml: 500, delta: {}, sugar: 0, desc: "0 kalória" },
-  { id: "coffee", name: "Fekete kávé / Tea", icon: "☕", ml: 150, delta: {}, sugar: 0, desc: "Cukormentes" },
-  { id: "zero", name: "Zero üdítő", icon: "🥤", ml: 330, delta: {}, sugar: 0, desc: "0g cukor" },
   {
-    id: "soda",
-    name: "Cukros üdítő / Gyümölcslé",
-    icon: "🧃",
-    ml: 300,
-    delta: { carb: 1 },
-    sugar: 32,
-    desc: "-1 Marék CH | 32g cukor",
-    warning: true,
+    id: "water_glass",
+    name: "Tiszta víz",
+    icon: "💧",
+    btnLabel: "+ 1 pohár",
+    ml: 250,
+    delta: {},
+    sugar: 0,
+    desc: "0 kalória, tiszta hidratáció",
+  },
+  {
+    id: "water_bottle",
+    name: "Kulacs víz",
+    icon: "🚰",
+    btnLabel: "+ 1 kulacs",
+    ml: 500,
+    delta: {},
+    sugar: 0,
+    desc: "0 kalória, fél liter pipa",
+  },
+  {
+    id: "coffee",
+    name: "Fekete kávé / Tea",
+    icon: "☕",
+    btnLabel: "+ 1 bögre",
+    ml: 150,
+    delta: {},
+    sugar: 0,
+    desc: "Cukormentes frissítő",
+  },
+  {
+    id: "zero",
+    name: "Zero üdítő",
+    icon: "🥤",
+    btnLabel: "+ 1 pohár",
+    ml: 250,
+    delta: {},
+    sugar: 0,
+    desc: "0g cukor, nem bántja a keretet",
   },
   {
     id: "latte",
-    name: "Tejeskávé / Cappuccino",
+    name: "Tejeskávé / Cappuccino / Latte",
     icon: "☕🥛",
-    ml: 250,
+    btnLabel: "+ 1 bögre",
+    ml: 200,
     delta: { carb: 0.5, fat: 0.5 },
-    sugar: 12,
-    desc: "-0.5 M / -0.5 H",
+    sugar: 10,
+    desc: "-0.5 M szénhidrát | -0.5 H zsír",
+  },
+  {
+    id: "soda",
+    name: "Cukros üdítő / Szörp / Gyümölcslé",
+    icon: "🧃",
+    btnLabel: "+ 1 pohár",
+    ml: 250,
+    delta: { carb: 1 },
+    sugar: 28,
+    desc: "-1 Marék szénhidrát a tányérodról!",
+    warning: true,
   },
   {
     id: "alcohol",
-    name: "Alkohol (Bor / Sör)",
+    name: "Alkohol (Bor, Fröccs, Sör)",
     icon: "🍷",
-    ml: -100, // Dehidratál!
+    btnLabel: "+ 1 pohár",
+    ml: -150, // Dehidratál
     delta: { carb: 1.5 },
-    sugar: 10,
-    desc: "-1.5 Marék CH (Dehidratál)",
+    sugar: 8,
+    desc: "-1.5 Marék szénhidrát (Dehidratál!)",
     warning: true,
   },
 ];
 
 export default function HydrationEngine() {
-  const { profile, log, addWater, logDrink, hydrationTargetMl } = useFitAnya();
+  const { profile, log, logDrink, hydrationTargetMl } = useFitAnya();
   const [reminderIdx, setReminderIdx] = useState(0);
   const [notificationStatus, setNotificationStatus] = useState("default");
   const [subscribing, setSubscribing] = useState(false);
@@ -118,11 +155,11 @@ export default function HydrationEngine() {
       sugarGrams: drink.sugar,
     });
 
-    setLastLoggedText(`Rögzítve: ${drink.name}`);
-    setTimeout(() => setLastLoggedText(null), 2000);
+    setLastLoggedText(`✓ Rögzítve: ${drink.name}`);
+    setTimeout(() => setLastLoggedText(null), 2200);
   };
 
-  const currentMl = log.waterMl || 0;
+  const currentMl = Math.max(0, log.waterMl || 0);
   const pct = Math.min(100, Math.round((currentMl / hydrationTargetMl) * 100));
   const sugarTotal = log.sugarGrams || 0;
   const sugarCubes = Math.round(sugarTotal / 3.5);
@@ -131,18 +168,17 @@ export default function HydrationEngine() {
     <div>
       <SectionHeader
         title="Folyadék & Rejtett Kalóriák"
-        subtitle={`Személyes célod: ${(hydrationTargetMl / 1000).toFixed(1)} liter / nap${
+        subtitle={`Személyes célod: ${(hydrationTargetMl / 1000).toFixed(1)} liter tiszta víz naponta${
           profile.breastfeeding ? " (szoptatási védelemmel)" : ""
         }`}
         icon={Droplet}
       />
 
-      {/* FŐ HIDRATÁCIÓS KÁRTYA */}
+      {/* VIZUÁLIS POHÁR */}
       <div
         className="rounded-3xl p-5 mb-4 flex flex-col items-center select-none"
         style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}
       >
-        {/* POHÁR */}
         <div className="relative w-24 h-36 mb-3">
           <div
             className="absolute inset-0 rounded-b-3xl rounded-t-xl overflow-hidden shadow-inner"
@@ -185,15 +221,14 @@ export default function HydrationEngine() {
           {(currentMl / 1000).toFixed(2)} liter / {(hydrationTargetMl / 1000).toFixed(1)} liter
         </p>
 
-        {/* GYORS VISSZAJELZÉS */}
         {lastLoggedText && (
-          <p className="text-xs font-bold text-[#7C9885] animate-in fade-in mb-2">
-            ✓ {lastLoggedText}
+          <p className="text-xs font-bold text-[#7C9885] animate-in fade-in">
+            {lastLoggedText}
           </p>
         )}
       </div>
 
-      {/* REJTETT CUKOR SOKK KÁRTYA */}
+      {/* REJTETT CUKOR SOKK-DOBOZ */}
       {sugarTotal > 0 && (
         <div className="rounded-2xl p-3.5 mb-4 bg-[#FFF5F2] border border-[#F5D5C8] flex items-center justify-between animate-in fade-in">
           <div className="flex items-center gap-2.5">
@@ -202,17 +237,17 @@ export default function HydrationEngine() {
             </div>
             <div>
               <p className="text-xs font-bold text-[#2D3748]">
-                Ma megivott rejtett cukor: <span className="text-[#C3634C]">{sugarTotal} g</span>
+                Ma megivott felesleges cukor: <span className="text-[#C3634C]">{sugarTotal} g</span>
               </p>
               <p className="text-[11px] text-[#6B5A52]">
-                Ez kb. <strong>{sugarCubes} kockacukornak</strong> felel meg!
+                Ez összesen kb. <strong>{sugarCubes} kockacukornak</strong> felel meg!
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* ITALVÁLASZTÓ LISTA */}
+      {/* ITALOK LISTÁJA */}
       <div
         className="rounded-3xl p-4 mb-4 select-none"
         style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}
@@ -221,34 +256,43 @@ export default function HydrationEngine() {
           Mit ittál épp? (Koppints a rögzítéshez)
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="space-y-2">
           {DRINKS.map((d) => (
             <button
               key={d.id}
               type="button"
               onClick={() => handleDrinkClick(d)}
-              className="p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all active:scale-98 hover:bg-[#FFF9F5]"
+              className="w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition-all active:scale-98 hover:bg-[#FFF9F5]"
               style={{
                 borderColor: d.warning ? "#F0C8BC" : C.border,
                 backgroundColor: d.warning ? "#FFFBF9" : "#FFFDFB",
               }}
             >
-              <div className="flex items-center gap-2.5 min-w-0 pr-1">
+              <div className="flex items-center gap-2.5 min-w-0 pr-2">
                 <span className="text-lg shrink-0">{d.icon}</span>
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-stone-800 truncate">{d.name}</p>
                   <p className="text-[10px] text-stone-400 font-medium truncate">{d.desc}</p>
                 </div>
               </div>
-              <span className="text-xs font-bold text-[#E07A5F] px-2 py-1 bg-white rounded-lg border border-[#F0DCD4] shrink-0">
-                + {d.ml > 0 ? `${d.ml} ml` : `${d.ml} ml`}
+
+              {/* TISZTA ÉS EGYÉRTELMŰ GOMB-FELIRAT */}
+              <span
+                className="text-xs font-bold px-3 py-1.5 rounded-xl border shrink-0 shadow-xs"
+                style={{
+                  backgroundColor: d.warning ? "#FFF3EE" : "#FFFFFF",
+                  borderColor: d.warning ? "#E07A5F" : "#F0DCD4",
+                  color: d.warning ? "#C3634C" : "#E07A5F",
+                }}
+              >
+                {d.btnLabel}
               </span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* PUSH ÉRTESÍTÉSEK */}
+      {/* ÉRTESÍTÉSEK */}
       {notificationStatus !== "unsupported" && notificationStatus !== "granted" && (
         <div className="mb-3 p-3.5 rounded-2xl bg-[#FFF9F5] border border-[#F0DCD4] flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
@@ -257,7 +301,7 @@ export default function HydrationEngine() {
             </div>
             <div>
               <p className="text-xs font-bold text-[#2D3748]">Kérsz ivás emlékeztetőt?</p>
-              <p className="text-[11px] text-[#6B5A52]">Szólunk, ha kimaradna a víz.</p>
+              <p className="text-[11px] text-[#6B5A52]">Szólunk, ha elfelejtenél inni.</p>
             </div>
           </div>
 
