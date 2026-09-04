@@ -2,7 +2,28 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // 1. RECEPTES HŰTŐMENTŐ AI VÉGPONT (/api/recipe-ideas)
+    // 1. VIP KÓD ELLENŐRZÉSE (SZERVEROLDALON — KÍVÜLRŐL LÁTHATATLAN)
+    if (url.pathname === "/api/verify-vip" && request.method === "POST") {
+      try {
+        const { code } = await request.json();
+        const validCodes = ["FITANYA", "VIP2026", "ANYAERO", "BARNAKOLOS"];
+        
+        if (code && validCodes.includes(code.trim().toUpperCase())) {
+          return new Response(JSON.stringify({ success: true }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({ success: false, error: "Érvénytelen kód" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ success: false }), { status: 500 });
+      }
+    }
+
+    // 2. RECEPTES HŰTŐMENTŐ AI VÉGPONT (/api/recipe-ideas)
     if (url.pathname === "/api/recipe-ideas" && request.method === "POST") {
       try {
         const apiKey = env.ANTHROPIC_API_KEY;
@@ -55,6 +76,7 @@ SZIGORÚ VÁLASZFORMÁTUM: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj v
     }
   ]
 }`;
+
         const userPrompt = `Alapanyagaim a hűtőben/kamrában: "${ingredients}".
 Mai maradék tenyér-keretem: ${remaining?.protein ?? 1} tenyér fehérje, ${remaining?.veg ?? 1} ököl rost, ${remaining?.carb ?? 1} marék szénhidrát, ${remaining?.fat ?? 1} hüvelykujj zsír.
 Készíts 3 különböző receptjavaslatot!`;
@@ -99,7 +121,7 @@ Készíts 3 különböző receptjavaslatot!`;
       }
     }
 
-    // 2. AI ÉTELELEMZŐ VÉGPONT (/api/analyze-dish)
+    // 3. AI ÉTELELEMZŐ VÉGPONT (/api/analyze-dish)
     if (url.pathname === "/api/analyze-dish" && request.method === "POST") {
       try {
         const apiKey = env.ANTHROPIC_API_KEY;
@@ -199,7 +221,7 @@ KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vissza (markdown kódblokk n
       }
     }
 
-    // 3. STATIKUS ASSETS KISZOLGÁLÁSA (React webapp)
+    // 4. STATIKUS ASSETS KISZOLGÁLÁSA (React webapp)
     return env.ASSETS.fetch(request);
   },
 };
