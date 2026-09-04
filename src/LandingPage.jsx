@@ -568,6 +568,21 @@ export default function LandingPage() {
 
   const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
+  // BFCache / Visszalépés érzékelése: Töltési állapot azonnali feloldása
+  useEffect(() => {
+    const handlePageShow = () => {
+      setIsCheckingOut(false);
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("focus", handlePageShow);
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("focus", handlePageShow);
+    };
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem("fa_step", String(step));
@@ -677,7 +692,7 @@ export default function LandingPage() {
     }, 220);
   };
 
-  // 1-KATTINTÁSOS STRIPE CHECKOUT FUNKCIÓ (DUPLA ŰRLAP NÉLKÜL)
+  // 1-KATTINTÁSOS STRIPE CHECKOUT FUNKCIÓ (AUTOMATIKUS VISSZAÁLLÍTÁSSAL)
   const handleDirectCheckout = (pkgId) => {
     const targetPkg = pkgId || selectedPkg;
     const baseUrl = STRIPE_PAYMENT_LINKS[targetPkg];
@@ -697,6 +712,11 @@ export default function LandingPage() {
       const checkoutUrl = rawEmail 
         ? `${baseUrl}?prefilled_email=${encodeURIComponent(rawEmail)}` 
         : baseUrl;
+
+      // Biztonsági reset, ha 4 mp után még ezen az oldalon tartózkodik a felhasználó
+      setTimeout(() => {
+        setIsCheckingOut(false);
+      }, 4000);
 
       setTimeout(() => {
         window.location.href = checkoutUrl;
