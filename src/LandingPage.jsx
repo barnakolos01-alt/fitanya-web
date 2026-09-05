@@ -951,8 +951,8 @@ export default function LandingPage({ onOpenApp }) {
         </button>
       </aside>
 
-      {/* RÖGZÍTETT FEJLÉC (NAVBAR) - TISZTA VIRÁGEMBLÉMA & ZSEBEDZŐ GOMB */}
-      <header className="sticky top-0 z-40 bg-[#FDFBF7]/95 backdrop-blur-md border-b border-[#F0DCD4] px-4 sm:px-8 py-3 transition-shadow shadow-xs">
+      {/* RÖGZÍTETT FEJLÉC (NAVBAR) - HIVATALOS LOGÓ & ZSEBEDZŐ GOMB */}
+      <header className="sticky top-0 z-40 bg-[#FDFBF7]/95 backdrop-blur-md border-b border-[#F0DCD4] px-4 sm:px-8 py-2.5 transition-shadow shadow-xs">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <a
             href="/"
@@ -965,9 +965,11 @@ export default function LandingPage({ onOpenApp }) {
             className="flex items-center cursor-pointer select-none"
             aria-label="FitAnya Főoldal"
           >
-            <div className="w-9 h-9 rounded-full bg-[#FDE8E1] flex items-center justify-center text-lg shadow-xs hover:scale-105 active:scale-95 transition-transform">
-              🌸
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="FitAnya Logó"
+              className="w-10 h-10 rounded-full object-cover shadow-xs border border-[#F0DCD4] hover:scale-105 active:scale-95 transition-transform"
+            />
           </a>
 
           <div className="flex items-center gap-2.5 sm:gap-3">
