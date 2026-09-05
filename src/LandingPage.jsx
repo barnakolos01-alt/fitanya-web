@@ -951,6 +951,50 @@ export default function LandingPage({ onOpenApp }) {
         </button>
       </aside>
 
+      {/* RÖGZÍTETT FEJLÉC (NAVBAR) - AZ APP KÖZVETLEN ELÉRÉSÉVEL */}
+      <header className="sticky top-0 z-40 bg-[#FDFBF7]/95 backdrop-blur-md border-b border-[#F0DCD4] px-4 sm:px-8 py-3 transition-shadow shadow-xs">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <a
+            href="/"
+            onClick={(e) => {
+              if (window.location.pathname === "/") {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
+            }}
+            className="flex items-center gap-2 cursor-pointer select-none group"
+          >
+            <div className="w-8 h-8 rounded-full bg-[#FDE8E1] flex items-center justify-center text-[#E07A5F] font-display font-bold text-base shadow-xs group-hover:scale-105 transition-transform">
+              🌸
+            </div>
+            <span className="font-display font-bold text-lg sm:text-xl tracking-tight text-[#2D3748]">
+              Fit<span className="text-[#E07A5F]">Anya</span>
+            </span>
+          </a>
+
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => scrollTo(wizardRef)}
+              className="hidden md:inline-flex text-xs font-semibold text-[#8A7268] hover:text-[#E07A5F] px-3 py-2 cursor-pointer transition-colors"
+            >
+              Élettani Audit
+            </button>
+
+            <button
+              type="button"
+              onClick={handleOpenApp}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full font-display font-bold text-xs sm:text-sm text-white shadow-sm transition-all hover:opacity-95 active:scale-95 cursor-pointer"
+              style={{ background: "linear-gradient(180deg, #E68C6F 0%, #E07A5F 100%)" }}
+            >
+              <Smartphone size={15} className="shrink-0" />
+              <span>Zsebedző App</span>
+              <span className="hidden xs:inline text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-semibold">0 Ft</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
       {/* HERO */}
       <section className="relative overflow-hidden" style={{ background: "linear-gradient(180deg,#FDE8E1 0%, #FDFBF7 70%)" }}>
         <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-12 pb-14 sm:pt-20 sm:pb-20 text-center flex flex-col items-center gap-6">
@@ -964,12 +1008,22 @@ export default function LandingPage({ onOpenApp }) {
             Töltsd ki az élettani auditot, és aktiváld az ingyenes Zsebedző applikációt!
           </p>
           
-          <button 
-            onClick={() => scrollTo(wizardRef)} 
-            className="cta-btn font-display font-semibold text-base sm:text-lg text-white px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2.5 shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-          >
-            Kattints ide a teszt kitöltéséhez &amp; kalóriaszámoláshoz <ArrowRight size={20} />
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-lg">
+            <button 
+              onClick={() => scrollTo(wizardRef)} 
+              className="cta-btn w-full sm:w-auto font-display font-semibold text-base sm:text-lg text-white px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2.5 shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+            >
+              Kattints ide a teszt kitöltéséhez &amp; kalóriaszámoláshoz <ArrowRight size={20} />
+            </button>
+            <button
+              type="button"
+              onClick={handleOpenApp}
+              className="text-xs sm:text-sm font-semibold text-[#8A7268] hover:text-[#E07A5F] py-2 px-3 rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5"
+            >
+              <Smartphone size={15} className="text-[#E07A5F]" />
+              <span>Csak az ingyenes Appot keresem &rarr;</span>
+            </button>
+          </div>
 
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm select-none" style={{ color: "#6B5A52" }}>
             <span className="inline-flex items-center gap-1.5"><ShieldCheck size={16} style={{ color: "#7C9885" }} /> Tudományosan igazolt élettani alapok</span>
@@ -1962,7 +2016,7 @@ export default function LandingPage({ onOpenApp }) {
             </span>
             <span className="text-[11px] font-semibold text-[#E07A5F]">
               {wizardDone 
-                ? "Digitális Zsebedző applikáció"
+                ? "Digitális Zsebedző applikáció" 
                 : "3 490 Ft-tól • 14 nap garancia"}
             </span>
           </div>
