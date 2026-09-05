@@ -132,7 +132,7 @@ function computeAudit(data) {
     targetKcal: Math.round(targetKcal),
     hiddenSurplus,
     weeksNeeded: Math.round(weeksNeeded * 10) / 10,
-    targetDateStr: weightToLose > 0 ? formatHuDate(targetDate) : "Már a célsúlyodnál jársz — irány a megtartás!",
+    targetDateStr: weightToLose > 0 ? formatHuDate(targetDate) : "Célsúlyon vagy! 🎉",
     profile,
     weightToLose: Math.round(weightToLose * 10) / 10,
     proteinGrams,
@@ -297,19 +297,26 @@ function WaveConnector({ steps, activeIndex }) {
 }
 
 function KpiCard({ icon: Icon, label, value, sub, accent = "#E07A5F" }) {
+  const isLong = typeof value === "string" && value.length > 14;
+
   return (
     <div
-      className="rounded-2xl p-5 sm:p-6 flex flex-col gap-2 select-none"
+      className="rounded-2xl p-5 sm:p-6 flex flex-col justify-between h-full select-none"
       style={{ background: "#FDFBF7", border: "1px solid #F0DCD4" }}
     >
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${accent}1A` }}>
-        <Icon size={20} style={{ color: accent }} />
+      <div className="flex flex-col gap-2">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${accent}1A` }}>
+          <Icon size={20} style={{ color: accent }} />
+        </div>
+        <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "#8A7268" }}>{label}</p>
+        <p
+          className={`font-display font-semibold ${isLong ? "text-lg sm:text-xl leading-snug" : "text-2xl sm:text-3xl"}`}
+          style={{ color: "#2D3748", fontFamily: "'Space Grotesk', sans-serif" }}
+        >
+          {value}
+        </p>
       </div>
-      <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "#8A7268" }}>{label}</p>
-      <p className="font-display font-semibold text-2xl sm:text-3xl" style={{ color: "#2D3748", fontFamily: "'Space Grotesk', sans-serif" }}>
-        {value}
-      </p>
-      {sub && <p className="text-xs" style={{ color: "#8A7268" }}>{sub}</p>}
+      {sub && <p className="text-xs mt-2" style={{ color: "#8A7268" }}>{sub}</p>}
     </div>
   );
 }
