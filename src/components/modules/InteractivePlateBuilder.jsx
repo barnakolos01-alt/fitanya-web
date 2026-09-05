@@ -5,14 +5,14 @@ import {
   Coffee,
   Loader2,
   Send,
-  Flame,
   Clock,
   Heart,
+  HelpCircle,
 } from "lucide-react";
 import { C, serif } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
 
-// GOLYÓÁLLÓ FITANYA SÓVÁRGÁS-RECEPTEK (GYORS, HÁZI HACKEK)
+// GOLYÓÁLLÓ OFFLINE HACKEK A LEGGYAKORIBB SÓVÁRGÁSOKRA (GYORSÍTÓTÁR)
 const CRAVING_HACKS = {
   pizza: {
     title: "🍕 6 perces Serpenyős Tortilla-Pizza",
@@ -81,30 +81,21 @@ const CRAVING_HACKS = {
     title: "🍔 Tányéros Szaftos Smash Burger",
     why: "A burger íze a marhahús pirult kérgéből és a savanyú uborkából jön, nem az édesre cukrozott buciból.",
     steps: [
-      "Egy jó minőségű húspogácsát (vagy darált húst) lapíts ki nagyon vékonyra a serpenyőben, süsd forrón 2-2 percig.",
+      "Egy jó minőségű darált húst lapíts ki nagyon vékonyra a forró serpenyőben, süsd 2-2 percig.",
       "Tedd a tetejére 1 szelet sajtot, hogy ráolvadjon.",
-      "Ha maradt szénhidrátod, piríts meg 1 db bucit. Ha elfogyott a szénhidrátod: tedd óriási salátaágyra!",
+      "Ha maradt szénhidrátod: piríts 1 bucit. Ha elfogyott a szénhidrátod: tedd óriási salátaágyra!",
       "Pakold meg paradicsomkarikákkal, sok savanyú uborkával és light ketchuppal.",
     ],
-    side: "🥗 A buci helyetti salátaágy azonnal lehozza a hiányzó 2 ököl rostodat!",
+    side: "🥗 A salátaágy azonnal lehozza a hiányzó 2 ököl rostodat!",
     time: "8 perc",
     delta: { protein: 1.5, carb: 0.5, fat: 1, veg: 1 },
   },
 };
 
-const QUICK_CHIPS = [
-  { key: "pizza", label: "🍕 Pizza" },
-  { key: "sweet", label: "🍫 Csoki / Édesség" },
-  { key: "sandwich", label: "🥪 Melegszendvics" },
-  { key: "pasta", label: "🍝 Tészta" },
-  { key: "chips", label: "🥨 Chips / Sós" },
-  { key: "burger", label: "🍔 Szaftos Burger" },
-];
-
 export default function InteractivePlateBuilder() {
   const { remaining, logPortion, consumeAiCredit } = useFitAnya();
   const [cravingInput, setCravingInput] = useState("");
-  const [activeHack, setActiveHack] = useState(CRAVING_HACKS.pizza);
+  const [activeHack, setActiveHack] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [logged, setLogged] = useState(false);
 
@@ -116,27 +107,20 @@ export default function InteractivePlateBuilder() {
     remaining.carb <= 0 &&
     remaining.fat <= 0;
 
-  const handleSelectChip = (key) => {
-    if (CRAVING_HACKS[key]) {
-      setActiveHack(CRAVING_HACKS[key]);
-      setCravingInput("");
-    }
-  };
-
-  // INTELLIGENS VÁLASZTÓ ÉS CLAUDE AI BEKÖTÉS
   const handleAskHack = async (e) => {
     if (e) e.preventDefault();
     const query = cravingInput.trim().toLowerCase();
     if (!query || aiLoading) return;
 
-    // 1. Lokális gyors felismerés a leggyakoribb szavakra
+    // 1. Gyors helyi felismerés a legnépszerűbb szavakra (azonnali válasz)
     if (query.includes("pizz")) return setActiveHack(CRAVING_HACKS.pizza);
     if (
       query.includes("csok") ||
       query.includes("édes") ||
       query.includes("edes") ||
       query.includes("süti") ||
-      query.includes("cukor")
+      query.includes("cukor") ||
+      query.includes("palacsinta")
     ) {
       return setActiveHack(CRAVING_HACKS.sweet);
     }
@@ -158,7 +142,7 @@ export default function InteractivePlateBuilder() {
       return setActiveHack(CRAVING_HACKS.burger);
     }
 
-    // 2. Ha teljesen egyedit írt be, meghívjuk a Claude végpontot
+    // 2. Ha teljesen egyedit írt be, Claude AI végpont
     if (!consumeAiCredit()) return;
 
     setAiLoading(true);
@@ -177,7 +161,6 @@ export default function InteractivePlateBuilder() {
       if (data && data.hack) {
         setActiveHack(data.hack);
       } else {
-        // Fallback: finom melegszendvics trükk
         setActiveHack(CRAVING_HACKS.sandwich);
       }
     } catch {
@@ -190,7 +173,6 @@ export default function InteractivePlateBuilder() {
   const handleLogHack = () => {
     if (!activeHack) return;
 
-    // Levonjuk a hack arányait a keretből
     logPortion(activeHack.delta, `Sóvárgás-mentő: ${activeHack.title}`);
     setLogged(true);
     setTimeout(() => {
@@ -200,7 +182,7 @@ export default function InteractivePlateBuilder() {
 
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
-      {/* 1. KEDVES FEJLÉC ÉS KERET-EMLÉKEZTETŐ */}
+      {/* 1. FEJLÉC ÉS AKTUÁLIS KERET */}
       <div className="bg-white rounded-3xl p-4 shadow-xs border border-[#F5EBE6]">
         <div className="flex items-center gap-2 mb-1.5">
           <span className="w-8 h-8 rounded-xl bg-[#FFF5F0] text-[#E07A5F] flex items-center justify-center text-base">
@@ -208,7 +190,7 @@ export default function InteractivePlateBuilder() {
           </span>
           <div>
             <h2 style={{ fontFamily: serif }} className="text-base font-bold text-stone-800">
-              Sóvárgás-Mentő Tányér
+              Mit ehetek még ma?
             </h2>
             <p className="text-[11px] text-stone-500">
               Mit kívánsz most? Átalakítjuk gyors FitAnya-vacsorává!
@@ -245,56 +227,55 @@ export default function InteractivePlateBuilder() {
         </div>
       ) : (
         <>
-          {/* 2. GYORS KÍVÁNSÁG-VÁLASZTÓ CHIPEK */}
+          {/* 2. TISZTA AI KERESŐ MEZŐ (NINCSENEK FELESLEGES GOMBOK) */}
           <div className="bg-white rounded-3xl p-4 shadow-xs border border-[#F5EBE6]">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-2.5">
-              Válassz a leggyakoribb kívánságokból:
-            </p>
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {QUICK_CHIPS.map((chip) => (
-                <button
-                  key={chip.key}
-                  type="button"
-                  onClick={() => handleSelectChip(chip.key)}
-                  className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
-                    activeHack?.title.includes(chip.label.split(" ")[1])
-                      ? "bg-[#E07A5F] text-white border-[#E07A5F] shadow-xs"
-                      : "bg-[#FFFDFB] text-stone-700 border-[#F2E5DF] hover:bg-[#FFF5F0]"
-                  }`}
-                >
-                  {chip.label}
-                </button>
-              ))}
-            </div>
-
-            {/* EGYÉNI KÍVÁNSÁG MEZŐ */}
-            <form onSubmit={handleAskHack} className="pt-2 border-t border-stone-100">
-              <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
-                Vagy írd le pontosan, mit ennél szívesen:
+            <form onSubmit={handleAskHack}>
+              <label className="text-xs font-bold text-stone-700 mb-2 flex items-center gap-1.5">
+                <Sparkles size={14} className="text-[#E07A5F]" /> Mit ennél vagy nassolnál szívesen?
               </label>
+
               <div className="flex gap-2">
                 <input
                   ref={inputRef}
                   type="text"
                   value={cravingInput}
                   onChange={(e) => setCravingInput(e.target.value)}
-                  placeholder="pl. Nutellás kenyér, Lángos, Fagyi..."
-                  className="flex-1 px-3.5 py-2.5 bg-[#FFFDFB] border border-[#F0DCD4] rounded-xl text-xs outline-none focus:border-[#E07A5F]"
+                  placeholder="pl. Pizza, Nutellás kenyér, Csoki, Melegszendvics, Fagyi..."
+                  className="flex-1 px-4 py-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl text-xs outline-none focus:border-[#E07A5F] transition-all text-stone-800 placeholder-stone-400"
                 />
                 <button
                   type="submit"
                   disabled={aiLoading || !cravingInput.trim()}
-                  className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-xs"
+                  className="px-4 py-3 rounded-2xl text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-xs active:scale-98 transition-all"
                   style={{ backgroundColor: C.coral }}
                 >
-                  {aiLoading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                  {aiLoading ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={14} />
+                  )}
                   <span>Átalakítás</span>
                 </button>
               </div>
             </form>
           </div>
 
-          {/* 3. A MEGOLDÁS KÁRTYA (AZ IGAZI FITANYA HACK) */}
+          {/* 3. ALAPÉRTELMEZETT BÁTORÍTÓ KÁRTYA (AMÍG NEM ÍRT BE SEMMIT) */}
+          {!activeHack && !aiLoading && (
+            <div className="p-4 rounded-3xl bg-[#FFFDFB] border border-dashed border-[#F0DCD4] text-center space-y-2 animate-in fade-in">
+              <span className="w-9 h-9 mx-auto rounded-full bg-[#FFF5F0] text-[#E07A5F] flex items-center justify-center text-sm">
+                💡
+              </span>
+              <p className="text-xs font-bold text-stone-700">
+                Bármilyen sóvárgást át tudunk alakítani!
+              </p>
+              <p className="text-[11px] text-stone-500 leading-relaxed max-w-xs mx-auto">
+                Nem kell lemondanod az ízekről: írd be bátran a kedvenc ételedet, és megmutatjuk a gyors 5-8 perces verziót, ami tökéletesen illeszkedik a mai napodba.
+              </p>
+            </div>
+          )}
+
+          {/* 4. A MEGOLDÁS KÁRTYA (AZ IGAZI FITANYA HACK) */}
           {activeHack && (
             <div className="bg-[#FFFDFB] rounded-3xl p-5 border border-[#F0DCD4] shadow-xs animate-in fade-in space-y-4">
               <div>
