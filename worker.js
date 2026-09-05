@@ -2,7 +2,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // 1. VIP KÓD ELLENŐRZÉSE (SZERVEROLDALON — KÍVÜLRŐL LÁTHATATLAN)
+    // 1. VIP KÓD ELLENŐRZÉSE
     if (url.pathname === "/api/verify-vip" && request.method === "POST") {
       try {
         const { code } = await request.json();
@@ -57,7 +57,7 @@ SZIGORÚ VÁLASZFORMÁTUM: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj v
   "recipes": [
     {
       "id": "rec_1",
-      "title": "Étel tiszta neve (pl. Spenótos-tejszínes csirkés durumtészta)",
+      "title": "Étel tiszta neve",
       "timeMinutes": 20,
       "tag": "Villámgyors serpenyős",
       "delta": {
@@ -69,10 +69,9 @@ SZIGORÚ VÁLASZFORMÁTUM: KIZÁRÓLAG egyetlen érvényes JSON objektumot adj v
       "ingredients": ["főbb hozzávalók listája"],
       "instructions": [
         "Első lépés felszólító módban sorszám nélkül.",
-        "Második lépés felszólító módban sorszám nélkül.",
-        "Harmadik lépés felszólító módban sorszám nélkül."
+        "Második lépés felszólító módban sorszám nélkül."
       ],
-      "fitanyaTip": "Gyakorlatias tálalási trükk: pl. 'A családnak szedj több tésztát, a te tányérodra a csirkés-spenótos raguból jusson több, és csak 1 marék tészta!'"
+      "fitanyaTip": "Gyakorlatias tálalási trükk."
     }
   ]
 }`;
@@ -140,22 +139,16 @@ Készíts 3 különböző receptjavaslatot!`;
           );
         }
 
-        const systemPrompt = `Te a "FitAnya Módszer" közvetlen, gasztronómiailag és élettanilag felkészült táplálkozási szakértő AI motorja vagy.
-Feladatod a beírt étel Tenyér-szabály szerinti azonnali elemzése és egy 1-2 mondatos, gyakorlatias tálalási tipp adása édesanyáknak.
+        const systemPrompt = `Te a "FitAnya Módszer" közvetlen, táplálkozási szakértő AI motorja vagy.
+Feladatod a beírt étel Tenyér-szabály szerinti azonnali elemzése és egy 1-2 mondatos gyakorlatias tálalási tipp adása édesanyáknak.
 
 SZIGORÚ GASZTRO-SZABÁLYOK A TIPPEKHEZ ("tip"):
-1. Édességek, desszertek, édes tészták (pl. túrógombóc, palacsinta, gofri, torták, tejberizs):
-   - SOHA NE AJÁNLJ HOZZÁ HÚST VAGY ZÖLDSÉGSALÁTÁT!
-   - Fehérjének KIZÁRÓLAG natúr görög joghurtot, zsírszegény túrót, skyr-t vagy egy adag fehérjeport javasolj.
-   - Adagnak 1 zárt maroknyi mennyiséget javasolj élvezetből fogyasztva, bűntudat nélkül.
-2. Bő olajban sült ételek (pl. rántott hús, rántott sajt, sült krumpli, lángos):
-   - Javasold az air fryerben vagy sütőpapíron, sütőben sütést a rejtett zsírok felezésére.
-3. Nehéz magyaros, zsíros ételek (pl. pörkölt, babgulyás, csülök, rakott ételek):
-   - Rostnak savanyúságot (kovászos uborka, csalamádé) vagy gyors kevert salátát ajánlj, és a szaft kitunkolásának elhagyását.
-4. Hangnem: közvetlen, bűntudatmentes és életszerű.
+1. Édességek, desszertek: Fehérjének KIZÁRÓLAG túrót, görög joghurtot, skyr-t ajánlj, ne húst vagy salátát.
+2. Bő olajban sült ételek: Javasold az air fryerben vagy sütőben sütést.
+3. Nehéz magyaros ételek: Rostnak savanyúságot vagy friss salátát javasolj.
 
 VISSZATÉRÉSI FORMÁTUM:
-KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vissza (markdown kódblokk nélkül):
+KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vissza (markdown nélkül):
 {
   "name": "Étel pontos neve",
   "delta": {
@@ -221,7 +214,102 @@ KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vissza (markdown kódblokk n
       }
     }
 
-    // 4. STATIKUS ASSETS KISZOLGÁLÁSA (React webapp)
+    // 4. ÚJ: SÓVÁRGÁS-HACK ÉS DÖNTÉSTÁMOGATÓ VÉGPONT (/api/craving-hack)
+    if (url.pathname === "/api/craving-hack" && request.method === "POST") {
+      try {
+        const apiKey = env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+          return new Response(
+            JSON.stringify({ error: "Az API kulcs nincs beállítva a Cloudflare-ben." }),
+            { status: 500, headers: { "Content-Type": "application/json" } }
+          );
+        }
+
+        const { craving, remaining } = await request.json();
+        const remP = Math.max(0, Number(remaining?.protein ?? 1));
+        const remV = Math.max(0, Number(remaining?.veg ?? 1));
+        const remC = Math.max(0, Number(remaining?.carb ?? 0));
+        const remF = Math.max(0, Number(remaining?.fat ?? 0.5));
+
+        const systemPrompt = `Te a "FitAnya Módszer" empatikus, zseniális sóvárgás-mentő séfje vagy.
+Egy fáradt édesanya megírja, mit kíván enni vagy nassolni este/délután (pl. pizza, nutellás kenyér, chips, csoki, hamburger, tészta).
+A te feladatod ezt az ételvágyat átalakítani egy 5-10 perces villámgyors otthoni FITANYA-HACKKÉ, ami:
+1. Megadja a vágyott ízélményt és textúrát bűntudat nélkül.
+2. SZIGORÚAN ILLESZKEDIK A MAI HÁTRALÉVŐ KERETÉHEZ:
+   - Ha a hátralévő szénhidrát (remC) <= 0.2: TILOS lisztes tésztát, kenyeret, tortillát, cukrot ajánlani! Helyette alacsony szénhidráttartalmú trükköt használj (pl. tojásalap, cukkiniszelet, salátalevélbe csomagolva, túróalap).
+   - Ha remC >= 0.5: Engedélyezett a pontos adag (pl. 1 db kis tortilla vagy 1 szelet kenyér).
+   - A fehérjét (remP) és rostot (remV) igyekezz beépíteni, hogy éjszakára teltségérzetet adjon.
+3. Formátum: Közvetlen, kedves magyar hangnem, felszólító mód ("Pirítsd meg", "Keverd össze").
+
+KIZÁRÓLAG egyetlen érvényes JSON objektumot adj vissza (markdown nélkül):
+{
+  "title": "Kreatív ételnév (pl. 🍕 6 perces Serpenyős Cukkinipizza)",
+  "time": "5-8 perc",
+  "why": "1 mondat, hogy miért elégíti ki pontosan a vágyát bűntudat nélkül.",
+  "steps": [
+    "Első gyors lépés.",
+    "Második lépés.",
+    "Harmadik lépés."
+  ],
+  "side": "Tipp a hiányzó rostokhoz/zöldségekhez, vagy tálalási trükk.",
+  "delta": {
+    "protein": ${remP > 0 ? remP : 0.5},
+    "veg": ${remV > 0 ? remV : 0},
+    "carb": ${remC > 0 ? Math.min(remC, 1) : 0},
+    "fat": ${remF > 0 ? Math.min(remF, 1) : 0.5}
+  }
+}`;
+
+        const userPrompt = `Mit kíván az anyuka: "${craving}"
+Mai hátralévő tenyér-kerete:
+- Fehérje: ${remP} tenyér
+- Rost: ${remV} ököl
+- Szénhidrát: ${remC} marék
+- Zsír: ${remF} hüvelykujj
+
+Készíts el pontosan egy személyre szabott sóvárgás-hack receptet, ami kielégíti ezt a vágyat, és lehozza a hiányzó keretet!`;
+
+        const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey.trim(),
+            "anthropic-version": "2023-06-01",
+          },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 600,
+            system: systemPrompt,
+            messages: [{ role: "user", content: userPrompt }],
+          }),
+        });
+
+        if (!anthropicResponse.ok) {
+          const errData = await anthropicResponse.json().catch(() => ({}));
+          return new Response(
+            JSON.stringify({ error: errData.error?.message || "Anthropic hiba" }),
+            { status: 502, headers: { "Content-Type": "application/json" } }
+          );
+        }
+
+        const data = await anthropicResponse.json();
+        const rawText = data.content?.[0]?.text?.trim() || "{}";
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+
+        return new Response(JSON.stringify({ success: true, hack: parsed }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // 5. STATIKUS ASSETS KISZOLGÁLÁSA (React webapp)
     return env.ASSETS.fetch(request);
   },
 };
