@@ -24,7 +24,7 @@ export default function PaywallModal() {
     setPromoError(false);
 
     try {
-      // Biztonságos backend ellenőrzés (a frontend kódban NINCSENEK kódok!)
+      // Biztonságos backend ellenőrzés (a frontend kódban nincsenek kódok!)
       const res = await fetch("/api/verify-vip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -116,7 +116,7 @@ export default function PaywallModal() {
           <ShieldCheck size={12} /> Bármikor 1 kattintással lemondható • Biztonságos Stripe fizetés
         </div>
 
-        {/* VIP FORM */}
+        {/* VIP FORM - LEBUKTATÓ MINTA NÉLKÜL */}
         <form onSubmit={handleApplyCode} className="pt-3.5 border-t border-stone-100">
           <p className="text-[11px] font-semibold text-stone-600 mb-1.5 flex items-center justify-center gap-1">
             <Crown size={13} className="text-[#E07A5F]" /> Van VIP tagságod vagy kuponkódod?
@@ -126,7 +126,7 @@ export default function PaywallModal() {
               type="text"
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value)}
-              placeholder="VIP Kód (pl. FITANYA)"
+              placeholder="Kuponkód beírása..."
               className="flex-1 text-xs px-3 py-2 bg-stone-50 border rounded-xl outline-none uppercase font-mono"
               style={{ borderColor: promoError ? "#E07A5F" : C.border }}
             />
