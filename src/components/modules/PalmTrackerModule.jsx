@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Utensils,
   Search,
   CheckCircle2,
   Clock,
@@ -10,16 +9,12 @@ import {
   Info,
   Loader2,
 } from "lucide-react";
-import WeeklySummaryCard from "../ui/WeeklySummaryCard";
-import InteractivePlateBuilder from "./InteractivePlateBuilder";
 import { C } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
-import SectionHeader from "../ui/SectionHeader";
 import TrackerHeader from "../ui/TrackerHeader";
 import { searchDishes } from "../../data/dishesCatalog";
 
 export default function PalmTrackerModule() {
-  // 1. BEHÍVJUK A KVÓTAKEZELŐT (consumeAiCredit)
   const { log, logPortion, removeEntry, remaining, consumeAiCredit } = useFitAnya();
   const [query, setQuery] = useState("");
   const [selectedDish, setSelectedDish] = useState(null);
@@ -27,7 +22,6 @@ export default function PalmTrackerModule() {
   const [logged, setLogged] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  // LOKÁLIS GYORSÍTÓTÁR (0 token, ha már egyszer elemezte)
   const [customDishes, setCustomDishes] = useState(() => {
     try {
       const saved = localStorage.getItem("fa_custom_dishes");
@@ -44,7 +38,6 @@ export default function PalmTrackerModule() {
     fat: 0,
   });
 
-  // KERESÉS: Saját korábbi AI ételek + 586 alapadatbázis (ez mindig 100% ingyenes marad!)
   const trimmedQuery = query.trim().toLowerCase();
   const matchedCustom = trimmedQuery.length >= 2
     ? customDishes.filter((d) =>
@@ -63,17 +56,11 @@ export default function PalmTrackerModule() {
     setQuery(dish.name);
   };
 
-  // 2. AI ÉTELELEMZÉS PAYWALL VÉDELEMMEL
   const handleAskClaude = async () => {
     if (!query || !query.trim()) return;
-
-    // Ha elfogyott a 3 ingyenes AI kóstoló, felugrik a Paywall és megáll a hívás
-    if (!consumeAiCredit()) {
-      return;
-    }
+    if (!consumeAiCredit()) return;
 
     setIsAiLoading(true);
-
     try {
       const res = await fetch("/api/analyze-dish", {
         method: "POST",
@@ -91,16 +78,13 @@ export default function PalmTrackerModule() {
         setCustomDishes(updatedCustom);
         try {
           localStorage.setItem("fa_custom_dishes", JSON.stringify(updatedCustom));
-        } catch (e) {
-          console.error("LocalStorage mentési hiba:", e);
-        }
+        } catch (e) {}
 
         handleSelectDish(data.dish);
       } else {
         alert("Nem sikerült elemezni az ételt. Kérlek írd le pontosabban!");
       }
     } catch (e) {
-      console.error("AI hiba:", e);
       alert("Hálózati hiba történt az AI elemzés közben.");
     } finally {
       setIsAiLoading(false);
@@ -136,100 +120,28 @@ export default function PalmTrackerModule() {
   };
 
   return (
-    <div>
-      <SectionHeader
-        title="Tányérom"
-        subtitle="Konyhamérleg nélkül — a családi közös fazékból a te tányérodra."
-        icon={Utensils}
-      />
-
-      <WeeklySummaryCard />
-      
-      {/* 1. TENYÉR SZÁMLÁLÓK (4 DOBOZ) */}
-      <TrackerHeader />
-
-      {/* 2. ÚJ HELY: MIT EHETEK MÉG MA? (KÖZVETLENÜL A SZÁMOK ALATT) */}
-      <div className="mb-3 mt-1">
-        <InteractivePlateBuilder />
-      </div>
-
-      {/* 3. MAI NAPLÓZOTT TÉTELEK */}
-      {log.entries && log.entries.length > 0 && (
-        <div
-          className="rounded-3xl p-4 mb-4"
-          style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}
-        >
-          <div className="flex items-center justify-between mb-3 pb-2 border-b border-stone-100">
-            <span className="text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
-              <Clock size={13} className="text-[#E07A5F]" /> Mai naplózott ételek
-            </span>
-            <span className="text-[11px] text-stone-400 font-medium">
-              {log.entries.length} tétel
-            </span>
-          </div>
-
-          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-            {log.entries.map((entry) => (
-              <div
-                key={entry.id}
-                className="flex items-center justify-between p-2.5 rounded-2xl bg-[#FFFDFB] border border-[#F5EBE6] text-xs"
-              >
-                <div className="min-w-0 pr-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-stone-800 truncate">
-                      {entry.label}
-                    </span>
-                    <span className="text-[10px] text-stone-400 font-mono">
-                      {entry.time}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#C3634C] mt-0.5 truncate">
-                    {renderDeltaTags(entry.delta)}
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => removeEntry(entry.id)}
-                  className="w-7 h-7 rounded-xl bg-stone-100 hover:bg-red-50 text-stone-400 hover:text-red-500 flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                  title="Tétel visszavonása"
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 4. CSALÁDI FAZÉK KERESŐ KÁRTYA */}
-      <div
-        className="rounded-3xl p-4 sm:p-5 mb-3"
-        style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}
-      >
-        <label
-          className="text-xs font-medium mb-2 flex items-center gap-1.5"
-          style={{ color: C.textSoft }}
-        >
-          <Search size={13} /> Mit ettél? (Kezdd el gépelni az étel nevét)
+    <div className="space-y-4">
+      {/* 1. LEGFELÜL: MIT ETTÉL KERESŐ (LETISZTULT, MELEG KÁRTYA) */}
+      <div className="bg-white rounded-3xl p-4 shadow-xs border border-[#F5EBE6]">
+        <label className="text-xs font-semibold text-stone-700 mb-2 flex items-center gap-1.5">
+          <Search size={14} className="text-[#E07A5F]" /> Mit ettél? (Kezdd el gépelni az ételt)
         </label>
 
-        <div className="relative mb-2">
+        <div className="relative">
           <input
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
               setSelectedDish(null);
             }}
-            placeholder="pl. Bolognai, Zöldborsófőzelék, Rántott sajt..."
-            className="w-full text-sm outline-none bg-stone-50/60 border rounded-xl px-3.5 py-3"
-            style={{ color: C.textDark, borderColor: C.border }}
+            placeholder="pl. Húsleves zöldséggel, Rántotta, Túrógombóc..."
+            className="w-full text-sm outline-none bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl px-4 py-3 text-stone-800 placeholder-stone-400 focus:border-[#E07A5F] transition-all"
           />
         </div>
 
         {/* TALÁLATI LISTA */}
         {query.trim().length >= 2 && !selectedDish && (
-          <div className="mb-3 space-y-1.5 animate-in fade-in">
+          <div className="mt-3 space-y-1.5 animate-in fade-in">
             {matchingDishes.length > 0 ? (
               <>
                 {matchingDishes.map((dish) => {
@@ -239,24 +151,15 @@ export default function PalmTrackerModule() {
                       key={dish.id}
                       type="button"
                       onClick={() => handleSelectDish(dish)}
-                      className="w-full text-left p-3 rounded-2xl bg-[#FFFDFB] hover:bg-[#FDE8E1] border border-[#F0DCD4] flex items-center justify-between cursor-pointer transition-all shadow-xs group"
+                      className="w-full text-left p-3 rounded-2xl bg-[#FFFDFB] hover:bg-[#FFF5F0] border border-[#F5EBE6] flex items-center justify-between cursor-pointer transition-all"
                     >
                       <div className="min-w-0 pr-2">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-xs font-bold text-stone-800 group-hover:text-[#E07A5F] truncate">
-                            {dish.name}
-                          </p>
-                          {isCustom && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-[#FDE8E1] text-[#E07A5F] shrink-0">
-                              ✨ Saját AI
-                            </span>
-                          )}
-                        </div>
+                        <p className="text-xs font-bold text-stone-800 truncate">{dish.name}</p>
                         <p className="text-[10px] text-stone-400 mt-0.5">
-                          🖐️ {dish.delta.protein}T | ✊ {dish.delta.veg}Ö | 🤲 {dish.delta.carb}M | 👍 {dish.delta.fat}H
+                          🖐️ {dish.delta.protein} Fehérje | ✊ {dish.delta.veg} Rost | 🤲 {dish.delta.carb} Szénhidrát
                         </p>
                       </div>
-                      <span className="text-[11px] font-bold text-[#E07A5F] px-2.5 py-1 rounded-xl bg-white border border-[#F0DCD4] shrink-0">
+                      <span className="text-[11px] font-semibold text-[#E07A5F] px-2.5 py-1 rounded-xl bg-white border border-[#F5DED7] shrink-0">
                         Kiválasztom
                       </span>
                     </button>
@@ -267,7 +170,7 @@ export default function PalmTrackerModule() {
                   type="button"
                   onClick={handleAskClaude}
                   disabled={isAiLoading}
-                  className="w-full mt-2 p-2.5 rounded-2xl bg-[#FFF9F5] hover:bg-[#FDE8E1] border border-dashed border-[#E07A5F] text-[#C3634C] text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs"
+                  className="w-full mt-2 p-2.5 rounded-2xl bg-[#FFF5F0] hover:bg-[#FDE8E1] border border-dashed border-[#E07A5F] text-[#C3634C] text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                 >
                   {isAiLoading ? (
                     <>
@@ -275,48 +178,34 @@ export default function PalmTrackerModule() {
                     </>
                   ) : (
                     <>
-                      <Sparkles size={13} className="text-[#E07A5F]" /> Nem ezeket keresed? Kiszámolom AI-val: <strong>"{query}"</strong>
+                      <Sparkles size={13} className="text-[#E07A5F]" /> Nem találod? Kiszámolom AI-val: <strong>"{query}"</strong>
                     </>
                   )}
                 </button>
               </>
             ) : (
-              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 text-center">
-                <p className="text-xs text-stone-600 mb-1 font-medium">
-                  Nincs a recepttárban: <span className="font-bold text-stone-800">"{query}"</span>
+              <div className="p-3.5 bg-[#FFF9F6] rounded-2xl border border-[#F5DED7] text-center">
+                <p className="text-xs text-stone-700 font-medium mb-2">
+                  Nem szerepel az alaplistában: <strong>"{query}"</strong>
                 </p>
-                <p className="text-[11px] text-stone-400 mb-3">
-                  Elemeztessük a FitAnya mesterséges intelligenciával, vagy állítsd be kézzel!
-                </p>
-
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                <div className="flex gap-2 justify-center">
                   <button
                     type="button"
                     onClick={handleAskClaude}
                     disabled={isAiLoading}
-                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#E07A5F] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:opacity-95 transition-opacity disabled:opacity-50"
+                    className="px-3.5 py-2 rounded-xl bg-[#E07A5F] text-white font-semibold text-xs flex items-center gap-1 cursor-pointer"
                   >
-                    {isAiLoading ? (
-                      <>
-                        <Loader2 size={13} className="animate-spin" /> Elemzés folyamatban...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles size={13} /> Kiszámolom a Tenyér-adagját! ✨
-                      </>
-                    )}
+                    <Sparkles size={12} /> Kiszámolom AI-val ✨
                   </button>
-
                   <button
                     type="button"
                     onClick={() => {
                       setIsCustomMode(true);
                       setSelectedDish(null);
                     }}
-                    disabled={isAiLoading}
-                    className="w-full sm:w-auto px-3 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer hover:bg-stone-100 transition-colors"
+                    className="px-3 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-medium cursor-pointer"
                   >
-                    <Sliders size={12} /> Beállítom kézzel
+                    <Sliders size={12} /> Kézzel állítom
                   </button>
                 </div>
               </div>
@@ -324,190 +213,64 @@ export default function PalmTrackerModule() {
           </div>
         )}
 
-        {/* KIVÁLASZTOTT ÉTEL ADAGOLÓ KÁRTYA */}
+        {/* KIVÁLASZTOTT ÉTEL ADAGOLÓ */}
         {selectedDish && (
-          <div className="mt-3 rounded-2xl p-4 bg-[#FBF5F2] border border-[#F1DED6] animate-in fade-in">
-            <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-[#F1DED6]">
-              <Sparkles size={14} style={{ color: C.coral }} />
-              <span className="text-xs font-bold text-[#C3634C] uppercase tracking-wider">
-                FitAnya Tálalási Útmutató
-              </span>
-            </div>
-
+          <div className="mt-3 rounded-2xl p-3.5 bg-[#FFF9F6] border border-[#F5DED7] animate-in fade-in">
             <p className="text-xs text-stone-700 leading-relaxed mb-3">
               💡 {selectedDish.tip}
             </p>
 
-            {remaining.fat <= 0 && selectedDish.delta.fat > 0 && (
-              <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl mb-3 flex items-start gap-2 text-[11px] text-amber-900 font-medium">
-                <Info size={14} className="text-amber-600 shrink-0 mt-0.5" />
-                <span>
-                  Figyelem: A mai zsírkereted már betelt! A szaftot és olajos levet hagyd a tányéron!
-                </span>
-              </div>
-            )}
-
-            <div className="pt-2 border-t border-[#F1DED6]">
-              <p className="text-xs font-semibold text-stone-700 mb-2">
-                Javasolt levonás a tányérodról:
-              </p>
-
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#F1DED6] text-xs">
-                  <span>🖐️ Fehérje:</span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => updateDelta("protein", -0.5)}
-                      className="w-6 h-6 rounded bg-stone-100 flex items-center justify-center font-bold cursor-pointer"
-                    >
-                      -
-                    </button>
-                    <span className="font-semibold w-6 text-center">
-                      {customDelta.protein}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => updateDelta("protein", 0.5)}
-                      className="w-6 h-6 rounded bg-stone-100 flex items-center justify-center font-bold cursor-pointer"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#F1DED6] text-xs">
-                  <span>✊ Rost:</span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => updateDelta("veg", -0.5)}
-                      className="w-6 h-6 rounded bg-stone-100 flex items-center justify-center font-bold cursor-pointer"
-                    >
-                      -
-                    </button>
-                    <span className="font-semibold w-6 text-center">
-                      {customDelta.veg}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => updateDelta("veg", 0.5)}
-                      className="w-6 h-6 rounded bg-stone-100 flex items-center justify-center font-bold cursor-pointer"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#F1DED6] text-xs">
-                  <span>🤲 Szénhidrát:</span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => updateDelta("carb", -0.5)}
-                      className="w-6 h-6 rounded bg-stone-100 flex items-center justify-center font-bold cursor-pointer"
-                    >
-                      -
-                    </button>
-                    <span className="font-semibold w-6 text-center">
-                      {customDelta.carb}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => updateDelta("carb", 0.5)}
-                      className="w-6 h-6 rounded bg-stone-100 flex items-center justify-center font-bold cursor-pointer"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#F1DED6] text-xs">
-                  <span>👍 Zsír:</span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => updateDelta("fat", -0.5)}
-                      className="w-6 h-6 rounded bg-stone-100 flex items-center justify-center font-bold cursor-pointer"
-                    >
-                      -
-                    </button>
-                    <span className="font-semibold w-6 text-center">
-                      {customDelta.fat}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => updateDelta("fat", 0.5)}
-                      className="w-6 h-6 rounded bg-stone-100 flex items-center justify-center font-bold cursor-pointer"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleLog}
-                className="w-full py-2.5 rounded-xl text-xs font-semibold text-white cursor-pointer shadow-sm active:scale-98 transition-all"
-                style={{ backgroundColor: C.coral }}
-              >
-                Ezt ettem — Levonás a keretből
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* KÉZI BEÁLLÍTÁS */}
-        {isCustomMode && !selectedDish && (
-          <div className="mt-3 rounded-2xl p-4 bg-stone-50 border border-stone-200 animate-in fade-in">
-            <p className="text-xs font-bold text-stone-800 mb-1">
-              Egyéni tálalás a Tenyér-szabály szerint:
-            </p>
-            <p className="text-[11px] text-stone-500 mb-3">
-              Állítsd be, miből mennyit szedtél a tányérodra:
-            </p>
-
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-stone-200 text-xs">
-                <span>🖐️ Fehérje:</span>
-                <div className="flex items-center gap-1.5">
-                  <button type="button" onClick={() => updateDelta("protein", -0.5)} className="w-6 h-6 rounded bg-stone-100 font-bold cursor-pointer">-</button>
-                  <span className="font-semibold w-6 text-center">{customDelta.protein}</span>
-                  <button type="button" onClick={() => updateDelta("protein", 0.5)} className="w-6 h-6 rounded bg-stone-100 font-bold cursor-pointer">+</button>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-stone-200 text-xs">
-                <span>✊ Rost:</span>
-                <div className="flex items-center gap-1.5">
-                  <button type="button" onClick={() => updateDelta("veg", -0.5)} className="w-6 h-6 rounded bg-stone-100 font-bold cursor-pointer">-</button>
-                  <span className="font-semibold w-6 text-center">{customDelta.veg}</span>
-                  <button type="button" onClick={() => updateDelta("veg", 0.5)} className="w-6 h-6 rounded bg-stone-100 font-bold cursor-pointer">+</button>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-stone-200 text-xs">
-                <span>🤲 Szénhidrát:</span>
-                <div className="flex items-center gap-1.5">
-                  <button type="button" onClick={() => updateDelta("carb", -0.5)} className="w-6 h-6 rounded bg-stone-100 font-bold cursor-pointer">-</button>
-                  <span className="font-semibold w-6 text-center">{customDelta.carb}</span>
-                  <button type="button" onClick={() => updateDelta("carb", 0.5)} className="w-6 h-6 rounded bg-stone-100 font-bold cursor-pointer">+</button>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-stone-200 text-xs">
-                <span>👍 Zsír:</span>
-                <div className="flex items-center gap-1.5">
-                  <button type="button" onClick={() => updateDelta("fat", -0.5)} className="w-6 h-6 rounded bg-stone-100 font-bold cursor-pointer">-</button>
-                  <span className="font-semibold w-6 text-center">{customDelta.fat}</span>
-                  <button type="button" onClick={() => updateDelta("fat", 0.5)} className="w-6 h-6 rounded bg-stone-100 font-bold cursor-pointer">+</button>
-                </div>
-              </div>
-            </div>
-
             <button
               type="button"
               onClick={handleLog}
-              className="w-full py-2.5 rounded-xl text-xs font-semibold text-white cursor-pointer shadow-sm"
-              style={{ backgroundColor: C.coral }}
+              className="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-[#E07A5F] cursor-pointer shadow-xs active:scale-98 transition-all"
+            >
+              Ezt ettem — Levonás a mai keretemből
+            </button>
+          </div>
+        )}
+
+        {/* KÉZI BEÁLLÍTÁS MODUS */}
+        {isCustomMode && !selectedDish && (
+          <div className="mt-3 rounded-2xl p-3.5 bg-stone-50 border border-stone-200">
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="flex items-center justify-between p-2 rounded-xl bg-white text-xs">
+                <span>🖐️ Fehérje:</span>
+                <div className="flex items-center gap-1.5">
+                  <button type="button" onClick={() => updateDelta("protein", -0.5)} className="w-5 h-5 rounded bg-stone-100 font-bold">-</button>
+                  <span className="w-4 text-center font-bold">{customDelta.protein}</span>
+                  <button type="button" onClick={() => updateDelta("protein", 0.5)} className="w-5 h-5 rounded bg-stone-100 font-bold">+</button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-white text-xs">
+                <span>✊ Rost:</span>
+                <div className="flex items-center gap-1.5">
+                  <button type="button" onClick={() => updateDelta("veg", -0.5)} className="w-5 h-5 rounded bg-stone-100 font-bold">-</button>
+                  <span className="w-4 text-center font-bold">{customDelta.veg}</span>
+                  <button type="button" onClick={() => updateDelta("veg", 0.5)} className="w-5 h-5 rounded bg-stone-100 font-bold">+</button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-white text-xs">
+                <span>🤲 Szénhidrát:</span>
+                <div className="flex items-center gap-1.5">
+                  <button type="button" onClick={() => updateDelta("carb", -0.5)} className="w-5 h-5 rounded bg-stone-100 font-bold">-</button>
+                  <span className="w-4 text-center font-bold">{customDelta.carb}</span>
+                  <button type="button" onClick={() => updateDelta("carb", 0.5)} className="w-5 h-5 rounded bg-stone-100 font-bold">+</button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-white text-xs">
+                <span>👍 Zsír:</span>
+                <div className="flex items-center gap-1.5">
+                  <button type="button" onClick={() => updateDelta("fat", -0.5)} className="w-5 h-5 rounded bg-stone-100 font-bold">-</button>
+                  <span className="w-4 text-center font-bold">{customDelta.fat}</span>
+                  <button type="button" onClick={() => updateDelta("fat", 0.5)} className="w-5 h-5 rounded bg-stone-100 font-bold">+</button>
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleLog}
+              className="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-[#E07A5F] cursor-pointer"
             >
               Levonás a keretből
             </button>
@@ -515,14 +278,51 @@ export default function PalmTrackerModule() {
         )}
 
         {logged && (
-          <p
-            className="text-xs mt-3 text-center font-medium flex items-center justify-center gap-1 animate-in fade-in"
-            style={{ color: C.sageText }}
-          >
-            <CheckCircle2 size={13} /> Sikeresen levonva és rögzítve a napi naplóban!
+          <p className="text-xs mt-2 text-center font-medium text-[#7C9885] flex items-center justify-center gap-1">
+            <CheckCircle2 size={13} /> Sikeresen levonva a mai keretedből!
           </p>
         )}
       </div>
+
+      {/* 2. KÖZÉPEN: A 4 TENYÉR-SZÁMLÁLÓ */}
+      <TrackerHeader />
+
+      {/* 3. ALUL: MAI NAPLÓZOTT ÉTELEK */}
+      {log.entries && log.entries.length > 0 && (
+        <div className="bg-white rounded-3xl p-4 shadow-xs border border-[#F5EBE6]">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-stone-100">
+            <span className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
+              <Clock size={13} className="text-[#E07A5F]" /> Mai étkezéseim
+            </span>
+            <span className="text-[11px] text-stone-400">{log.entries.length} tétel</span>
+          </div>
+
+          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+            {log.entries.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex items-center justify-between p-2.5 rounded-2xl bg-[#FFFDFB] border border-[#F5EBE6] text-xs"
+              >
+                <div className="min-w-0 pr-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-stone-800 truncate">{entry.label}</span>
+                    <span className="text-[10px] text-stone-400">{entry.time}</span>
+                  </div>
+                  <p className="text-[11px] text-[#C3634C] mt-0.5 truncate">{renderDeltaTags(entry.delta)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeEntry(entry.id)}
+                  className="w-7 h-7 rounded-xl bg-stone-50 hover:bg-red-50 text-stone-400 hover:text-red-500 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Visszavonás"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
