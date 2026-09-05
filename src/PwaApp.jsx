@@ -21,7 +21,7 @@ const MODULES = [
   { 
     key: "builder", 
     icon: "✨", 
-    label: "Mit ehetek?", 
+    label: "Mit ehetek még?", 
     desc: "Tányérépítő", 
     Comp: InteractivePlateBuilder 
   },
