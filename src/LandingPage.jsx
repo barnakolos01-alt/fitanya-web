@@ -951,7 +951,7 @@ export default function LandingPage({ onOpenApp }) {
         </button>
       </aside>
 
-      {/* RÖGZÍTETT FEJLÉC (NAVBAR) - AZ APP KÖZVETLEN ELÉRÉSÉVEL */}
+      {/* RÖGZÍTETT FEJLÉC (NAVBAR) - TISZTA VIRÁGEMBLÉMA & ZSEBEDZŐ GOMB */}
       <header className="sticky top-0 z-40 bg-[#FDFBF7]/95 backdrop-blur-md border-b border-[#F0DCD4] px-4 sm:px-8 py-3 transition-shadow shadow-xs">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <a
@@ -962,14 +962,12 @@ export default function LandingPage({ onOpenApp }) {
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }
             }}
-            className="flex items-center gap-2 cursor-pointer select-none group"
+            className="flex items-center cursor-pointer select-none"
+            aria-label="FitAnya Főoldal"
           >
-            <div className="w-8 h-8 rounded-full bg-[#FDE8E1] flex items-center justify-center text-[#E07A5F] font-display font-bold text-base shadow-xs group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-full bg-[#FDE8E1] flex items-center justify-center text-lg shadow-xs hover:scale-105 active:scale-95 transition-transform">
               🌸
             </div>
-            <span className="font-display font-bold text-lg sm:text-xl tracking-tight text-[#2D3748]">
-              Fit<span className="text-[#E07A5F]">Anya</span>
-            </span>
           </a>
 
           <div className="flex items-center gap-2.5 sm:gap-3">
