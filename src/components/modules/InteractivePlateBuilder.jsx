@@ -34,7 +34,6 @@ const PANTRY = {
 
 export default function InteractivePlateBuilder() {
   const { remaining, logPortion } = useFitAnya();
-  const [isOpen, setIsOpen] = useState(false);
   const [logged, setLogged] = useState(false);
 
   const [plate, setPlate] = useState({
@@ -62,12 +61,10 @@ export default function InteractivePlateBuilder() {
     setAiComment(null);
   };
 
-  // Golyóálló magyar kulcsszó-értelmező
   const buildSmartOptions = (text) => {
     const low = text.toLowerCase();
     const opts = [];
 
-    // Fehérje detektálás (cottage cheese, túró, tojás, sonka, hal, joghurt, fehérje/fehérjét)
     const mentionsProtein =
       low.includes("fehérj") ||
       low.includes("cottage") ||
@@ -82,7 +79,6 @@ export default function InteractivePlateBuilder() {
       low.includes("tonhal") ||
       low.includes("joghurt");
 
-    // Szénhidrát detektálás (kenyér, rizs, krumpli, pékáru - KIZÁRVA a fehérje szót!)
     const mentionsCarb =
       low.includes("kenyér") ||
       low.includes("kenyer") ||
@@ -99,9 +95,8 @@ export default function InteractivePlateBuilder() {
       low.includes("krumpli") ||
       low.includes("burgonya") ||
       low.includes("tortilla") ||
-      (low.includes("fehér") && !low.includes("fehérj")); // Csak akkor fehér kenyér, ha nem fehérje!
+      (low.includes("fehér") && !low.includes("fehérj"));
 
-    // Rost / Zöldség detektálás
     const mentionsVeg =
       low.includes("zöldség") ||
       low.includes("zoldseg") ||
@@ -112,7 +107,6 @@ export default function InteractivePlateBuilder() {
       low.includes("salata") ||
       low.includes("rost");
 
-    // 1. Ha fehérjét kért cserélni
     if (mentionsProtein) {
       if (!low.includes("tojás") && !low.includes("tojas")) {
         opts.push({
@@ -144,7 +138,6 @@ export default function InteractivePlateBuilder() {
       }
     }
 
-    // 2. Ha szénhidrátot kért cserélni
     if (mentionsCarb) {
       if (low.includes("fehér")) {
         opts.push({
@@ -171,7 +164,6 @@ export default function InteractivePlateBuilder() {
       });
     }
 
-    // 3. Ha zöldséget kért
     if (mentionsVeg) {
       opts.push({
         label: "🍅 Édes koktélparadicsom",
@@ -190,7 +182,6 @@ export default function InteractivePlateBuilder() {
       });
     }
 
-    // Vészhelyzeti opciók, ha semmit nem ismert fel
     if (opts.length === 0) {
       opts.push({
         label: "🥚 2-3 db Főtt tojás (Fehérje)",
@@ -256,7 +247,6 @@ export default function InteractivePlateBuilder() {
       ...prev,
       [item.macroType]: item.fullText,
     }));
-    // Csak a kiválasztott elemet vesszük le, a többi gomb megmarad a képernyőn
     setSuggestions((prev) => prev.filter((s) => s.label !== item.label));
     setAiComment(`Beállítva a tányérodra: ${item.label}`);
   };
@@ -279,246 +269,213 @@ export default function InteractivePlateBuilder() {
     setLogged(true);
     setTimeout(() => {
       setLogged(false);
-      setIsOpen(false);
       setSuggestions([]);
       setAiComment(null);
     }, 1800);
   };
 
   return (
-    <div className="mt-5 mb-3">
-      {!isOpen ? (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="w-full p-4 rounded-3xl border border-[#F0DCD4] bg-[#FFF9F5] text-left flex items-center justify-between hover:bg-[#FDE8E1] transition-all cursor-pointer shadow-sm group"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center shrink-0">
-              <UtensilsCrossed size={18} />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-[#2D3748]">
-                Mit ehetek még ma?
-              </p>
-              <p className="text-[11px] text-[#6B5A52]">
-                Interaktív tányérépítő a hiányzó keretedből
-              </p>
-            </div>
+    <div className="space-y-4 animate-in fade-in duration-200">
+      {/* FEJLÉC ÉS LEÍRÁS */}
+      <div className="bg-white rounded-3xl p-4 shadow-xs border border-[#F5EBE6]">
+        <div className="flex items-center gap-2.5 mb-1">
+          <div className="w-8 h-8 rounded-xl bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center shrink-0">
+            <UtensilsCrossed size={16} />
           </div>
-          <span className="text-xs font-bold text-[#E07A5F] px-2.5 py-1 rounded-xl bg-white border border-[#F0DCD4]">
-            Megnyitás
-          </span>
-        </button>
+          <div>
+            <h2 style={{ fontFamily: serif }} className="text-base font-bold text-stone-800">
+              Mit ehetek még ma?
+            </h2>
+            <p className="text-[11px] text-stone-500">
+              Kész tányér a mai még hiányzó keretedből összeállítva
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {isZeroRemaining ? (
+        <div className="p-6 rounded-3xl bg-[#FDF6F0] border border-[#F5D8C7] text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-white text-[#E07A5F] flex items-center justify-center mx-auto shadow-xs">
+            <Coffee size={24} />
+          </div>
+          <h4 style={{ fontFamily: serif }} className="font-bold text-base text-stone-800">
+            Mára a konyha bezárt! 🎉
+          </h4>
+          <p className="text-xs text-stone-600 leading-relaxed max-w-xs mx-auto">
+            A mai keretedet maradéktalanul lehoztad, a tested mindent megkapott. Ez most pihenés, nem éhség!
+          </p>
+          <p className="text-xs font-semibold text-[#C3634C] bg-white py-2 px-3 rounded-xl border border-[#F5D8C7] inline-block">
+            🌸 Tipp: Igyál meg egy finom citromfű teát, és kapcsold ki a napot!
+          </p>
+        </div>
       ) : (
-        <div
-          className="rounded-3xl p-5 border animate-in fade-in duration-200"
-          style={{ backgroundColor: C.card, borderColor: C.border }}
-        >
-          <div className="flex items-center justify-between pb-3 mb-3 border-b border-stone-100">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-[#FDE8E1] text-[#E07A5F] flex items-center justify-center">
-                <UtensilsCrossed size={14} />
+        <div className="bg-white rounded-3xl p-4 shadow-xs border border-[#F5EBE6] space-y-3">
+          {/* FEHÉRJE */}
+          {remaining.protein > 0 && (
+            <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] uppercase font-bold text-[#E07A5F] tracking-wide block">
+                  🖐️ {remaining.protein} Tenyér Fehérje
+                </span>
+                <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
+                  {plate.protein}
+                </p>
               </div>
-              <h3 style={{ fontFamily: serif }} className="text-sm font-bold text-stone-800">
-                Mit ehetek még ma?
-              </h3>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="text-xs text-stone-400 hover:text-stone-700 cursor-pointer"
-            >
-              Bezárás
-            </button>
-          </div>
-
-          {isZeroRemaining ? (
-            <div className="p-4 rounded-2xl bg-[#FDF6F0] border border-[#F5D8C7] text-center space-y-2.5">
-              <div className="w-10 h-10 rounded-full bg-white text-[#E07A5F] flex items-center justify-center mx-auto shadow-sm">
-                <Coffee size={20} />
-              </div>
-              <h4 style={{ fontFamily: serif }} className="font-bold text-sm text-stone-800">
-                Mára a konyha bezárt! 🎉
-              </h4>
-              <p className="text-xs text-stone-600 leading-relaxed max-w-xs mx-auto">
-                A mai keretedet maradéktalanul lehoztad, a tested mindent megkapott. Ez most fáradtság, nem éhség!
-              </p>
-              <p className="text-[11px] font-semibold text-[#C3634C] bg-white py-2 px-3 rounded-xl border border-[#F5D8C7] inline-block">
-                Tipp: Igyál meg egy nagy bögre citromfű teát, és pihenj!
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {/* FEHÉRJE KÁRTYA */}
-              {remaining.protein > 0 && (
-                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] uppercase font-bold text-[#E07A5F] tracking-wide block">
-                      🖐️ {remaining.protein} Tenyér Fehérje
-                    </span>
-                    <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
-                      {plate.protein}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => cycleItem("protein")}
-                    className="shrink-0 px-2.5 py-1.5 rounded-xl bg-stone-50 hover:bg-[#FDE8E1] text-[#E07A5F] text-[11px] font-bold border border-stone-200 flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <RefreshCw size={11} /> Csere
-                  </button>
-                </div>
-              )}
-
-              {/* ROST KÁRTYA */}
-              {remaining.veg > 0 && (
-                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] uppercase font-bold text-[#7C9885] tracking-wide block">
-                      ✊ {remaining.veg} Ököl Rost
-                    </span>
-                    <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
-                      {plate.veg}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => cycleItem("veg")}
-                    className="shrink-0 px-2.5 py-1.5 rounded-xl bg-stone-50 hover:bg-[#E8F0EA] text-[#7C9885] text-[11px] font-bold border border-stone-200 flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <RefreshCw size={11} /> Csere
-                  </button>
-                </div>
-              )}
-
-              {/* SZÉNHIDRÁT KÁRTYA */}
-              {remaining.carb > 0 && (
-                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wide block">
-                      🤲 {remaining.carb} Marék Szénhidrát
-                    </span>
-                    <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
-                      {plate.carb}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => cycleItem("carb")}
-                    className="shrink-0 px-2.5 py-1.5 rounded-xl bg-stone-50 hover:bg-amber-50 text-amber-700 text-[11px] font-bold border border-stone-200 flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <RefreshCw size={11} /> Csere
-                  </button>
-                </div>
-              )}
-
-              {/* ZSÍR KÁRTYA */}
-              {remaining.fat > 0 && (
-                <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] uppercase font-bold text-stone-600 tracking-wide block">
-                      👍 {remaining.fat} Hüvelykujj Zsír
-                    </span>
-                    <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
-                      {plate.fat}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => cycleItem("fat")}
-                    className="shrink-0 px-2.5 py-1.5 rounded-xl bg-stone-50 hover:bg-stone-100 text-stone-600 text-[11px] font-bold border border-stone-200 flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <RefreshCw size={11} /> Csere
-                  </button>
-                </div>
-              )}
-
-              {/* AI BEVITELI MEZŐ */}
-              <form onSubmit={handleAskSuggestions} className="mt-3 pt-3 border-t border-stone-100">
-                <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
-                  Mit cserélnél? (pl. <em>„nem szeretem a cottage cheese-t, kérek más fehérjét”</em>):
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={swapInput}
-                    onChange={(e) => setSwapInput(e.target.value)}
-                    placeholder="Írd ide a kívánságod..."
-                    className="flex-1 px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:border-[#E07A5F]"
-                  />
-                  <button
-                    type="submit"
-                    disabled={aiLoading || !swapInput.trim()}
-                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-sm"
-                    style={{ backgroundColor: C.coral }}
-                  >
-                    {aiLoading ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
-                    <span>Ötletek</span>
-                  </button>
-                </div>
-              </form>
-
-              {aiComment && (
-                <div className="text-[11px] font-medium text-[#C3634C] bg-[#FFF9F5] p-2.5 rounded-xl border border-[#F0DCD4] animate-in fade-in leading-relaxed">
-                  💡 {aiComment}
-                </div>
-              )}
-
-              {/* KATTINTHATÓ GOMBOK */}
-              {suggestions.length > 0 && (
-                <div className="p-3 bg-stone-50/90 rounded-2xl border border-stone-200 space-y-2 animate-in fade-in">
-                  <p className="text-[11px] font-bold text-stone-700">
-                    Kattints a kiválasztott cserére:
-                  </p>
-                  <div className="flex flex-col gap-1.5">
-                    {suggestions.map((opt, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleApplySuggestion(opt)}
-                        className="w-full text-left p-2.5 rounded-xl bg-white hover:bg-[#FDE8E1] border border-stone-200 hover:border-[#E07A5F] text-xs font-semibold text-stone-800 flex items-center justify-between transition-all cursor-pointer shadow-xs active:scale-[0.99]"
-                      >
-                        <span>{opt.label}</span>
-                        <span className="text-[10px] text-[#E07A5F] font-bold px-2 py-0.5 rounded-lg bg-[#FFF9F5] border border-[#F0DCD4]">
-                          Kiválasztom
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="text-center pt-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSuggestions([]);
-                        setSwapInput("");
-                        if (inputRef.current) inputRef.current.focus();
-                      }}
-                      className="text-[10px] font-medium text-stone-400 hover:text-stone-700 underline cursor-pointer"
-                    >
-                      Mégsem jó, mást szeretnék beírni
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* LEVONÁS GOMB */}
               <button
                 type="button"
-                onClick={handleLogMeal}
-                className="w-full mt-2 py-3 rounded-2xl font-bold text-xs text-white shadow-sm flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
+                onClick={() => cycleItem("protein")}
+                className="shrink-0 px-2.5 py-1.5 rounded-xl bg-stone-50 hover:bg-[#FDE8E1] text-[#E07A5F] text-[11px] font-bold border border-stone-200 flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <RefreshCw size={11} /> Csere
+              </button>
+            </div>
+          )}
+
+          {/* ROST */}
+          {remaining.veg > 0 && (
+            <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] uppercase font-bold text-[#7C9885] tracking-wide block">
+                  ✊ {remaining.veg} Ököl Rost
+                </span>
+                <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
+                  {plate.veg}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => cycleItem("veg")}
+                className="shrink-0 px-2.5 py-1.5 rounded-xl bg-stone-50 hover:bg-[#E8F0EA] text-[#7C9885] text-[11px] font-bold border border-stone-200 flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <RefreshCw size={11} /> Csere
+              </button>
+            </div>
+          )}
+
+          {/* SZÉNHIDRÁT */}
+          {remaining.carb > 0 && (
+            <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wide block">
+                  🤲 {remaining.carb} Marék Szénhidrát
+                </span>
+                <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
+                  {plate.carb}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => cycleItem("carb")}
+                className="shrink-0 px-2.5 py-1.5 rounded-xl bg-stone-50 hover:bg-amber-50 text-amber-700 text-[11px] font-bold border border-stone-200 flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <RefreshCw size={11} /> Csere
+              </button>
+            </div>
+          )}
+
+          {/* ZSÍR */}
+          {remaining.fat > 0 && (
+            <div className="p-3 bg-[#FFFDFB] border border-[#F0DCD4] rounded-2xl flex items-center justify-between gap-3 shadow-xs">
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] uppercase font-bold text-stone-600 tracking-wide block">
+                  👍 {remaining.fat} Hüvelykujj Zsír
+                </span>
+                <p className="text-xs font-bold text-stone-800 mt-0.5 leading-snug break-words">
+                  {plate.fat}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => cycleItem("fat")}
+                className="shrink-0 px-2.5 py-1.5 rounded-xl bg-stone-50 hover:bg-stone-100 text-stone-600 text-[11px] font-bold border border-stone-200 flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <RefreshCw size={11} /> Csere
+              </button>
+            </div>
+          )}
+
+          {/* AI CSERE KÉRŐ MEZŐ */}
+          <form onSubmit={handleAskSuggestions} className="pt-2 border-t border-stone-100">
+            <label className="text-[11px] font-medium text-stone-600 mb-1.5 block">
+              Mit cserélnél? (pl. <em>„nem szeretem a tonhalat, mit egyek helyette?”</em>):
+            </label>
+            <div className="flex gap-2">
+              <input
+                ref={inputRef}
+                type="text"
+                value={swapInput}
+                onChange={(e) => setSwapInput(e.target.value)}
+                placeholder="Írd ide mit ennél inkább..."
+                className="flex-1 px-3.5 py-2.5 bg-[#FFFDFB] border border-[#F0DCD4] rounded-xl text-xs outline-none focus:border-[#E07A5F]"
+              />
+              <button
+                type="submit"
+                disabled={aiLoading || !swapInput.trim()}
+                className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-xs"
                 style={{ backgroundColor: C.coral }}
               >
-                <Sparkles size={14} /> Ezt eszem — Levonás a keretből
+                {aiLoading ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                <span>Ötletek</span>
               </button>
-
-              {logged && (
-                <p className="text-xs text-center font-semibold text-[#7C9885] flex items-center justify-center gap-1">
-                  <CheckCircle2 size={13} /> Szuper, levonva a keretedből és rögzítve a naplóban!
-                </p>
-              )}
             </div>
+          </form>
+
+          {aiComment && (
+            <div className="text-[11px] font-medium text-[#C3634C] bg-[#FFF9F5] p-2.5 rounded-xl border border-[#F0DCD4] animate-in fade-in leading-relaxed">
+              💡 {aiComment}
+            </div>
+          )}
+
+          {suggestions.length > 0 && (
+            <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 animate-in fade-in">
+              <p className="text-[11px] font-bold text-stone-700">
+                Kattints a kiválasztott cserére:
+              </p>
+              <div className="flex flex-col gap-1.5">
+                {suggestions.map((opt, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleApplySuggestion(opt)}
+                    className="w-full text-left p-2.5 rounded-xl bg-white hover:bg-[#FDE8E1] border border-stone-200 hover:border-[#E07A5F] text-xs font-semibold text-stone-800 flex items-center justify-between transition-all cursor-pointer shadow-xs"
+                  >
+                    <span>{opt.label}</span>
+                    <span className="text-[10px] text-[#E07A5F] font-bold px-2 py-0.5 rounded-lg bg-[#FFF9F5] border border-[#F0DCD4]">
+                      Kiválasztom
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSuggestions([]);
+                    setSwapInput("");
+                    if (inputRef.current) inputRef.current.focus();
+                  }}
+                  className="text-[10px] font-medium text-stone-400 hover:text-stone-700 underline cursor-pointer"
+                >
+                  Mégsem jó, mást szeretnék beírni
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* LEVONÁS GOMB */}
+          <button
+            type="button"
+            onClick={handleLogMeal}
+            className="w-full mt-2 py-3 rounded-2xl font-bold text-xs text-white shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all"
+            style={{ backgroundColor: C.coral }}
+          >
+            <Sparkles size={14} /> Ezt eszem — Levonás a keretből
+          </button>
+
+          {logged && (
+            <p className="text-xs text-center font-semibold text-[#7C9885] flex items-center justify-center gap-1">
+              <CheckCircle2 size={13} /> Szuper, levonva a keretedből és rögzítve a naplóban!
+            </p>
           )}
         </div>
       )}
