@@ -11,10 +11,34 @@ import WeeklySummaryCard from "./components/ui/WeeklySummaryCard";
 import { Smartphone, Download, Share, PlusSquare, X, Settings, Sparkles, Heart } from "lucide-react";
 
 const MODULES = [
-  { key: "tracker", label: "🍽️ Tányérom", Comp: PalmTrackerModule },
-  { key: "builder", label: "✨ Mit ehetek?", Comp: InteractivePlateBuilder },
-  { key: "fridge", label: "🧊 Hűtőmentő", Comp: FridgeRecipeCopilot },
-  { key: "hydration", label: "💧 Folyadék", Comp: HydrationEngine },
+  { 
+    key: "tracker", 
+    icon: "🍽️", 
+    label: "Tányérom", 
+    desc: "Mai étkezések", 
+    Comp: PalmTrackerModule 
+  },
+  { 
+    key: "builder", 
+    icon: "✨", 
+    label: "Mit ehetek?", 
+    desc: "Tányérépítő", 
+    Comp: InteractivePlateBuilder 
+  },
+  { 
+    key: "fridge", 
+    icon: "🧊", 
+    label: "Hűtőmentő", 
+    desc: "AI maradékmentő", 
+    Comp: FridgeRecipeCopilot 
+  },
+  { 
+    key: "hydration", 
+    icon: "💧", 
+    label: "Folyadék", 
+    desc: "Napi vízbevitel", 
+    Comp: HydrationEngine 
+  },
 ];
 
 function PwaContent() {
@@ -43,7 +67,6 @@ function PwaContent() {
       const dayOfWeek = now.getDay(); // 1 = Hétfő
       const currentHour = now.getHours();
 
-      // Év + hét száma azonosítónak (pl. "2026-W36")
       const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
       const pastDaysOfYear = (now - firstDayOfYear) / 86400000;
       const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
@@ -100,7 +123,7 @@ function PwaContent() {
     } else if (isIos) {
       setShowIosModal(true);
     } else {
-      alert("A böngésződ menüjében válaszd a 'Hozzáadás a kezdőképernyőhöz' lehetőséget!");
+      alert("A böngésződ menüjében válaszd a 'Hozzáadás a kezdőképernyőhöz' vagy 'Telepítés' lehetőséget!");
     }
   };
 
@@ -113,8 +136,43 @@ function PwaContent() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen pb-12 relative bg-[#FDFBF7]" style={{ fontFamily: sans }}>
-      {/* LÁGY, KEDVES FEJLÉC */}
-      <header className="px-5 pt-6 pb-3 flex items-center justify-between gap-3">
+      {/* 1. TELEPÍTÉSI SÁV VISSZAÁLLÍTVA */}
+      {!isStandalone && !bannerDismissed && (
+        <aside
+          aria-label="Kezdőképernyőre kitűzés"
+          className="bg-[#FFF9F5] border-b border-[#F0DCD4] px-4 py-2.5 flex items-center justify-between gap-2 shadow-xs select-none"
+        >
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-[#FDE8E1] flex items-center justify-center text-[#E07A5F] shrink-0">
+              <Smartphone size={15} />
+            </div>
+            <p className="text-[12px] text-[#2D3748] truncate">
+              Tedd ki a <strong>kezdőképernyőre</strong> a gyors eléréshez!
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleInstallClick}
+              className="text-[11px] font-bold px-3 py-1.5 rounded-xl text-white shadow-xs cursor-pointer flex items-center gap-1"
+              style={{ backgroundColor: C.coral }}
+            >
+              <Download size={12} /> Kitűzés
+            </button>
+            <button
+              type="button"
+              onClick={handleDismissBanner}
+              className="text-stone-400 hover:text-stone-700 p-1 cursor-pointer"
+              title="Bezárás"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </aside>
+      )}
+
+      {/* 2. FEJLÉC */}
+      <header className="px-5 pt-5 pb-3 flex items-center justify-between gap-3">
         <div>
           <span className="text-[11px] font-semibold tracking-wider text-[#C3634C] uppercase flex items-center gap-1">
             <Heart size={12} className="fill-[#E07A5F] text-[#E07A5F]" /> FitAnya Módszer
@@ -125,11 +183,11 @@ function PwaContent() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {!isStandalone && bannerDismissed && (
+          {!isStandalone && (
             <button
               type="button"
               onClick={handleInstallClick}
-              className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-[#FFF5F0] border border-[#F5DED7] text-[#E07A5F] hover:bg-[#FDE8E1] transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+              className="text-[11px] font-semibold px-2.5 py-1.5 rounded-full border border-[#F0DCD4] bg-[#FFF5F0] text-[#E07A5F] hover:bg-[#FDE8E1] transition-all flex items-center gap-1 shadow-xs cursor-pointer"
             >
               <Download size={12} /> Kitűzés
             </button>
@@ -145,8 +203,8 @@ function PwaContent() {
         </div>
       </header>
 
-      {/* 4 FŐ GOMB (LETISZTULT, LÁGY NŐIES KAPSZULÁK) */}
-      <nav className="px-4 grid grid-cols-4 gap-1.5 mb-5 select-none">
+      {/* 3. ÚJ 2×2-ES FUNKCIÓVÁLASZTÓ KÁRTYÁK (HELYTAKARÉKOS, TISZTA, EGYÉRTELMŰ) */}
+      <nav className="px-4 grid grid-cols-2 gap-2 mb-5 select-none">
         {MODULES.map((m) => {
           const isActive = activeTab === m.key;
           return (
@@ -154,19 +212,33 @@ function PwaContent() {
               key={m.key}
               type="button"
               onClick={() => setActiveTab(m.key)}
-              className={`py-2 px-1 rounded-2xl text-[11px] font-medium transition-all text-center cursor-pointer truncate ${
+              className={`p-2.5 rounded-2xl transition-all cursor-pointer flex items-center gap-2.5 text-left border ${
                 isActive
-                  ? "bg-[#E07A5F] text-white font-semibold shadow-sm scale-102"
-                  : "bg-white/80 text-stone-600 border border-[#F2E5DF] hover:bg-white"
+                  ? "bg-[#E07A5F] text-white border-[#E07A5F] shadow-sm scale-[1.01]"
+                  : "bg-white text-stone-700 border-[#F2E5DF] hover:bg-[#FFF9F6]"
               }`}
             >
-              {m.label}
+              <div
+                className={`w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0 ${
+                  isActive ? "bg-white/20" : "bg-[#FFF2EB]"
+                }`}
+              >
+                {m.icon}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className={`text-xs font-bold leading-tight truncate ${isActive ? "text-white" : "text-stone-800"}`}>
+                  {m.label}
+                </p>
+                <p className={`text-[10px] leading-tight mt-0.5 truncate ${isActive ? "text-white/80" : "text-stone-400"}`}>
+                  {m.desc}
+                </p>
+              </div>
             </button>
           );
         })}
       </nav>
 
-      {/* AKTÍV NÉZET */}
+      {/* 4. AKTÍV NÉZET */}
       <main className="px-4">
         <Active />
       </main>
