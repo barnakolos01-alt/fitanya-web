@@ -60,7 +60,7 @@ function PwaContent() {
 
   const Active = (MODULES.find((m) => m.key === activeTab) || MODULES[0]).Comp;
 
-  // HÉTFŐ REGGEL 8:00 UTÁNI INTELLIGENS FELUGRÓ ELLENŐRZÉS
+  // HÉTFŐ REGGEL 8:00 UTÁNI INTELLIGENS FELUGRÓ
   useEffect(() => {
     try {
       const now = new Date();
@@ -123,7 +123,7 @@ function PwaContent() {
     } else if (isIos) {
       setShowIosModal(true);
     } else {
-      alert("A böngésződ menüjében válaszd a 'Hozzáadás a kezdőképernyőhöz' vagy 'Telepítés' lehetőséget!");
+      alert("A böngésződ menüjében válaszd az 'Alkalmazás telepítése' vagy 'Hozzáadás a kezdőképernyőhöz' lehetőséget!");
     }
   };
 
@@ -136,10 +136,10 @@ function PwaContent() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen pb-12 relative bg-[#FDFBF7]" style={{ fontFamily: sans }}>
-      {/* 1. TELEPÍTÉSI SÁV VISSZAÁLLÍTVA */}
+      {/* 1. TELEPÍTÉSI SÁV - ÉRTHETŐ "LETÖLTÉS" SZÖVEGEZÉSSEL */}
       {!isStandalone && !bannerDismissed && (
         <aside
-          aria-label="Kezdőképernyőre kitűzés"
+          aria-label="Alkalmazás letöltése"
           className="bg-[#FFF9F5] border-b border-[#F0DCD4] px-4 py-2.5 flex items-center justify-between gap-2 shadow-xs select-none"
         >
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -147,7 +147,7 @@ function PwaContent() {
               <Smartphone size={15} />
             </div>
             <p className="text-[12px] text-[#2D3748] truncate">
-              Tedd ki a <strong>kezdőképernyőre</strong> a gyors eléréshez!
+              <strong>Töltsd le telefonra</strong> a gyors, 1-kattintásos eléréshez!
             </p>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
@@ -157,7 +157,7 @@ function PwaContent() {
               className="text-[11px] font-bold px-3 py-1.5 rounded-xl text-white shadow-xs cursor-pointer flex items-center gap-1"
               style={{ backgroundColor: C.coral }}
             >
-              <Download size={12} /> Kitűzés
+              <Download size={12} /> Letöltés
             </button>
             <button
               type="button"
@@ -171,7 +171,7 @@ function PwaContent() {
         </aside>
       )}
 
-      {/* 2. FEJLÉC */}
+      {/* 2. FEJLÉC - LETÖLTÉS GOMBBAL */}
       <header className="px-5 pt-5 pb-3 flex items-center justify-between gap-3">
         <div>
           <span className="text-[11px] font-semibold tracking-wider text-[#C3634C] uppercase flex items-center gap-1">
@@ -189,7 +189,7 @@ function PwaContent() {
               onClick={handleInstallClick}
               className="text-[11px] font-semibold px-2.5 py-1.5 rounded-full border border-[#F0DCD4] bg-[#FFF5F0] text-[#E07A5F] hover:bg-[#FDE8E1] transition-all flex items-center gap-1 shadow-xs cursor-pointer"
             >
-              <Download size={12} /> Kitűzés
+              <Download size={12} /> Letöltés
             </button>
           )}
           <button
@@ -203,7 +203,7 @@ function PwaContent() {
         </div>
       </header>
 
-      {/* 3. ÚJ 2×2-ES FUNKCIÓVÁLASZTÓ KÁRTYÁK (HELYTAKARÉKOS, TISZTA, EGYÉRTELMŰ) */}
+      {/* 3. 2×2-ES FUNKCIÓVÁLASZTÓ KÁRTYÁK */}
       <nav className="px-4 grid grid-cols-2 gap-2 mb-5 select-none">
         {MODULES.map((m) => {
           const isActive = activeTab === m.key;
@@ -243,7 +243,7 @@ function PwaContent() {
         <Active />
       </main>
 
-      {/* HÉTFŐ REGGELI KEDVES MOTIVÁCIÓS MODAL */}
+      {/* HÉTFŐ REGGELI MOTIVÁCIÓS MODAL */}
       {showMondayModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white max-w-sm w-full rounded-3xl p-6 shadow-2xl border border-[#F5DED7] animate-in fade-in zoom-in-95">
@@ -277,6 +277,8 @@ function PwaContent() {
       {/* MODALOK */}
       <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
       <PaywallModal />
+
+      {/* iPHONE SEGÉD MODAL - ÉRTHETŐ LÉPÉSEKKEL */}
       {showIosModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white max-w-sm w-full rounded-3xl p-6 shadow-2xl relative border border-[#F0DCD4]">
@@ -288,10 +290,10 @@ function PwaContent() {
               <X size={18} />
             </button>
             <h3 style={{ fontFamily: serif }} className="font-bold text-lg text-[#2D3748] mb-2">
-              Kitűzés iPhone-on
+              App letöltése iPhone-ra
             </h3>
             <p className="text-xs text-[#6B5A52] leading-relaxed mb-4">
-              Koppints a Safari alsó sávjában a <strong>Megosztás</strong> ikonra (<Share size={13} className="inline text-[#E07A5F]" />), majd válaszd a <strong>„Főképernyőhöz adás”</strong> (<PlusSquare size={13} className="inline text-[#E07A5F]" />) lehetőséget!
+              Koppints a Safari alsó sávjában a <strong>Megosztás</strong> ikonra (<Share size={13} className="inline text-[#E07A5F]" />), majd válaszd a <strong>„Főképernyőhöz adás”</strong> (<PlusSquare size={13} className="inline text-[#E07A5F]" />) lehetőséget az azonnali letöltéshez!
             </p>
             <button
               type="button"
