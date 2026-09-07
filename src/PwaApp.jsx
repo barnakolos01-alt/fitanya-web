@@ -47,7 +47,16 @@ function PwaContent() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [showInstallGuideModal, setShowInstallGuideModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  
+  // AUTOMATIKUS ONBOARDING: Ha még nincs elmentett profil/teszt adat, azonnal kinyitjuk a modalt
+  const [showSettingsModal, setShowSettingsModal] = useState(() => {
+    try {
+      return !localStorage.getItem("fa_form");
+    } catch {
+      return false;
+    }
+  });
+
   const [showMondayModal, setShowMondayModal] = useState(false);
 
   const [bannerDismissed, setBannerDismissed] = useState(() => {
@@ -115,8 +124,7 @@ function PwaContent() {
     return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   }, []);
 
-  // HÜLYEBIZTOS KATTINTÁSKEZELŐ:
-  // Soha nem ragad le néma kattintásnál, és nem használ blokkolt alert()-et
+  // HÜLYEBIZTOS KATTINTÁSKEZELŐ
   const handleInstallClick = async () => {
     if (deferredPrompt) {
       try {
@@ -129,7 +137,6 @@ function PwaContent() {
         setShowInstallGuideModal(true);
       }
     } else {
-      // Ha WebView (Facebook/Instagram), Safari vagy nem támogatott böngésző:
       setShowInstallGuideModal(true);
     }
   };
