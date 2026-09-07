@@ -7,6 +7,7 @@ import HydrationEngine from "./components/modules/HydrationEngine";
 import InteractivePlateBuilder from "./components/modules/InteractivePlateBuilder";
 import SettingsModal from "./components/ui/SettingsModal";
 import PaywallModal from "./components/ui/PaywallModal";
+import FullQuizModal from "./components/ui/FullQuizModal";
 import WeeklySummaryCard from "./components/ui/WeeklySummaryCard";
 import { Smartphone, Download, Share, PlusSquare, X, Settings, Sparkles, Heart, MoreVertical, Check } from "lucide-react";
 
@@ -47,9 +48,10 @@ function PwaContent() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [showInstallGuideModal, setShowInstallGuideModal] = useState(false);
-  
-  // AUTOMATIKUS ONBOARDING: Ha még nincs elmentett profil/teszt adat, azonnal kinyitjuk a modalt
-  const [showSettingsModal, setShowSettingsModal] = useState(() => {
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+  // TELJES AUDIT ONBOARDING: Ha nincs kitöltve teszt adat, a 7 lépéses audit ugrik fel!
+  const [showFullQuizModal, setShowFullQuizModal] = useState(() => {
     try {
       return !localStorage.getItem("fa_form");
     } catch {
@@ -73,7 +75,7 @@ function PwaContent() {
   useEffect(() => {
     try {
       const now = new Date();
-      const dayOfWeek = now.getDay(); // 1 = Hétfő
+      const dayOfWeek = now.getDay();
       const currentHour = now.getHours();
 
       const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
@@ -124,7 +126,6 @@ function PwaContent() {
     return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   }, []);
 
-  // HÜLYEBIZTOS KATTINTÁSKEZELŐ
   const handleInstallClick = async () => {
     if (deferredPrompt) {
       try {
@@ -217,7 +218,7 @@ function PwaContent() {
         </div>
       </header>
 
-      {/* 3. 2×2-ES FUNKCIÓVÁLASZTÓ KÁRTYÁK */}
+      {/* 3. FUNKCIÓVÁLASZTÓ KÁRTYÁK */}
       <nav className="px-4 grid grid-cols-2 gap-2 mb-5 select-none">
         {MODULES.map((m) => {
           const isActive = activeTab === m.key;
@@ -288,11 +289,12 @@ function PwaContent() {
         </div>
       )}
 
-      {/* MODALOK */}
+      {/* MODALOK: TELJES AUDIT ONBOARDING, BEÁLLÍTÁSOK ÉS PAYWALL */}
+      <FullQuizModal isOpen={showFullQuizModal} onClose={() => setShowFullQuizModal(false)} />
       <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
       <PaywallModal />
 
-      {/* UNIVERZÁLIS, HÜLYEBIZTOS TELEPÍTÉSI ÚTMUTATÓ MODAL */}
+      {/* TELEPÍTÉSI ÚTMUTATÓ MODAL */}
       {showInstallGuideModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white max-w-sm w-full rounded-3xl p-6 shadow-2xl relative border border-[#F0DCD4] max-h-[90vh] overflow-y-auto">
@@ -317,7 +319,6 @@ function PwaContent() {
               </p>
             </div>
 
-            {/* ANDROID / FACEBOOK / CHROME ÚTMUTATÓ */}
             <div className={`p-3.5 rounded-2xl border mb-3 text-left ${!isIos ? "bg-[#FFF9F5] border-[#F0DCD4]" : "bg-[#FDFBF7] border-stone-200 opacity-80"}`}>
               <div className="flex items-center gap-1.5 mb-1.5">
                 <span className="text-xs font-bold text-[#E07A5F]">🤖 Android / Facebook böngésző:</span>
@@ -329,12 +330,11 @@ function PwaContent() {
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span className="font-bold text-[#E07A5F]">2.</span>
-                  <span>Válaszd a <strong>„Hozzáadás a kezdőképernyőhöz”</strong> vagy <strong>„Alkalmazás telepítése”</strong> (Facebookban: <em>„Megnyitás böngészőben”</em>) sort!</span>
+                  <span>Válaszd a <strong>„Hozzáadás a kezdőképernyőhöz”</strong> lehetőséget!</span>
                 </li>
               </ol>
             </div>
 
-            {/* IPHONE (SAFARI) ÚTMUTATÓ */}
             <div className={`p-3.5 rounded-2xl border mb-4 text-left ${isIos ? "bg-[#FFF9F5] border-[#F0DCD4]" : "bg-[#FDFBF7] border-stone-200 opacity-80"}`}>
               <div className="flex items-center gap-1.5 mb-1.5">
                 <span className="text-xs font-bold text-[#2D3748]">🍏 iPhone (Safari):</span>
@@ -351,7 +351,6 @@ function PwaContent() {
               </ol>
             </div>
 
-            {/* BIZTONSÁGI MEGERŐSÍTÉS */}
             <div className="flex items-center justify-center gap-1.5 bg-[#F0F5F1] text-[#526356] py-2 px-3 rounded-xl mb-4 text-[11px] font-medium">
               <Check size={14} className="text-[#7C9885] shrink-0" />
               <span>Letöltés nélkül, közvetlenül innen is működik!</span>
