@@ -43,7 +43,7 @@ const MODULES = [
 ];
 
 function PwaContent() {
-  const { activeTab, setActiveTab } = useFitAnya();
+  const { activeTab, setActiveTab, isPremium, setIsPaywallOpen } = useFitAnya();
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIos, setIsIos] = useState(false);
@@ -198,6 +198,18 @@ function PwaContent() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {/* PRÉMIUM AKTIVÁLÁSA GOMB NEM-ELŐFIZETŐKNEK */}
+          {!isPremium && (
+            <button
+              type="button"
+              onClick={() => setIsPaywallOpen(true)}
+              className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-[#E07A5F] to-[#C3634C] text-white shadow-xs hover:opacity-95 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Sparkles size={12} />
+              <span>7 nap 0 Ft</span>
+            </button>
+          )}
+
           {!isStandalone && (
             <button
               type="button"
@@ -207,6 +219,7 @@ function PwaContent() {
               <Download size={12} /> Letöltés
             </button>
           )}
+
           <button
             type="button"
             onClick={() => setShowSettingsModal(true)}
