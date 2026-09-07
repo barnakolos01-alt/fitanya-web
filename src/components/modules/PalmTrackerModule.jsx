@@ -120,7 +120,7 @@ export default function PalmTrackerModule() {
     return tags.join(", ");
   };
 
-  // OKOS ÉRTÉKELÉS: JÓ VÁLASZTÁS-E?
+  // OKOS ÉRTÉKELÉS
   const getDishFeedback = () => {
     if (!selectedDish) return null;
     const { protein, veg, carb, fat } = customDelta;
@@ -176,73 +176,65 @@ export default function PalmTrackerModule() {
 
         {/* TALÁLATI LISTA */}
         {query.trim().length >= 2 && !selectedDish && (
-          <div className="mt-3 space-y-1.5 animate-in fade-in">
-            {matchingDishes.length > 0 ? (
-              <>
-                {matchingDishes.map((dish) => {
-                  const isCustom = String(dish.id).startsWith("ai_");
-                  return (
-                    <button
-                      key={dish.id}
-                      type="button"
-                      onClick={() => handleSelectDish(dish)}
-                      className="w-full text-left p-3 rounded-2xl bg-[#FFFDFB] hover:bg-[#FFF5F0] border border-[#F5EBE6] flex items-center justify-between cursor-pointer transition-all"
-                    >
-                      <div className="min-w-0 pr-2">
-                        <p className="text-xs font-bold text-stone-800 truncate">{dish.name}</p>
-                        <p className="text-[10px] text-stone-400 mt-0.5">
-                          🖐️ {dish.delta.protein} Fehérje | ✊ {dish.delta.veg} Rost | 🤲 {dish.delta.carb} Szénhidrát | 👍 {dish.delta.fat} Zsír
-                        </p>
-                      </div>
-                      <span className="text-[11px] font-semibold text-[#E07A5F] px-2.5 py-1 rounded-xl bg-white border border-[#F5DED7] shrink-0">
-                        Kiválasztom
-                      </span>
-                    </button>
-                  );
-                })}
+          <div className="mt-3 space-y-2 animate-in fade-in">
+            {/* 0. ELEM: AZ AI GOMB LEGFELÜL */}
+            <button
+              type="button"
+              onClick={handleAskClaude}
+              disabled={isAiLoading}
+              className="w-full p-3 rounded-2xl bg-gradient-to-r from-[#FFF5F0] via-[#FDE8E1] to-[#FFF5F0] hover:opacity-95 border border-[#E07A5F] text-[#C3634C] text-xs font-bold flex items-center justify-between shadow-xs cursor-pointer transition-all"
+            >
+              <div className="flex items-center gap-2 truncate">
+                <Sparkles size={15} className="text-[#E07A5F] shrink-0 animate-spin-slow" />
+                <span className="truncate">
+                  Nem találod? Kiszámolom AI-val: <strong>"{query}"</strong>
+                </span>
+              </div>
+              <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-[#E07A5F] text-white shrink-0 ml-2 shadow-xs">
+                {isAiLoading ? <Loader2 size={12} className="animate-spin inline" /> : "AI Számolás ✨"}
+              </span>
+            </button>
 
+            {/* KATALÓGUS TALÁLATOK AZ AI GOMB ALATT */}
+            {matchingDishes.length > 0 ? (
+              <div className="space-y-1.5 pt-1">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-1">
+                  Vagy válassz a mentett receptekből:
+                </p>
+                {matchingDishes.map((dish) => (
+                  <button
+                    key={dish.id}
+                    type="button"
+                    onClick={() => handleSelectDish(dish)}
+                    className="w-full text-left p-3 rounded-2xl bg-[#FFFDFB] hover:bg-[#FFF5F0] border border-[#F5EBE6] flex items-center justify-between cursor-pointer transition-all"
+                  >
+                    <div className="min-w-0 pr-2">
+                      <p className="text-xs font-bold text-stone-800 truncate">{dish.name}</p>
+                      <p className="text-[10px] text-stone-400 mt-0.5">
+                        🖐️ {dish.delta.protein} Fehérje | ✊ {dish.delta.veg} Rost | 🤲 {dish.delta.carb} Szénhidrát | 👍 {dish.delta.fat} Zsír
+                      </p>
+                    </div>
+                    <span className="text-[11px] font-semibold text-[#E07A5F] px-2.5 py-1 rounded-xl bg-white border border-[#F5DED7] shrink-0">
+                      Kiválasztom
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="p-3 bg-[#FFF9F6] rounded-2xl border border-[#F5DED7] text-center">
+                <p className="text-xs text-stone-600 mb-2">
+                  Nincs ilyen recept az alaplistában. Használd a fenti AI gombot, vagy állítsd be kézzel:
+                </p>
                 <button
                   type="button"
-                  onClick={handleAskClaude}
-                  disabled={isAiLoading}
-                  className="w-full mt-2 p-2.5 rounded-2xl bg-[#FFF5F0] hover:bg-[#FDE8E1] border border-dashed border-[#E07A5F] text-[#C3634C] text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+                  onClick={() => {
+                    setIsCustomMode(true);
+                    setSelectedDish(null);
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 hover:bg-stone-50"
                 >
-                  {isAiLoading ? (
-                    <>
-                      <Loader2 size={13} className="animate-spin text-[#E07A5F]" /> Elemzés folyamatban...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={13} className="text-[#E07A5F]" /> Nem találod? Kiszámolom AI-val: <strong>"{query}"</strong>
-                    </>
-                  )}
+                  <Sliders size={12} /> Kézi tenyér-beállítás
                 </button>
-              </>
-            ) : (
-              <div className="p-3.5 bg-[#FFF9F6] rounded-2xl border border-[#F5DED7] text-center">
-                <p className="text-xs text-stone-700 font-medium mb-2">
-                  Nem szerepel az alaplistában: <strong>"{query}"</strong>
-                </p>
-                <div className="flex gap-2 justify-center">
-                  <button
-                    type="button"
-                    onClick={handleAskClaude}
-                    disabled={isAiLoading}
-                    className="px-3.5 py-2 rounded-xl bg-[#E07A5F] text-white font-semibold text-xs flex items-center gap-1 cursor-pointer"
-                  >
-                    <Sparkles size={12} /> Kiszámolom AI-val ✨
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsCustomMode(true);
-                      setSelectedDish(null);
-                    }}
-                    className="px-3 py-2 rounded-xl bg-white border border-stone-200 text-stone-600 text-xs font-medium cursor-pointer"
-                  >
-                    <Sliders size={12} /> Kézzel állítom
-                  </button>
-                </div>
               </div>
             )}
           </div>
@@ -251,7 +243,6 @@ export default function PalmTrackerModule() {
         {/* KIVÁLASZTOTT ÉTEL ADAG- ÉS ÉRTÉKELŐ KÁRTYA */}
         {selectedDish && (
           <div className="mt-3 rounded-2xl p-4 bg-[#FFF9F6] border border-[#F5DED7] animate-in fade-in space-y-3">
-            {/* Fejléc */}
             <div className="flex items-center justify-between pb-2 border-b border-[#F0DCD4]">
               <div>
                 <span className="text-[10px] font-bold text-[#E07A5F] uppercase tracking-wider">
@@ -272,7 +263,6 @@ export default function PalmTrackerModule() {
               </button>
             </div>
 
-            {/* A 4 Tenyér érték lágy dobozkákban */}
             <div>
               <p className="text-[11px] font-semibold text-stone-600 mb-1.5">
                 Ezt vonjuk le a mai tányérodról:
@@ -309,7 +299,6 @@ export default function PalmTrackerModule() {
               </div>
             </div>
 
-            {/* JÓ VÁLASZTÁS-E? VISSZAJELZŐ DOBOZ */}
             {feedback && (
               <div
                 className={`p-3 rounded-xl border text-xs space-y-1 ${
@@ -330,14 +319,12 @@ export default function PalmTrackerModule() {
               </div>
             )}
 
-            {/* Szakmai tálalási tipp */}
             {selectedDish.tip && (
               <p className="text-xs text-stone-600 leading-relaxed bg-white p-2.5 rounded-xl border border-[#F5EBE6]">
                 💡 <strong>Tipp:</strong> {selectedDish.tip}
               </p>
             )}
 
-            {/* Levonás gomb */}
             <button
               type="button"
               onClick={handleLog}
