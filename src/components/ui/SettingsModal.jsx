@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { X, Settings, Check, Sparkles } from "lucide-react";
+import { X, Settings, Check, Sparkles, CreditCard, ExternalLink } from "lucide-react";
 import { C, serif } from "../../styles/tokens";
 import { useFitAnya } from "../../context/FitAnyaContext";
+
+// HIVATALOS STRIPE CUSTOMER PORTAL LINK (LEMONDÁS, SZÁMLÁK, KÁRTYACSERE)
+const STRIPE_CUSTOMER_PORTAL_URL = "https://billing.stripe.com/p/login/7sY00l4y4cHZ3Lf4Hq9ws00";
 
 export default function SettingsModal({ isOpen, onClose }) {
   const { profile, updateProfile } = useFitAnya();
@@ -74,7 +77,7 @@ export default function SettingsModal({ isOpen, onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-white max-w-sm w-full rounded-3xl p-6 shadow-2xl relative border border-[#F0DCD4]"
+        className="bg-white max-w-sm w-full rounded-3xl p-6 shadow-2xl relative border border-[#F0DCD4] max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* BEZÁRÁS GOMB */}
@@ -180,7 +183,8 @@ export default function SettingsModal({ isOpen, onClose }) {
               checked={breastfeeding}
               onChange={(e) => setBreastfeeding(e.target.checked)}
               className="w-5 h-5 accent-[#E07A5F] rounded cursor-pointer"
-            />
+            >
+            </input>
           </div>
 
           {/* MENTÉS GOMB */}
@@ -201,6 +205,25 @@ export default function SettingsModal({ isOpen, onClose }) {
             )}
           </button>
         </form>
+
+        {/* ELŐFIZETÉS KEZELÉSE & LEMONDÁSA BLOKK */}
+        <div className="pt-4 border-t border-stone-100 mt-5 text-center">
+          <p className="text-[11px] font-semibold text-stone-600 mb-2 flex items-center justify-center gap-1.5">
+            <CreditCard size={13} className="text-[#E07A5F]" /> Prémium előfizetés & számlázás
+          </p>
+          <a
+            href={STRIPE_CUSTOMER_PORTAL_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-2.5 px-3 bg-[#FAF7F5] hover:bg-[#F3ECE8] border border-[#EAE2DC] rounded-xl text-xs font-semibold text-stone-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <span>Előfizetés kezelése vagy lemondása</span>
+            <ExternalLink size={12} className="text-stone-400" />
+          </a>
+          <p className="text-[10px] text-stone-400 mt-1.5 leading-relaxed">
+            1 kattintásos lemondás, kártyacsere és korábbi számlák letöltése a hivatalos Stripe felületen.
+          </p>
+        </div>
       </div>
     </div>
   );
