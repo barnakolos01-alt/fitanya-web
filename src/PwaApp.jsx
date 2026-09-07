@@ -8,7 +8,7 @@ import InteractivePlateBuilder from "./components/modules/InteractivePlateBuilde
 import SettingsModal from "./components/ui/SettingsModal";
 import PaywallModal from "./components/ui/PaywallModal";
 import WeeklySummaryCard from "./components/ui/WeeklySummaryCard";
-import { Smartphone, Download, Share, PlusSquare, X, Settings, Sparkles, Heart } from "lucide-react";
+import { Smartphone, Download, Share, PlusSquare, X, Settings, Sparkles, Heart, MoreVertical, Check } from "lucide-react";
 
 const MODULES = [
   { 
@@ -46,7 +46,7 @@ function PwaContent() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIos, setIsIos] = useState(false);
-  const [showIosModal, setShowIosModal] = useState(false);
+  const [showInstallGuideModal, setShowInstallGuideModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showMondayModal, setShowMondayModal] = useState(false);
 
@@ -115,15 +115,22 @@ function PwaContent() {
     return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   }, []);
 
+  // HÜLYEBIZTOS KATTINTÁSKEZELŐ:
+  // Soha nem ragad le néma kattintásnál, és nem használ blokkolt alert()-et
   const handleInstallClick = async () => {
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") setDeferredPrompt(null);
-    } else if (isIos) {
-      setShowIosModal(true);
+      try {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          setDeferredPrompt(null);
+        }
+      } catch (err) {
+        setShowInstallGuideModal(true);
+      }
     } else {
-      alert("A böngésződ menüjében válaszd az 'Alkalmazás telepítése' vagy 'Hozzáadás a kezdőképernyőhöz' lehetőséget!");
+      // Ha WebView (Facebook/Instagram), Safari vagy nem támogatott böngésző:
+      setShowInstallGuideModal(true);
     }
   };
 
@@ -136,7 +143,7 @@ function PwaContent() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen pb-12 relative bg-[#FDFBF7]" style={{ fontFamily: sans }}>
-      {/* 1. TELEPÍTÉSI SÁV - ÉRTHETŐ "LETÖLTÉS" SZÖVEGEZÉSSEL */}
+      {/* 1. TELEPÍTÉSI SÁV */}
       {!isStandalone && !bannerDismissed && (
         <aside
           aria-label="Alkalmazás letöltése"
@@ -154,7 +161,7 @@ function PwaContent() {
             <button
               type="button"
               onClick={handleInstallClick}
-              className="text-[11px] font-bold px-3 py-1.5 rounded-xl text-white shadow-xs cursor-pointer flex items-center gap-1"
+              className="text-[11px] font-bold px-3 py-1.5 rounded-xl text-white shadow-xs cursor-pointer flex items-center gap-1 hover:opacity-95 transition-opacity"
               style={{ backgroundColor: C.coral }}
             >
               <Download size={12} /> Letöltés
@@ -171,7 +178,7 @@ function PwaContent() {
         </aside>
       )}
 
-      {/* 2. FEJLÉC - LETÖLTÉS GOMBBAL */}
+      {/* 2. FEJLÉC */}
       <header className="px-5 pt-5 pb-3 flex items-center justify-between gap-3">
         <div>
           <span className="text-[11px] font-semibold tracking-wider text-[#C3634C] uppercase flex items-center gap-1">
@@ -278,29 +285,77 @@ function PwaContent() {
       <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
       <PaywallModal />
 
-      {/* iPHONE SEGÉD MODAL - ÉRTHETŐ LÉPÉSEKKEL */}
-      {showIosModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white max-w-sm w-full rounded-3xl p-6 shadow-2xl relative border border-[#F0DCD4]">
+      {/* UNIVERZÁLIS, HÜLYEBIZTOS TELEPÍTÉSI ÚTMUTATÓ MODAL */}
+      {showInstallGuideModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white max-w-sm w-full rounded-3xl p-6 shadow-2xl relative border border-[#F0DCD4] max-h-[90vh] overflow-y-auto">
             <button
               type="button"
-              onClick={() => setShowIosModal(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 p-1.5"
+              onClick={() => setShowInstallGuideModal(false)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 p-1.5 cursor-pointer rounded-full bg-[#FDFBF7]"
+              title="Bezárás"
             >
               <X size={18} />
             </button>
-            <h3 style={{ fontFamily: serif }} className="font-bold text-lg text-[#2D3748] mb-2">
-              App letöltése iPhone-ra
-            </h3>
-            <p className="text-xs text-[#6B5A52] leading-relaxed mb-4">
-              Koppints a Safari alsó sávjában a <strong>Megosztás</strong> ikonra (<Share size={13} className="inline text-[#E07A5F]" />), majd válaszd a <strong>„Főképernyőhöz adás”</strong> (<PlusSquare size={13} className="inline text-[#E07A5F]" />) lehetőséget az azonnali letöltéshez!
-            </p>
+
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#FFF5F0] text-[#E07A5F] flex items-center justify-center mx-auto mb-2">
+                <Smartphone size={24} />
+              </div>
+              <h3 style={{ fontFamily: serif }} className="font-bold text-lg text-[#2D3748]">
+                Hogyan tedd ki a mobilodra?
+              </h3>
+              <p className="text-xs text-[#6B5A52] mt-1">
+                Nem kell letöltened semmit az áruházból: 2 egyszerű lépéssel kint lesz az ikonja a telefonodon!
+              </p>
+            </div>
+
+            {/* ANDROID / FACEBOOK / CHROME ÚTMUTATÓ */}
+            <div className={`p-3.5 rounded-2xl border mb-3 text-left ${!isIos ? "bg-[#FFF9F5] border-[#F0DCD4]" : "bg-[#FDFBF7] border-stone-200 opacity-80"}`}>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className="text-xs font-bold text-[#E07A5F]">🤖 Android / Facebook böngésző:</span>
+              </div>
+              <ol className="text-xs text-[#4A5568] space-y-1.5 pl-1">
+                <li className="flex items-start gap-1.5">
+                  <span className="font-bold text-[#E07A5F]">1.</span>
+                  <span>Koppints a jobb felső sarokban a <strong>három pontra (<MoreVertical size={13} className="inline text-[#E07A5F]" />)</strong>.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="font-bold text-[#E07A5F]">2.</span>
+                  <span>Válaszd a <strong>„Hozzáadás a kezdőképernyőhöz”</strong> vagy <strong>„Alkalmazás telepítése”</strong> (Facebookban: <em>„Megnyitás böngészőben”</em>) sort!</span>
+                </li>
+              </ol>
+            </div>
+
+            {/* IPHONE (SAFARI) ÚTMUTATÓ */}
+            <div className={`p-3.5 rounded-2xl border mb-4 text-left ${isIos ? "bg-[#FFF9F5] border-[#F0DCD4]" : "bg-[#FDFBF7] border-stone-200 opacity-80"}`}>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className="text-xs font-bold text-[#2D3748]">🍏 iPhone (Safari):</span>
+              </div>
+              <ol className="text-xs text-[#4A5568] space-y-1.5 pl-1">
+                <li className="flex items-start gap-1.5">
+                  <span className="font-bold text-[#E07A5F]">1.</span>
+                  <span>Koppints lenn a <strong>Megosztás (<Share size={13} className="inline text-[#E07A5F]" />)</strong> gombra.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="font-bold text-[#E07A5F]">2.</span>
+                  <span>Görgess le és válaszd a <strong>„Főképernyőhöz adás” (<PlusSquare size={13} className="inline text-[#E07A5F]" />)</strong> lehetőséget!</span>
+                </li>
+              </ol>
+            </div>
+
+            {/* BIZTONSÁGI MEGERŐSÍTÉS */}
+            <div className="flex items-center justify-center gap-1.5 bg-[#F0F5F1] text-[#526356] py-2 px-3 rounded-xl mb-4 text-[11px] font-medium">
+              <Check size={14} className="text-[#7C9885] shrink-0" />
+              <span>Letöltés nélkül, közvetlenül innen is működik!</span>
+            </div>
+
             <button
               type="button"
-              onClick={() => setShowIosModal(false)}
-              className="w-full py-3 rounded-xl font-bold text-xs text-white bg-[#E07A5F] cursor-pointer"
+              onClick={() => setShowInstallGuideModal(false)}
+              className="w-full py-3 rounded-2xl font-bold text-xs text-white bg-[#E07A5F] shadow-sm cursor-pointer hover:opacity-95 transition-opacity"
             >
-              Értem, megcsinálom!
+              Értem, használom az appot! ✨
             </button>
           </div>
         </div>
