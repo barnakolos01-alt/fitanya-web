@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { X, Sparkles, Check, Lock, ArrowRight, ShieldCheck, Crown, Loader2 } from "lucide-react";
+import { X, Sparkles, Check, Lock, ArrowRight, ShieldCheck, Crown, Loader2, ChevronDown } from "lucide-react";
 import { C, serif } from "../../styles/tokens";
 import { useFitAnya, MAX_FREE_AI_CREDITS } from "../../context/FitAnyaContext";
 
-// A TE ÉLES STRIPE FIZETÉSI LINKED
+// A HAVI ELŐFIZETÉSES STRIPE LINKED (2 490 FT / HÓ)
 const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/14AbJ36Gc8rJ4Pja1K9ws04";
 
 export default function PaywallModal() {
@@ -12,6 +12,7 @@ export default function PaywallModal() {
   const [loadingCode, setLoadingCode] = useState(false);
   const [promoError, setPromoError] = useState(false);
   const [promoSuccess, setPromoSuccess] = useState(false);
+  const [showPromoInput, setShowPromoInput] = useState(false);
 
   if (!isPaywallOpen) return null;
 
@@ -24,7 +25,6 @@ export default function PaywallModal() {
     setPromoError(false);
 
     try {
-      // Biztonságos backend ellenőrzés (a frontend kódban nincsenek kódok!)
       const res = await fetch("/api/verify-vip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -69,88 +69,111 @@ export default function PaywallModal() {
           <Lock size={12} /> {aiUsageCount}/{MAX_FREE_AI_CREDITS} ingyenes AI próba felhasználva
         </div>
 
-        <h2 style={{ fontFamily: serif }} className="text-xl font-bold text-stone-900 mb-2 leading-snug">
-          Legyen saját digitális séfed a zsebedben minden nap!
+        <h2 style={{ fontFamily: serif }} className="text-xl font-bold text-stone-900 mb-1.5 leading-snug">
+          Legyen saját digitális séfed a zsebedben minden nap! ✨
         </h2>
 
         <p className="text-xs text-stone-600 leading-relaxed mb-4">
-          A FitAnya alapprogram ingyenes. A mesterséges intelligenciával működő konyhai funkciók a <strong>Prémium Zsebedző</strong> részei.
+          Az ingyenes funkciók örökre veled maradnak. A mesterséges intelligenciával működő, stresszmentes konyhai copilot a <strong>Prémium Zsebedző</strong> része.
         </p>
 
         {/* ÉRTÉKEK */}
-        <div className="space-y-2.5 mb-5 text-xs text-stone-700 bg-[#FFFDFB] p-3.5 rounded-2xl border border-[#F5EBE6]">
+        <div className="space-y-2.5 mb-4 text-xs text-stone-700 bg-[#FFFDFB] p-3.5 rounded-2xl border border-[#F5EBE6]">
           <div className="flex items-start gap-2.5">
             <div className="w-5 h-5 rounded-full bg-[#F0F5F1] text-[#7C9885] flex items-center justify-center shrink-0 mt-0.5">
               <Check size={12} />
             </div>
-            <span><strong>Korlátlan Hűtőmentő:</strong> 0 kidobott étel, azonnali vacsoraötletek a családnak.</span>
+            <span><strong>Korlátlan AI Hűtőmentő:</strong> azonnali családi vacsora abból, ami épp otthon van.</span>
           </div>
 
           <div className="flex items-start gap-2.5">
             <div className="w-5 h-5 rounded-full bg-[#F0F5F1] text-[#7C9885] flex items-center justify-center shrink-0 mt-0.5">
               <Check size={12} />
             </div>
-            <span><strong>Bármilyen étel azonnali elemzése:</strong> tenyér-számítás konyhamérleg nélkül.</span>
+            <span><strong>Bármilyen étel elemzése:</strong> tenyér-számítás másodpercek alatt konyhamérleg nélkül.</span>
           </div>
 
           <div className="flex items-start gap-2.5">
             <div className="w-5 h-5 rounded-full bg-[#F0F5F1] text-[#7C9885] flex items-center justify-center shrink-0 mt-0.5">
               <Check size={12} />
             </div>
-            <span><strong>Családi adagolási trükkök:</strong> nem kell kétfélét főznöd a diétád miatt.</span>
+            <span><strong>Zéró kidobott étel:</strong> több tízezer forintot spórol meg a havi bevásárláson.</span>
           </div>
         </div>
 
-        {/* STRIPE GOMB */}
+        {/* ÁR ÉS BIZALMI BLOKK */}
+        <div className="text-center mb-3.5 bg-[#FDFBF9] p-3 rounded-2xl border border-[#F0DCD4]">
+          <div className="flex items-baseline justify-center gap-1.5">
+            <span className="text-2xl font-bold text-[#2D3748]">2 490 Ft</span>
+            <span className="text-xs text-stone-500 font-medium">/ hónap</span>
+          </div>
+          <p className="text-[11px] text-[#E07A5F] font-bold mt-0.5">
+            Csak ~83 Ft naponta • Kevesebb, mint egyetlen kávé
+          </p>
+          <div className="flex items-center justify-center gap-3 text-[11px] text-[#526356] font-medium mt-1.5 pt-1.5 border-t border-stone-200/60">
+            <span>✓ Nincs hűségidő</span>
+            <span>•</span>
+            <span>✓ Bármikor 1 kattintással lemondható</span>
+          </div>
+        </div>
+
+        {/* FŐ CSEKVÉSRE ÖSZTÖNZŐ GOMB */}
         <a
           href={STRIPE_CHECKOUT_URL}
-          target="_blank"
-          rel="noopener noreferrer"
           className="w-full py-3.5 rounded-2xl font-bold text-xs text-white flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform active:scale-98 text-center mb-2"
           style={{ backgroundColor: C.coral }}
         >
-          <Sparkles size={15} /> Csatlakozom a Prémiumhoz (2 490 Ft / hó) <ArrowRight size={14} />
+          <Sparkles size={15} /> Csatlakozom a Prémiumhoz <ArrowRight size={14} />
         </a>
 
-        <div className="flex items-center justify-center gap-1.5 text-[10px] text-stone-400 mb-5">
-          <ShieldCheck size={12} /> Bármikor 1 kattintással lemondható • Biztonságos Stripe fizetés
+        <div className="flex items-center justify-center gap-1.5 text-[10px] text-stone-400 mb-4">
+          <ShieldCheck size={13} className="text-[#7C9885]" /> 14 napos pénzvisszafizetési garancia • Biztonságos Stripe
         </div>
 
-        {/* VIP FORM - LEBUKTATÓ MINTA NÉLKÜL */}
-        <form onSubmit={handleApplyCode} className="pt-3.5 border-t border-stone-100">
-          <p className="text-[11px] font-semibold text-stone-600 mb-1.5 flex items-center justify-center gap-1">
-            <Crown size={13} className="text-[#E07A5F]" /> Van VIP tagságod vagy kuponkódod?
-          </p>
-          <div className="flex gap-1.5">
-            <input
-              type="text"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
-              placeholder="Kuponkód beírása..."
-              className="flex-1 text-xs px-3 py-2 bg-stone-50 border rounded-xl outline-none uppercase font-mono"
-              style={{ borderColor: promoError ? "#E07A5F" : C.border }}
-            />
+        {/* DISZKRÉT, LENYITHATÓ KUPON/VIP MEZŐ */}
+        <div className="pt-2 border-t border-stone-100 text-center">
+          {!showPromoInput ? (
             <button
-              type="submit"
-              disabled={loadingCode}
-              className="px-3.5 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors disabled:opacity-50 flex items-center gap-1"
+              type="button"
+              onClick={() => setShowPromoInput(true)}
+              className="text-[11px] text-stone-400 hover:text-stone-600 flex items-center justify-center gap-1 mx-auto cursor-pointer"
             >
-              {loadingCode ? <Loader2 size={12} className="animate-spin" /> : "Aktiválás"}
+              <Crown size={12} /> Van már VIP hozzáférésed vagy kódod? <ChevronDown size={12} />
             </button>
-          </div>
+          ) : (
+            <form onSubmit={handleApplyCode} className="mt-2 animate-in fade-in">
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  placeholder="Kód beírása..."
+                  className="flex-1 text-xs px-3 py-1.5 bg-stone-50 border rounded-xl outline-none uppercase font-mono"
+                  style={{ borderColor: promoError ? "#E07A5F" : C.border }}
+                />
+                <button
+                  type="submit"
+                  disabled={loadingCode}
+                  className="px-3 py-1.5 bg-stone-800 hover:bg-stone-900 text-white rounded-xl text-xs font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                >
+                  {loadingCode ? <Loader2 size={12} className="animate-spin" /> : "Aktiválás"}
+                </button>
+              </div>
 
-          {promoSuccess && (
-            <p className="text-[11px] text-[#7C9885] font-bold mt-1.5 text-center animate-in fade-in">
-              ✓ VIP Hozzáférés sikeresen aktiválva!
-            </p>
-          )}
+              {promoSuccess && (
+                <p className="text-[11px] text-[#7C9885] font-bold mt-1 text-center">
+                  ✓ VIP Hozzáférés sikeresen aktiválva!
+                </p>
+              )}
 
-          {promoError && (
-            <p className="text-[10px] text-red-500 mt-1.5 text-center">
-              Érvénytelen kód. Ellenőrizd a betűket!
-            </p>
+              {promoError && (
+                <p className="text-[10px] text-red-500 mt-1 text-center">
+                  Érvénytelen kód. Ellenőrizd a betűket!
+                </p>
+              )}
+            </form>
           )}
-        </form>
+        </div>
       </div>
     </div>
   );
