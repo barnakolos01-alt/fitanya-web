@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Sparkles, Check, Lock, ArrowRight, ShieldCheck, Crown, Loader2, ChevronDown } from "lucide-react";
+import { X, Sparkles, Check, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 import { C, serif } from "../../styles/tokens";
 import { useFitAnya, MAX_FREE_AI_CREDITS } from "../../context/FitAnyaContext";
 
@@ -8,51 +8,12 @@ const STRIPE_MONTHLY_TRIAL_URL = "https://buy.stripe.com/14AbJ36Gc8rJ4Pja1K9ws04
 const STRIPE_ANNUAL_URL = "https://buy.stripe.com/5kQ4gB2pW8rJdlP1ve9ws05";        // Éves 19 900 Ft
 
 export default function PaywallModal() {
-  const { isPaywallOpen, setIsPaywallOpen, unlockPremium, aiUsageCount } = useFitAnya();
+  const { isPaywallOpen, setIsPaywallOpen, aiUsageCount } = useFitAnya();
   const [billingCycle, setBillingCycle] = useState("monthly"); // "monthly" | "yearly"
-  const [promoCode, setPromoCode] = useState("");
-  const [loadingCode, setLoadingCode] = useState(false);
-  const [promoError, setPromoError] = useState(false);
-  const [promoSuccess, setPromoSuccess] = useState(false);
-  const [showPromoInput, setShowPromoInput] = useState(false);
 
   if (!isPaywallOpen) return null;
 
   const activeCheckoutUrl = billingCycle === "monthly" ? STRIPE_MONTHLY_TRIAL_URL : STRIPE_ANNUAL_URL;
-
-  const handleApplyCode = async (e) => {
-    e.preventDefault();
-    const clean = promoCode.trim().toUpperCase();
-    if (!clean) return;
-
-    setLoadingCode(true);
-    setPromoError(false);
-
-    try {
-      const res = await fetch("/api/verify-vip", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: clean }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setPromoSuccess(true);
-        setTimeout(() => {
-          unlockPremium();
-          setPromoSuccess(false);
-        }, 1000);
-      } else {
-        setPromoError(true);
-        setTimeout(() => setPromoError(false), 2500);
-      }
-    } catch {
-      setPromoError(true);
-      setTimeout(() => setPromoError(false), 2500);
-    } finally {
-      setLoadingCode(false);
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-black/65 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200">
@@ -132,7 +93,7 @@ export default function PaywallModal() {
         </div>
 
         {/* ÁR & FELTÉTELEK DOBOZ */}
-        <div className="text-center mb-3.5 bg-[#FDFBF9] p-3 rounded-2xl border border-[#F0DCD4]">
+        <div className="text-center mb-4 bg-[#FDFBF9] p-3 rounded-2xl border border-[#F0DCD4]">
           {billingCycle === "monthly" ? (
             <>
               <div className="flex items-baseline justify-center gap-1.5">
@@ -166,7 +127,7 @@ export default function PaywallModal() {
         {/* DINAMIKUS AKCIÓGOMB */}
         <a
           href={activeCheckoutUrl}
-          className="w-full py-3.5 rounded-2xl font-bold text-xs text-white flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform active:scale-98 text-center mb-2"
+          className="w-full py-3.5 rounded-2xl font-bold text-xs text-white flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform active:scale-98 text-center mb-2.5"
           style={{ backgroundColor: C.coral }}
         >
           <Sparkles size={15} />
@@ -174,53 +135,9 @@ export default function PaywallModal() {
           <ArrowRight size={14} />
         </a>
 
-        <div className="flex items-center justify-center gap-1.5 text-[10px] text-stone-400 mb-4">
+        {/* BIZTONSÁGI ZÁRADÉK */}
+        <div className="flex items-center justify-center gap-1.5 text-[10px] text-stone-400">
           <ShieldCheck size={13} className="text-[#7C9885]" /> 14 napos elégedettségi garancia • Biztonságos Stripe
-        </div>
-
-        {/* DISZKRÉT KUPON/VIP MEZŐ */}
-        <div className="pt-2 border-t border-stone-100 text-center">
-          {!showPromoInput ? (
-            <button
-              type="button"
-              onClick={() => setShowPromoInput(true)}
-              className="text-[11px] text-stone-400 hover:text-stone-600 flex items-center justify-center gap-1 mx-auto cursor-pointer"
-            >
-              <Crown size={12} /> Van már VIP hozzáférésed vagy kódod? <ChevronDown size={12} />
-            </button>
-          ) : (
-            <form onSubmit={handleApplyCode} className="mt-2 animate-in fade-in">
-              <div className="flex gap-1.5">
-                <input
-                  type="text"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  placeholder="Kód beírása..."
-                  className="flex-1 text-xs px-3 py-1.5 bg-stone-50 border rounded-xl outline-none uppercase font-mono"
-                  style={{ borderColor: promoError ? "#E07A5F" : C.border }}
-                />
-                <button
-                  type="submit"
-                  disabled={loadingCode}
-                  className="px-3 py-1.5 bg-stone-800 hover:bg-stone-900 text-white rounded-xl text-xs font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1"
-                >
-                  {loadingCode ? <Loader2 size={12} className="animate-spin" /> : "Aktiválás"}
-                </button>
-              </div>
-
-              {promoSuccess && (
-                <p className="text-[11px] text-[#7C9885] font-bold mt-1 text-center">
-                  ✓ VIP Hozzáférés sikeresen aktiválva!
-                </p>
-              )}
-
-              {promoError && (
-                <p className="text-[10px] text-red-500 mt-1 text-center">
-                  Érvénytelen kód. Ellenőrizd a betűket!
-                </p>
-              )}
-            </form>
-          )}
         </div>
       </div>
     </div>
