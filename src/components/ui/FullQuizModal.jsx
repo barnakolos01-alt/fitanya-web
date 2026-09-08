@@ -168,7 +168,7 @@ export default function FullQuizModal({ isOpen, onClose }) {
     }, 1800);
   };
 
-  // VÉGSŐ BEKÜLDÉS ÉS SHEET SZINKRONIZÁLÁS
+  // VÉGSŐ BEKÜLDÉS ÉS SHEET SZINKRONIZÁLÁS + META PIXEL KÖVETÉS
   const handleFinalSubmit = async () => {
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail || !cleanEmail.includes("@") || !cleanEmail.includes(".")) {
@@ -187,7 +187,7 @@ export default function FullQuizModal({ isOpen, onClose }) {
       goal: form.goalWeight < form.weight ? "fogyas" : "szintentartas",
     };
 
-    // Google Apps Script Payload (ugyanaz a struktúra, amit a Sheet és a Resend vár)
+    // Google Apps Script Payload
     const payload = {
       email: cleanEmail,
       profile: auditResults.profile,
@@ -232,7 +232,18 @@ export default function FullQuizModal({ isOpen, onClose }) {
       localStorage.setItem("fa_form", JSON.stringify(formDataToSave));
       localStorage.setItem("fa_done", "true");
       localStorage.setItem("fa_email", cleanEmail);
-    } catch (e) {}
+
+      // META PIXEL LEAD (ÉRDEKLŐDŐ) ESEMÉNY ELSÜTÉSE
+      if (typeof window !== "undefined" && typeof window.fbq === "function") {
+        window.fbq("track", "Lead", {
+          content_name: auditResults.profile,
+          currency: "HUF",
+          value: 0,
+        });
+      }
+    } catch (e) {
+      console.error("Hiba a mentés vagy a Képpont esemény során:", e);
+    }
 
     setIsSubmitting(false);
     onClose();
