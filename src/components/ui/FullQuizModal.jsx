@@ -13,6 +13,7 @@ import {
   ChevronRight,
   ArrowRight,
   Sparkles,
+  Mail,
 } from "lucide-react";
 
 const HU_MONTHS = [
@@ -105,6 +106,10 @@ export default function FullQuizModal({ isOpen, onClose }) {
   const [analysisIndex, setAnalysisIndex] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
 
+  // E-mail és küldési állapot
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [form, setForm] = useState({
     age: "",
     height: "",
@@ -160,27 +165,76 @@ export default function FullQuizModal({ isOpen, onClose }) {
     setTimeout(() => {
       setIsAnalyzing(false);
       setShowSummary(true);
-
-      // Context és LocalStorage szinkronizálása
-      const formDataToSave = {
-        ...form,
-        weightKg: Number(form.weight) || 70,
-        heightCm: Number(form.height) || 165,
-        breastfeeding: form.nursing !== "nem",
-        goal: form.goalWeight < form.weight ? "fogyas" : "szintentartas",
-      };
-
-      if (updateProfile) {
-        updateProfile(formDataToSave);
-      }
-      try {
-        localStorage.setItem("fa_form", JSON.stringify(formDataToSave));
-        localStorage.setItem("fa_done", "true");
-      } catch (e) {}
     }, 1800);
   };
 
-  const handleCompleteAndClose = () => {
+  // VÉGSŐ BEKÜLDÉS ÉS SHEET SZINKRONIZÁLÁS
+  const handleFinalSubmit = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes("@") || !cleanEmail.includes(".")) {
+      alert("Kérlek, add meg az e-mail címedet, hogy elmenthessük a fiókodat!");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const formDataToSave = {
+      ...form,
+      email: cleanEmail,
+      weightKg: Number(form.weight) || 70,
+      heightCm: Number(form.height) || 165,
+      breastfeeding: form.nursing !== "nem",
+      goal: form.goalWeight < form.weight ? "fogyas" : "szintentartas",
+    };
+
+    // Google Apps Script Payload (ugyanaz a struktúra, amit a Sheet és a Resend vár)
+    const payload = {
+      email: cleanEmail,
+      profile: auditResults.profile,
+      targetKcal: auditResults.targetKcal,
+      weightToLose: auditResults.weightToLose,
+      targetDateStr: auditResults.targetDateStr,
+      palmProtein: auditResults.palmProtein,
+      fistVeg: auditResults.fistVeg,
+      cuppedCarb: auditResults.cuppedCarb,
+      thumbFat: auditResults.thumbFat,
+      recommendedPkg: "premium",
+      age: form.age,
+      height: form.height,
+      weight: form.weight,
+      goalWeight: form.goalWeight,
+      nursing: form.nursing,
+      activity: form.activity,
+      sleep: form.sleep,
+      snacking: form.snacking,
+      kitchen: form.kitchen,
+      focus: form.focus,
+    };
+
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYnNbGqwXhX5AGhQ-1bwSZhLZM0e1LYMPN84XTFXGgysxuOnVvT-2_HwxY6xZIh1Bi/exec";
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error("Sheet beküldési hiba:", err);
+    }
+
+    if (updateProfile) {
+      updateProfile(formDataToSave);
+    }
+
+    try {
+      localStorage.setItem("fa_form", JSON.stringify(formDataToSave));
+      localStorage.setItem("fa_done", "true");
+      localStorage.setItem("fa_email", cleanEmail);
+    } catch (e) {}
+
+    setIsSubmitting(false);
     onClose();
   };
 
@@ -409,7 +463,7 @@ export default function FullQuizModal({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* FELOLDOTT EREDMÉNYEK / ONBOARDING SIKER */}
+        {/* FELOLDOTT EREDMÉNYEK & E-MAIL REGISZTRÁCIÓS KAPU */}
         {showSummary && (
           <div className="space-y-4 animate-in fade-in">
             <div className="text-center">
@@ -459,12 +513,32 @@ export default function FullQuizModal({ isOpen, onClose }) {
               </div>
             </div>
 
+            {/* E-MAIL MEZŐ A BELÉPÉSHEZ */}
+            <div className="bg-[#FFF9F6] p-4 rounded-2xl border border-[#E07A5F]/30 text-left space-y-2">
+              <label className="text-xs font-bold text-[#2D3748] flex items-center gap-1.5">
+                <Mail size={14} className="text-[#E07A5F]" /> Add meg az e-mail címed a profil mentéséhez:
+              </label>
+              <p className="text-[11px] text-[#6B5A52] leading-tight">
+                Ide mentjük a számaidat, és ezzel aktiválod a <strong>7 napos díjmentes Zsebedző</strong> elérést.
+              </p>
+              <input
+                type="email"
+                required
+                placeholder="pelda@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-xl px-3.5 py-2.5 text-sm bg-white border border-[#F0DCD4] focus:outline-[#E07A5F] shadow-xs"
+              />
+            </div>
+
+            {/* BELÉPÉS GOMB */}
             <button
               type="button"
-              onClick={handleCompleteAndClose}
-              className="w-full py-3.5 rounded-2xl font-bold text-sm text-white bg-[#E07A5F] shadow-md cursor-pointer hover:opacity-95 transition-all flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+              onClick={handleFinalSubmit}
+              className="w-full py-3.5 rounded-2xl font-bold text-sm text-white bg-[#E07A5F] shadow-md cursor-pointer hover:opacity-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <span>Belépés a Zsebedzőbe a számaimmal</span>
+              <span>{isSubmitting ? "Profil mentése folyamatban..." : "Számaim mentése és belépés a Zsebedzőbe"}</span>
               <ArrowRight size={16} />
             </button>
           </div>
