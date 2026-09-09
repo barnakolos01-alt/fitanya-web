@@ -25,8 +25,22 @@ function formatHuDate(date) {
   return `${date.getFullYear()}. ${HU_MONTHS[date.getMonth()]} ${date.getDate()}.`;
 }
 
+// INTELLIGENS ÉLETKOR TISZTÍTÓ (Kezeli, ha valaki születési évet ír be)
+function sanitizeAge(rawAge) {
+  const num = parseInt(rawAge, 10);
+  if (isNaN(num)) return 30;
+  
+  const currentYear = new Date().getFullYear();
+  if (num >= 1920 && num <= currentYear) {
+    return currentYear - num; // pl. 2026 - 1973 = 53
+  }
+  if (num < 16) return 25;
+  if (num > 100) return 40;
+  return num;
+}
+
 function computeAudit(data) {
-  const age = Number(data.age) || 30;
+  const age = sanitizeAge(data.age);
   const height = Number(data.height) || 165;
   const weight = Number(data.weight) || 70;
   const goalWeight = Number(data.goalWeight) || 62;
@@ -80,6 +94,7 @@ function computeAudit(data) {
   }
 
   return {
+    age,
     bmr: Math.round(bmr),
     tdee: Math.round(tdee),
     targetKcal: Math.round(targetKcal),
@@ -178,8 +193,11 @@ export default function FullQuizModal({ isOpen, onClose }) {
 
     setIsSubmitting(true);
 
+    const cleanAge = sanitizeAge(form.age);
+
     const formDataToSave = {
       ...form,
+      age: cleanAge,
       email: cleanEmail,
       weightKg: Number(form.weight) || 70,
       heightCm: Number(form.height) || 165,
@@ -187,7 +205,7 @@ export default function FullQuizModal({ isOpen, onClose }) {
       goal: form.goalWeight < form.weight ? "fogyas" : "szintentartas",
     };
 
-    // Google Apps Script Payload
+    // Google Apps Script Payload (tiszta életkorral)
     const payload = {
       email: cleanEmail,
       profile: auditResults.profile,
@@ -199,7 +217,7 @@ export default function FullQuizModal({ isOpen, onClose }) {
       cuppedCarb: auditResults.cuppedCarb,
       thumbFat: auditResults.thumbFat,
       recommendedPkg: "premium",
-      age: form.age,
+      age: cleanAge,
       height: form.height,
       weight: form.weight,
       goalWeight: form.goalWeight,
@@ -281,19 +299,22 @@ export default function FullQuizModal({ isOpen, onClose }) {
             </p>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { key: "age", label: "Életkor (év)" },
-                { key: "height", label: "Magasság (cm)" },
-                { key: "weight", label: "Testsúly (kg)" },
-                { key: "goalWeight", label: "Célsúly (kg)" },
+                { key: "age", label: "Hány éves vagy?", placeholder: "pl. 34", min: 18, max: 95 },
+                { key: "height", label: "Magasság (cm)", placeholder: "pl. 165", min: 120, max: 220 },
+                { key: "weight", label: "Testsúly (kg)", placeholder: "pl. 70", min: 40, max: 200 },
+                { key: "goalWeight", label: "Célsúly (kg)", placeholder: "pl. 62", min: 40, max: 200 },
               ].map((f) => (
                 <div key={f.key}>
                   <label className="text-xs font-semibold text-[#4A5568] block mb-1">{f.label}</label>
                   <input
                     type="number"
                     inputMode="numeric"
+                    placeholder={f.placeholder}
+                    min={f.min}
+                    max={f.max}
                     value={form[f.key]}
                     onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
-                    className="w-full rounded-xl px-3 py-2.5 text-sm bg-white border border-[#F0DCD4] focus:outline-[#E07A5F]"
+                    className="w-full rounded-xl px-3 py-2.5 text-sm bg-white border border-[#F0DCD4] focus:outline-[#E07A5F] placeholder:text-stone-300"
                   />
                 </div>
               ))}
