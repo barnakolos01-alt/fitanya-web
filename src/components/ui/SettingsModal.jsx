@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useFitAnya } from "../../context/FitAnyaContext";
 import { serif, sans } from "../../styles/tokens";
-import { X, Sparkles, CheckCircle2, ShieldCheck, ExternalLink, RefreshCw } from "lucide-react";
+import { X, Sparkles, CheckCircle2, ShieldCheck, ExternalLink, RefreshCw, MessageSquare } from "lucide-react";
 
 export default function SettingsModal({ isOpen, onClose }) {
   const { profile, updateProfile, isPremium, setIsPaywallOpen, resetDay, aiUsageCount } = useFitAnya();
@@ -27,6 +27,9 @@ export default function SettingsModal({ isOpen, onClose }) {
     onClose();
     setIsPaywallOpen(true);
   };
+
+  // Előre paraméterezett mailto link
+  const feedbackMailto = `mailto:ugyfelszolgalat@fitanyamodszer.hu?subject=${encodeURIComponent("Zsebedző Visszajelzés / Segítség")}&body=${encodeURIComponent("Szia!\n\nAz alábbi kérdésem / hibajelzésem / ötletem lenne a Zsebedzővel kapcsolatban:\n\n\n---\nKészülék típusa (pl. iPhone 13, Samsung S22): \nBöngésző (pl. Safari, Chrome): ")}`;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in">
@@ -165,6 +168,17 @@ export default function SettingsModal({ isOpen, onClose }) {
         >
           Módosítások mentése
         </button>
+
+        {/* VISSZAJELZÉS & HIBABEJELENTŐ SÁV */}
+        <div className="mt-4 pt-3 border-t border-[#F0DCD4]/60 text-center">
+          <a
+            href={feedbackMailto}
+            className="text-[11px] text-[#8A7268] hover:text-[#E07A5F] transition-colors inline-flex items-center justify-center gap-1.5 py-1"
+          >
+            <MessageSquare size={13} />
+            <span>Hibát találtál vagy kérdésed van? Írj nekünk!</span>
+          </a>
+        </div>
       </div>
     </div>
   );
