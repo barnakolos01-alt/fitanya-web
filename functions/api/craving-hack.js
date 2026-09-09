@@ -44,11 +44,19 @@ A mai hátralévő tenyér-kerete:
 - Zsír: ${fat} hüvelykujj
 ${restrictionPrompt}
 
-SZABÁLYOK A RECEPTHEZ:
-1. MAX 8 PERC: Egyetlen serpenyőben, mikróban vagy tálban azonnal összedobható legyen. Nincs órákig tartó pepecselés!
-2. HÉTKÖZNAPI MAGYAR ALAPANYAGOK: Szigorúan olyan hozzávalók kellenek, amik egy átlagos magyar háztartásban megtalálhatók (tojás, zabpehely, túró, sonka, reszelt sajt, tortilla, tejföl/görög joghurt, kakaópor, alma, fagyasztott zöldség). TILOS egzotikus bioboltos port vagy luxus összetevőt kérni!
-3. VÁGY-KIELÉGÍTÉS: A textúra vagy az ízvilág pontosan elégítse ki a kívánt ételt (pl. ha csoki -> sűrű kakaós túrókrém; ha pizza -> serpenyős tortilla-pizza; ha chips -> fűszeres sajtropogós vagy zöldségmártogatós).
-4. TENYÉR-LEVONÁS: Állítsd be a pontos levonási értékeket (protein, veg, carb, fat).`;
+SZIGORÚ SZABÁLYOK A RECEPTHEZ:
+1. GASZTRONÓMIAI JÓZAN ÉSZ (KRITIKUS): 
+   - Édességekhez, sütikhez, palacsintához SZIGORÚAN TILOS zöldséget (spenót, rukkola, uborka, saláta) tenni vagy ajánlani! Édességnél a zöldség (veg) értéke KÖTELEZŐEN 0 legyen!
+   - Ne akarj mindenáron minden makrót lefedni: ha az adott ételhez nem illik a zöldség, a delta.veg legyen 0!
+   - A tészta fizikailag működjön: ha palacsintát vagy süteményt készítünk, a tojás/joghurt mellé KÖTELEZŐ kötőanyagot (pl. 2-3 ek zabpehely vagy zabpehelyliszt) írni, különben folyós rántotta lesz!
+   - A címben szereplő alapanyagok egyezzenek a leírással (ha túrós, legyen benne túró)!
+
+2. TISZTA MAGYAR NYELV:
+   - Tilos az anglicizmus ("fluffy", "flavoring", "amerikas")!
+   - Használj természetes, hétköznapi magyar konyhai kifejezéseket.
+
+3. VALÓBAN 5-8 PERCES: 
+   - Egyetlen serpenyőben, bögrében vagy tálban összedobható megoldás egyszerű magyar alapanyagokból.`;
 
     const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -68,7 +76,7 @@ SZABÁLYOK A RECEPTHEZ:
             input_schema: {
               type: "object",
               properties: {
-                title: { type: "string", description: "Étvágygerjesztő receptnév (pl. 5 perces Serpenyős Tortilla-Pizza)" },
+                title: { type: "string", description: "Étvágygerjesztő receptnév (pl. 5 perces Serpenyős Zabpalacsinta)" },
                 time: { type: "string", description: "Elkészítési idő (pl. 6-8 perc)" },
                 why: { type: "string", description: "1 rövid, megerősítő mondat az anyukának, miért tökéletes ez most" },
                 steps: {
@@ -76,7 +84,7 @@ SZABÁLYOK A RECEPTHEZ:
                   items: { type: "string" },
                   description: "2-3 pofonegyszerű, számozott elkészítési lépés"
                 },
-                side: { type: "string", description: "Rövid FitAnya trükk a teltségérzetért vagy plusz rostért" },
+                side: { type: "string", description: "Rövid FitAnya trükk (édességnél pl. fahéj vagy 1 pohár víz, sós ételnél ropogós zöldség)" },
                 delta: {
                   type: "object",
                   properties: {
@@ -98,7 +106,6 @@ SZABÁLYOK A RECEPTHEZ:
     });
 
     if (!anthropicResponse.ok) {
-      // Biztonsági tartalék válasz hálózati elakadás esetén
       return new Response(
         JSON.stringify({
           success: true,
@@ -111,8 +118,8 @@ SZABÁLYOK A RECEPTHEZ:
               "Keverd össze egy csipet fahéjjal vagy sóval és fokhagymával a vágyadtól függően.",
               "Fogyaszd el 1 pohár hideg vízzel vagy citromfű teával."
             ],
-            side: "Egyél mellé pár szem ropogós kígyóuborkát vagy répát!",
-            delta: { protein: 1, veg: 0.5, carb: 0, fat: 0 }
+            side: "Igyál meg mellé egy nagy pohár hideg vizet!",
+            delta: { protein: 1, veg: 0, carb: 0, fat: 0 }
           }
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
