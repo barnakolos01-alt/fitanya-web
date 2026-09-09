@@ -50,10 +50,10 @@ export default function InteractivePlateBuilder() {
       if (res.ok && data.success && data.hack) {
         setActiveHack(data.hack);
       } else {
-        setErrorMessage(data.error || "Nem sikerült az AI elemzés. Kérlek próbáld újra!");
+        setErrorMessage(data.error || "Nem sikerült az átalakítás. Kérlek próbáld újra egy pillanat múlva!");
       }
     } catch (err) {
-      setErrorMessage("Hálózati hiba történt az AI hívásakor.");
+      setErrorMessage("Hálózati hiba történt a recept tervezésekor. Ellenőrizd a kapcsolatot!");
     } finally {
       setAiLoading(false);
     }
@@ -116,7 +116,7 @@ export default function InteractivePlateBuilder() {
         </div>
       ) : (
         <>
-          {/* 2. VALÓDI AI KERESŐ */}
+          {/* 2. RECEPT KERESŐ ÉS ÁTALAKÍTÓ */}
           <div className="bg-white rounded-3xl p-4 shadow-xs border border-[#F5EBE6]">
             <form onSubmit={handleAskHack}>
               <label className="text-xs font-bold text-stone-700 mb-2 flex items-center gap-1.5">
@@ -167,10 +167,10 @@ export default function InteractivePlateBuilder() {
                 💡
               </span>
               <p className="text-xs font-bold text-stone-700">
-                A Claude AI a mai keretedre szabja a vacsorád
+                A Zsebedző a mai keretedre szabja a vacsorádat
               </p>
               <p className="text-[11px] text-stone-500 leading-relaxed max-w-xs mx-auto">
-                Írd be, mi után sóvárogsz, és az AI megnézi, miből mennyi maradt mára (pl. ha már nincs szénhidrátod, alacsony CH trükköt ad).
+                Írd be bátran, mit kívánsz, és a rendszer újratervezi az ételt abból, ami még szabadon maradt a mai tenyér-keretedben (pl. ha már nincs szénhidrátod, alacsony CH trükköt kapsz).
               </p>
             </div>
           )}
