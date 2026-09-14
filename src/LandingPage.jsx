@@ -157,11 +157,11 @@ const STRIPE_PAYMENT_LINKS = {
 
 const PACKAGE_CONTENTS = {
   sulikezdo: {
-    title: "Sulikezdő Túlélőcsomag (Szeptemberi Különkiadás)",
+    title: "FitAnya 40+ Anyagcsere-Újraindító & Lapos Has Gyorskalauz",
     items: [
-      "2 az 1-ben Uzsidoboz & Anya-Tízórai Rendszer (PDF)",
-      "15 Maszatmentes Recept & Bolti Polctérkép (PDF)",
-      "Reggeli Kávépuffer & Maradéktakarítás-Stop Kisokos (PDF)",
+      "FitAnya 40+ Anyagcsere-Újraindító & Lapos Has Gyorskalauz (PDF)",
+      "15 Maszatmentes Recept & Bolti Polctérkép (Lidl / Aldi / Spar) (PDF)",
+      "Kortizol-Reset, Kávépuffer & Délutáni Pult-Fék Protokoll (PDF)",
     ],
   },
   basic: {
@@ -902,7 +902,7 @@ export default function LandingPage({ onOpenApp }) {
   const allPackages = [
     {
       id: "sulikezdo",
-      name: "Sulikezdő Túlélőcsomag (Szeptemberi Limitált Kiadás)",
+      name: "FitAnya 40+ Anyagcsere-Újraindító & Lapos Has Gyorskalauz",
       price: 3490,
     },
     ...mainPackages,
@@ -947,9 +947,9 @@ export default function LandingPage({ onOpenApp }) {
         .option-btn { transition: all .15s ease; }
       `}</style>
 
-      {/* SZEPTEMBERI SÜRGŐSSÉGI TOP BANNER */}
-      <aside aria-label="Szezonális értesítés" className="w-full bg-[#E07A5F] text-white px-4 py-2.5 sm:py-3 text-center text-xs sm:text-sm font-medium flex items-center justify-center gap-2 select-none shadow-sm relative z-30">
-        <span>🎒 <strong>SZEPTEMBERI LIMITÁLT KIADÁS:</strong> Sulikezdő Uzsidoboz &amp; Anya-Tízórai Rendszer (3 490 Ft) — Csak szeptember 30-ig!</span>
+      {/* 40+ KIEMELT TOP BANNER */}
+      <aside aria-label="Kiemelt értesítés" className="w-full bg-[#E07A5F] text-white px-4 py-2.5 sm:py-3 text-center text-xs sm:text-sm font-medium flex items-center justify-center gap-2 select-none shadow-sm relative z-30">
+        <span>✨ <strong>ÚJ 40+ KIADÁS:</strong> FitAnya Anyagcsere-Újraindító &amp; Lapos Has Gyorskalauz (3 490 Ft) — Családi főzés mellett!</span>
         <button
           onClick={() => scrollTo(seasonalRef)}
           className="underline font-bold hover:text-[#FFFDFB] ml-1 cursor-pointer transition-colors"
@@ -1737,7 +1737,7 @@ export default function LandingPage({ onOpenApp }) {
                   onClick={() => scrollTo(pricingRef)}
                   className="w-full sm:w-auto text-xs font-bold px-4 py-2.5 rounded-xl border border-[#E07A5F] text-[#E07A5F] hover:bg-[#FDE8E1] transition-colors cursor-pointer inline-flex items-center justify-center gap-1 shrink-0"
                 >
-                  Csomagok &amp; Sulikezdő akció megtekintése <ArrowRight size={13} />
+                  Csomagok &amp; 40+ Gyorskalauz megtekintése <ArrowRight size={13} />
                 </button>
               </div>
             </div>
@@ -1749,7 +1749,7 @@ export default function LandingPage({ onOpenApp }) {
       <section ref={pricingRef} className="py-16 sm:py-24" style={{ background: "#FDE8E1" }}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           
-          {/* SZEPTEMBERI LIMITÁLT DOBOZ */}
+          {/* 40+ ANYAGCSERE-ÚJRAINDÍTÓ DOBOZ */}
           <div 
             ref={seasonalRef}
             className="mb-14 rounded-3xl p-7 sm:p-10 bg-white border-2 border-[#E07A5F] shadow-xl relative overflow-hidden"
@@ -1757,41 +1757,41 @@ export default function LandingPage({ onOpenApp }) {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="flex-1">
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display px-3.5 py-1.5 rounded-full bg-[#E07A5F] text-white select-none mb-3">
-                  🔥 SZEPTEMBERI LIMITÁLT KIADÁS • CSAK SZEPTEMBER 30-IG
+                  ✨ 40+ GYORSINDÍTÓ CSOMAG • BELÉPŐ ÁRON
                 </span>
                 <h3 className="font-display font-semibold text-2xl sm:text-3xl text-[#2D3748]">
-                  Sulikezdő Túlélőcsomag
+                  FitAnya 40+ Anyagcsere-Újraindító &amp; Lapos Has Gyorskalauz
                 </h3>
                 <p className="text-sm font-semibold text-[#8A4B4F] mt-1 mb-3">
-                  2 az 1-ben Uzsidoboz &amp; Anya-Tízórai Rendszer kimerült édesanyáknak
+                  8 perces reggeli mikrologisztika és bolti polctérkép a makacs puffadás ellen – külön főzés nélkül
                 </p>
                 <p className="text-xs sm:text-sm text-[#4A5568] leading-relaxed mb-5 max-w-2xl">
-                  Nincs szükséged most a teljes vacsoraprogramra, csak a reggeli káoszt, a gyerek maradékának megevését és a pékséges kényszerreggeliket akarod azonnal megállítani?
+                  Úgy érzed, a régi módszerek már nem működnek, és a lelassult anyagcsere miatt a hasadon ragadnak a kilók? Állítsd meg a reggeli kortizolcsúcsot, a délutáni pult melletti csipegetést és a pékség-csapdát anélkül, hogy külön diétás kosztot kellene főznöd a család mellett.
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs sm:text-sm text-[#2D3748]">
                   <div className="flex items-start gap-2">
                     <CheckCircle2 size={16} className="text-[#7C9885] shrink-0 mt-0.5" />
-                    <span><strong>8 perces szimultán pultlogisztika:</strong> Egy vágódeszkán a gyerek uzsija és az anya-tízórai</span>
+                    <span><strong>8 perces szimultán pultlogisztika:</strong> Egyetlen vágódeszkán a normál családi reggeli és a te lapos has tányérod</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 size={16} className="text-[#7C9885] shrink-0 mt-0.5" />
-                    <span><strong>15 maszatmentes recept:</strong> Autóban és buszon egy kézzel, nulla morzsával</span>
+                    <span><strong>15 maszatmentes recept:</strong> Munkába, irodába és kocsiba vihető tiszta fehérjebombák nulla morzsával</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 size={16} className="text-[#7C9885] shrink-0 mt-0.5" />
-                    <span><strong>Lidl / Aldi / Spar SOS polctérkép:</strong> 20g tiszta fehérje 90 másodperc alatt</span>
+                    <span><strong>Lidl / Aldi / Spar SOS polctérkép:</strong> 20g tiszta aminosav és zsírégető alternatívák 90 mp alatt a péksüti helyett</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 size={16} className="text-[#7C9885] shrink-0 mt-0.5" />
-                    <span><strong>Reggeli Kávépuffer &amp; Maradéktakarítás-stop:</strong> Éhgyomri kávécsapda és délelőtti remegés kivédése</span>
+                    <span><strong>Kortizol-reset &amp; Pult-fék:</strong> Éhgyomri kávécsapda kivédése, puffadásgátlás és az esti nassolás megállítása</span>
                   </div>
                 </div>
               </div>
 
-              {/* 1-KATTINTÁSOS STRIPE GOMB A SULIKEZDŐHÖZ */}
+              {/* 1-KATTINTÁSOS STRIPE GOMB */}
               <div className="shrink-0 w-full md:w-auto p-6 rounded-2xl bg-[#FFF9F5] border border-[#F0DCD4] text-center flex flex-col items-center justify-center">
-                <span className="text-xs font-semibold text-[#8A7268] uppercase tracking-wider">Szezonális Belépő Ár</span>
+                <span className="text-xs font-semibold text-[#8A7268] uppercase tracking-wider">Egyszeri Belépő Ár</span>
                 <p className="font-display font-bold text-3xl sm:text-4xl text-[#E07A5F] my-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   3 490 Ft
                 </p>
@@ -1806,7 +1806,7 @@ export default function LandingPage({ onOpenApp }) {
                   {isCheckingOut ? (
                     <><Loader2 size={16} className="animate-spin" /> Átirányítás...</>
                   ) : (
-                    <>Kérem a Sulikezdő Csomagot <ArrowRight size={16} /></>
+                    <>Kérem az Anyagcsere-Újraindító Csomagot <ArrowRight size={16} /></>
                   )}
                 </button>
               </div>
