@@ -1002,9 +1002,9 @@ export default function LandingPage({ onOpenApp }) {
         </div>
       </header>
 
-      {/* HERO */}
+      {/* HERO SZEKCIÓ */}
       <section className="relative overflow-hidden" style={{ background: "linear-gradient(180deg,#FDE8E1 0%, #FDFBF7 70%)" }}>
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-12 pb-14 sm:pt-20 sm:pb-20 text-center flex flex-col items-center gap-6">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-10 pb-6 sm:pt-16 sm:pb-8 text-center flex flex-col items-center gap-5">
           <h1 className="font-display font-medium leading-[1.1] text-3xl sm:text-5xl max-w-3xl" style={{ color: "#2D3748" }}>
             Fogyj le heti 0,5–0,7 kilót úgy, hogy{" "}
             <em style={{ color: "#E07A5F", fontStyle: "italic" }}>ugyanazt eszed</em>, mint a család —
@@ -1012,27 +1012,10 @@ export default function LandingPage({ onOpenApp }) {
           </h1>
           <p className="text-base sm:text-lg max-w-2xl" style={{ color: "#4A5568" }}>
             Tudományos alapú, családbarát rendszer kifejezetten időhiánnyal küzdő nőknek és édesanyáknak.
-            Töltsd ki az élettani auditot, és aktiváld az ingyenes Zsebedző applikációt!
+            Töltsd ki az alábbi ingyenes élettani auditot a személyes számaidért!
           </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-lg">
-            <button 
-              onClick={() => scrollTo(wizardRef)} 
-              className="cta-btn w-full sm:w-auto font-display font-semibold text-base sm:text-lg text-white px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2.5 shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-            >
-              Kattints ide a teszt kitöltéséhez &amp; kalóriaszámoláshoz <ArrowRight size={20} />
-            </button>
-            <button
-              type="button"
-              onClick={handleOpenApp}
-              className="text-xs sm:text-sm font-semibold text-[#8A7268] hover:text-[#E07A5F] py-2 px-3 rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5"
-            >
-              <Smartphone size={15} className="text-[#E07A5F]" />
-              <span>Csak az ingyenes Appot keresem &rarr;</span>
-            </button>
-          </div>
 
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm select-none" style={{ color: "#6B5A52" }}>
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs sm:text-sm select-none" style={{ color: "#6B5A52" }}>
             <span className="inline-flex items-center gap-1.5"><ShieldCheck size={16} style={{ color: "#7C9885" }} /> Tudományosan igazolt élettani alapok</span>
             <span className="inline-flex items-center gap-1.5"><Smartphone size={16} style={{ color: "#7C9885" }} /> Ingyenes PWA Zsebedző App</span>
             <span className="inline-flex items-center gap-1.5"><Zap size={16} style={{ color: "#E07A5F" }} /> Külön főzés és koplalás nélkül</span>
@@ -1040,175 +1023,8 @@ export default function LandingPage({ onOpenApp }) {
         </div>
       </section>
 
-      {/* A 3 ALAPPILLÉR */}
-      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
-        <div className="text-center mb-10">
-          <SectionEyebrow><Award size={14} /> Miért működik?</SectionEyebrow>
-          <h2 className="font-display font-semibold text-2xl sm:text-4xl mt-3">A FitAnya Módszer 3 Alappillére</h2>
-          <p className="text-sm sm:text-base mt-2 max-w-xl mx-auto" style={{ color: "#4A5568" }}>
-            Nem drasztikus diétákról vagy kimerítő edzésekről szól. Három egyszerű, egymásra épülő szokás. 
-            <strong className="text-[#E07A5F] block sm:inline sm:ml-1">Koppints a kártyákra a részletekért!</strong>
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {PILLARS_DATA.map((p) => {
-            const Icon = p.icon;
-            return (
-              <div 
-                key={p.id}
-                onClick={() => setActivePillarModal(p)}
-                className="group rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col hover:-translate-y-1 active:scale-[0.99] select-none"
-              >
-                <div className="h-52 w-full overflow-hidden relative">
-                  <img 
-                    src={p.img} 
-                    alt={p.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  />
-                  <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-sm">
-                    <Icon size={20} style={{ color: p.iconColor }} />
-                  </div>
-                  <span className="absolute bottom-3 right-3 text-[11px] font-bold px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[#2D3748] shadow-sm flex items-center gap-1 group-hover:text-[#E07A5F]">
-                    Részletek <ChevronRight size={13} />
-                  </span>
-                </div>
-                <div className="p-6 flex flex-col flex-1 justify-between">
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{ color: p.iconColor }}>
-                      {p.tag}
-                    </span>
-                    <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2 group-hover:text-[#E07A5F] transition-colors">
-                      {p.title}
-                    </h3>
-                    <p className="text-sm text-[#4A5568] leading-relaxed">
-                      {p.desc}
-                    </p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-[#F0DCD4] text-xs font-semibold text-[#E07A5F] flex items-center gap-1">
-                    <span>Hogyan működik a gyakorlatban?</span>
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 3 ALAPPILLÉR RÉSZLETES MODAL */}
-      {activePillarModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div 
-            className="bg-[#FFFDFB] max-w-lg w-full rounded-3xl p-6 sm:p-8 shadow-2xl relative border border-[#F0DCD4] animate-in fade-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button 
-              type="button" 
-              onClick={() => setActivePillarModal(null)} 
-              className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
-              aria-label="Bezárás"
-            >
-              <X size={20} />
-            </button>
-
-            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#FDE8E1] text-[#E07A5F]">
-              {activePillarModal.tag}
-            </span>
-            <h3 className="font-display font-semibold text-xl sm:text-2xl text-[#2D3748] mt-3 mb-2">
-              {activePillarModal.modalTitle}
-            </h3>
-            <p className="text-xs sm:text-sm text-[#6B5A52] mb-5 leading-relaxed">
-              A FitAnya Módszerben így építjük be ezt a mindennapjaidba:
-            </p>
-
-            <div className="space-y-3 mb-6">
-              {activePillarModal.modalPoints.map((pt, i) => (
-                <div key={i} className="flex items-start gap-3 text-sm text-[#4A5568]">
-                  <CheckCircle2 size={18} className="text-[#7C9885] shrink-0 mt-0.5" />
-                  <span>{pt}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-4 border-t border-[#F0DCD4] flex items-center justify-between gap-3">
-              <button 
-                type="button" 
-                onClick={() => setActivePillarModal(null)} 
-                className="text-xs font-semibold text-[#8A7268] hover:text-[#2D3748] cursor-pointer"
-              >
-                Bezárás
-              </button>
-              <button 
-                type="button" 
-                onClick={() => {
-                  setActivePillarModal(null);
-                  scrollTo(wizardRef);
-                }} 
-                className="cta-btn font-display font-semibold text-xs sm:text-sm text-white px-5 py-2.5 rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
-              >
-                Kitöltöm az auditot <ArrowRight size={15} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* EGY FŐZÉS - KÉT TÁNYÉR ÖSSZEHASONLÍTÁS */}
-      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-12">
-        <div className="text-center mb-10">
-          <SectionEyebrow><Utensils size={14} /> Nincs dupla munka</SectionEyebrow>
-          <h2 className="font-display font-semibold text-2xl sm:text-3xl mt-3">Hogyan néz ki ez a vasárnapi asztalnál?</h2>
-          <p className="text-sm sm:text-base mt-2 max-w-xl mx-auto" style={{ color: "#4A5568" }}>
-            Nem kell kétfélét főznöd. Ugyanaz a Bolognai vagy Csirkés tészta készül el a fazékban — a tenyér-szabállyal csak a tányérodra szedés aránya változik 20 másodperc alatt.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-3xl p-6 sm:p-7 border" style={{ background: "#FFFDFB", borderColor: "#F0DCD4" }}>
-            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-red-100 text-red-800 select-none">
-              A Család / Gyerekek tányérja
-            </span>
-            <h3 className="font-display font-semibold text-lg mt-3 text-[#2D3748]">Klasszikus Bolognai tészta</h3>
-            <ul className="mt-4 space-y-2.5 text-sm text-[#4A5568]">
-              <li className="flex items-center gap-2">🍝 <strong>65% Szénhidrát:</strong> Nagy adag fehér tészta</li>
-              <li className="flex items-center gap-2">🥩 <strong>25% Fehérje:</strong> Húsos mártás</li>
-              <li className="flex items-center gap-2">🧀 <strong>10% Zsír:</strong> Vastag réteg sajt</li>
-            </ul>
-            <p className="mt-4 text-xs italic text-[#8A7268] bg-[#FDE8E1]/40 p-3 rounded-xl">
-              Nagy energiasűrűség, ami a mozgásban lévő családnak ideális, de ülőmunka vagy hétköznapi rutin mellett könnyen raktározódik.
-            </p>
-          </div>
-
-          <div className="rounded-3xl p-6 sm:p-7 border-2" style={{ background: "#FFF9F5", borderColor: "#E07A5F" }}>
-            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-green-100 text-green-800 select-none">
-              A Te tányérod (FitAnya módszer)
-            </span>
-            <h3 className="font-display font-semibold text-lg mt-3 text-[#2D3748]">Ugyanaz a Bolognai – FitAnya arányban</h3>
-            <ul className="mt-4 space-y-2.5 text-sm text-[#4A5568]">
-              <li className="flex items-center gap-2">🖐️ <strong>Tenyérnyi fehérje:</strong> Dupla adag darálthúsos szósz</li>
-              <li className="flex items-center gap-2">✊ <strong>Ökölnyi rost:</strong> Rádobott bébispenót vagy reszelt cukkini</li>
-              <li className="flex items-center gap-2">🤲 <strong>Maréknyi tészta:</strong> Ízélmény megmarad, kalória felére esik</li>
-            </ul>
-            <p className="mt-4 text-xs font-semibold text-[#7C9885] bg-[#F0F5F1] p-3 rounded-xl">
-              ✅ Eredmény: Ugyanaz az íz, tele vagy 4 órán át, nulla bűntudat és heti 0,6 kg tiszta zsírfogyás.
-            </p>
-          </div>
-        </div>
-
-        <div className="text-center mt-10">
-          <button
-            onClick={() => scrollTo(pricingRef)}
-            className="font-display font-semibold text-sm sm:text-base px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2 border-2 border-[#E07A5F] text-[#E07A5F] bg-white hover:bg-[#FDE8E1] transition-colors cursor-pointer"
-          >
-            Megnézem a csomagokat és az árakat <ArrowRight size={18} />
-          </button>
-        </div>
-      </section>
-
-      {/* SIKERES RENDELÉS VAGY 7 LÉPÉSES AUDIT WIZARD */}
-      <section ref={orderSubmitted ? orderRef : wizardRef} className="max-w-2xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+      {/* INSTANT AUDIT WIZARD (AZONNAL A HERO ALATT - ZERO FRICTION) */}
+      <section ref={orderSubmitted ? orderRef : wizardRef} className="max-w-2xl mx-auto px-5 sm:px-8 pt-2 pb-14 sm:pb-20">
         {orderSubmitted ? (
           <OrderSuccessPanel
             email={gateEmail}
@@ -1216,7 +1032,7 @@ export default function LandingPage({ onOpenApp }) {
             onRestart={handleRestart}
           />
         ) : !wizardDone ? (
-          <div className="rounded-3xl p-6 sm:p-10" style={{ background: "#FDFBF7", border: "1px solid #F0DCD4", boxShadow: "0 20px 48px -28px rgba(45,55,72,0.25)" }}>
+          <div className="rounded-3xl p-6 sm:p-10" style={{ background: "#FDFBF7", border: "1.5px solid #F0DCD4", boxShadow: "0 20px 48px -28px rgba(45,55,72,0.25)" }}>
             
             {!isAnalyzing && !showEmailGate && (
               <>
@@ -1743,6 +1559,173 @@ export default function LandingPage({ onOpenApp }) {
             </div>
           </div>
         )}
+      </section>
+
+      {/* A 3 ALAPPILLÉR (A TESZT ALÁ HELYEZVE A BIZONYTALANOKNAK) */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12">
+        <div className="text-center mb-10">
+          <SectionEyebrow><Award size={14} /> Miért működik?</SectionEyebrow>
+          <h2 className="font-display font-semibold text-2xl sm:text-4xl mt-3">A FitAnya Módszer 3 Alappillére</h2>
+          <p className="text-sm sm:text-base mt-2 max-w-xl mx-auto" style={{ color: "#4A5568" }}>
+            Nem drasztikus diétákról vagy kimerítő edzésekről szól. Három egyszerű, egymásra épülő szokás. 
+            <strong className="text-[#E07A5F] block sm:inline sm:ml-1">Koppints a kártyákra a részletekért!</strong>
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {PILLARS_DATA.map((p) => {
+            const Icon = p.icon;
+            return (
+              <div 
+                key={p.id}
+                onClick={() => setActivePillarModal(p)}
+                className="group rounded-3xl overflow-hidden bg-[#FFFDFB] border border-[#F0DCD4] shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col hover:-translate-y-1 active:scale-[0.99] select-none"
+              >
+                <div className="h-52 w-full overflow-hidden relative">
+                  <img 
+                    src={p.img} 
+                    alt={p.title} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                    <Icon size={20} style={{ color: p.iconColor }} />
+                  </div>
+                  <span className="absolute bottom-3 right-3 text-[11px] font-bold px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[#2D3748] shadow-sm flex items-center gap-1 group-hover:text-[#E07A5F]">
+                    Részletek <ChevronRight size={13} />
+                  </span>
+                </div>
+                <div className="p-6 flex flex-col flex-1 justify-between">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{ color: p.iconColor }}>
+                      {p.tag}
+                    </span>
+                    <h3 className="font-display font-semibold text-lg text-[#2D3748] mb-2 group-hover:text-[#E07A5F] transition-colors">
+                      {p.title}
+                    </h3>
+                    <p className="text-sm text-[#4A5568] leading-relaxed">
+                      {p.desc}
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-[#F0DCD4] text-xs font-semibold text-[#E07A5F] flex items-center gap-1">
+                    <span>Hogyan működik a gyakorlatban?</span>
+                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 3 ALAPPILLÉR RÉSZLETES MODAL */}
+      {activePillarModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div 
+            className="bg-[#FFFDFB] max-w-lg w-full rounded-3xl p-6 sm:p-8 shadow-2xl relative border border-[#F0DCD4] animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              type="button" 
+              onClick={() => setActivePillarModal(null)} 
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+              aria-label="Bezárás"
+            >
+              <X size={20} />
+            </button>
+
+            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#FDE8E1] text-[#E07A5F]">
+              {activePillarModal.tag}
+            </span>
+            <h3 className="font-display font-semibold text-xl sm:text-2xl text-[#2D3748] mt-3 mb-2">
+              {activePillarModal.modalTitle}
+            </h3>
+            <p className="text-xs sm:text-sm text-[#6B5A52] mb-5 leading-relaxed">
+              A FitAnya Módszerben így építjük be ezt a mindennapjaidba:
+            </p>
+
+            <div className="space-y-3 mb-6">
+              {activePillarModal.modalPoints.map((pt, i) => (
+                <div key={i} className="flex items-start gap-3 text-sm text-[#4A5568]">
+                  <CheckCircle2 size={18} className="text-[#7C9885] shrink-0 mt-0.5" />
+                  <span>{pt}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-4 border-t border-[#F0DCD4] flex items-center justify-between gap-3">
+              <button 
+                type="button" 
+                onClick={() => setActivePillarModal(null)} 
+                className="text-xs font-semibold text-[#8A7268] hover:text-[#2D3748] cursor-pointer"
+              >
+                Bezárás
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setActivePillarModal(null);
+                  scrollTo(wizardRef);
+                }} 
+                className="cta-btn font-display font-semibold text-xs sm:text-sm text-white px-5 py-2.5 rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                Kitöltöm az auditot <ArrowRight size={15} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EGY FŐZÉS - KÉT TÁNYÉR ÖSSZEHASONLÍTÁS */}
+      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-12">
+        <div className="text-center mb-10">
+          <SectionEyebrow><Utensils size={14} /> Nincs dupla munka</SectionEyebrow>
+          <h2 className="font-display font-semibold text-2xl sm:text-3xl mt-3">Hogyan néz ki ez a vasárnapi asztalnál?</h2>
+          <p className="text-sm sm:text-base mt-2 max-w-xl mx-auto" style={{ color: "#4A5568" }}>
+            Nem kell kétfélét főznöd. Ugyanaz a Bolognai vagy Csirkés tészta készül el a fazékban — a tenyér-szabállyal csak a tányérodra szedés aránya változik 20 másodperc alatt.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="rounded-3xl p-6 sm:p-7 border" style={{ background: "#FFFDFB", borderColor: "#F0DCD4" }}>
+            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-red-100 text-red-800 select-none">
+              A Család / Gyerekek tányérja
+            </span>
+            <h3 className="font-display font-semibold text-lg mt-3 text-[#2D3748]">Klasszikus Bolognai tészta</h3>
+            <ul className="mt-4 space-y-2.5 text-sm text-[#4A5568]">
+              <li className="flex items-center gap-2">🍝 <strong>65% Szénhidrát:</strong> Nagy adag fehér tészta</li>
+              <li className="flex items-center gap-2">🥩 <strong>25% Fehérje:</strong> Húsos mártás</li>
+              <li className="flex items-center gap-2">🧀 <strong>10% Zsír:</strong> Vastag réteg sajt</li>
+            </ul>
+            <p className="mt-4 text-xs italic text-[#8A7268] bg-[#FDE8E1]/40 p-3 rounded-xl">
+              Nagy energiasűrűség, ami a mozgásban lévő családnak ideális, de ülőmunka vagy hétköznapi rutin mellett könnyen raktározódik.
+            </p>
+          </div>
+
+          <div className="rounded-3xl p-6 sm:p-7 border-2" style={{ background: "#FFF9F5", borderColor: "#E07A5F" }}>
+            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-green-100 text-green-800 select-none">
+              A Te tányérod (FitAnya módszer)
+            </span>
+            <h3 className="font-display font-semibold text-lg mt-3 text-[#2D3748]">Ugyanaz a Bolognai – FitAnya arányban</h3>
+            <ul className="mt-4 space-y-2.5 text-sm text-[#4A5568]">
+              <li className="flex items-center gap-2">🖐️ <strong>Tenyérnyi fehérje:</strong> Dupla adag darálthúsos szósz</li>
+              <li className="flex items-center gap-2">✊ <strong>Ökölnyi rost:</strong> Rádobott bébispenót vagy reszelt cukkini</li>
+              <li className="flex items-center gap-2">🤲 <strong>Maréknyi tészta:</strong> Ízélmény megmarad, kalória felére esik</li>
+            </ul>
+            <p className="mt-4 text-xs font-semibold text-[#7C9885] bg-[#F0F5F1] p-3 rounded-xl">
+              ✅ Eredmény: Ugyanaz az íz, tele vagy 4 órán át, nulla bűntudat és heti 0,6 kg tiszta zsírfogyás.
+            </p>
+          </div>
+        </div>
+
+        <div className="text-center mt-10">
+          <button
+            onClick={() => scrollTo(pricingRef)}
+            className="font-display font-semibold text-sm sm:text-base px-8 py-4 rounded-2xl inline-flex items-center justify-center gap-2 border-2 border-[#E07A5F] text-[#E07A5F] bg-white hover:bg-[#FDE8E1] transition-colors cursor-pointer"
+          >
+            Megnézem a csomagokat és az árakat <ArrowRight size={18} />
+          </button>
+        </div>
       </section>
 
       {/* ÁRAZÁSI SZEKCIÓ */}
