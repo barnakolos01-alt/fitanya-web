@@ -115,15 +115,15 @@ function computeAudit(data) {
   if (data.focus === "bor_puffadas" || data.focus === "torna_has") {
     profile = "Regenerációs & Bőrfeszesítő Profil";
     recommendedPkg = "vip";
-    pkgReason = "A szöveti regeneráció, a feszesebb hasfal és az SOS puffadásmentesítés miatt a 7 az 1-ben VIP csomag nyújtja a legteljesebb megoldást 3 hónapos app hozzáféréssel.";
+    pkgReason = "A szöveti regeneráció, a feszesebb hasfal és az SOS puffadásmentesítés miatt a 7 az 1-ben VIP csomag nyújtja a legteljesebb megoldást teljes VIP app hozzáféréssel.";
   } else if (data.snacking === "folyamatos" || data.kitchen === "15perc") {
     profile = "Időhiányos Gyors-Megoldás Profil";
     recommendedPkg = "premium";
-    pkgReason = "A 15 perces receptek, a bolti nassolási kalauz és a 2 hónap Zsebedző app hozzáférés garantálja, hogy dupla főzés nélkül is elérd a célodat.";
+    pkgReason = "A 15 perces receptek, a bolti nassolási kalauz és a korlátlan AI Zsebedző app hozzáférés garantálja, hogy dupla főzés nélkül is elérd a célodat.";
   } else if (weightToLose <= 4 && data.sleep === "atalussza") {
     profile = "Könnyed Finomhangoló Profil";
     recommendedPkg = "basic";
-    pkgReason = "Mivel kis súlyfeleslegről van szó és stabil az alvásod, az alap tenyér-szabály és az 1 hónapos app támogatás tökéletesen elegendő számodra.";
+    pkgReason = "Mivel kis súlyfeleslegről van szó és stabil az alvásod, az alap tenyér-szabály és a Zsebedző app támogatás tökéletesen elegendő számodra.";
   }
 
   return {
@@ -162,6 +162,7 @@ const PACKAGE_CONTENTS = {
       "FitAnya 40+ Anyagcsere-Újraindító & Lapos Has Gyorskalauz (PDF)",
       "15 Maszatmentes Recept & Bolti Polctérkép (Lidl / Aldi / Spar) (PDF)",
       "Kortizol-Reset, Kávépuffer & Délutáni Pult-Fék Protokoll (PDF)",
+      "🎁 AJÁNDÉK: Korlátlan AI Hűtőmentő & Teljes Zsebedző Prémium aktiváció",
     ],
   },
   basic: {
@@ -169,7 +170,7 @@ const PACKAGE_CONTENTS = {
     items: [
       "FitAnya Alapprogram – 30 Családi Gyorsrecept & Tenyér-szabály (PDF)",
       "Interaktív Tenyér-Makró Útmutató (PDF)",
-      "🎁 AJÁNDÉK: 1 hónap FitAnya Zsebedző Prémium App hozzáférés (2 490 Ft értékben)",
+      "🎁 AJÁNDÉK: Teljes Zsebedző App hozzáférés (Örökös aktiváció, 0 Ft havidíj)",
     ],
   },
   premium: {
@@ -179,7 +180,7 @@ const PACKAGE_CONTENTS = {
       "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)",
       "4 Hetes FitAnya Szokásformáló Rendszer (PDF)",
       "Heti Mester-Bevásárlólista & 15 Perces Dobozolási Kisokos (PDF)",
-      "🎁 AJÁNDÉK: 2 hónap FitAnya Zsebedző Prémium App hozzáférés (4 980 Ft értékben)",
+      "🎁 AJÁNDÉK: Teljes Zsebedző App hozzáférés & Korlátlan AI Hűtőmentő",
     ],
   },
   vip: {
@@ -193,7 +194,7 @@ const PACKAGE_CONTENTS = {
       "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)",
       "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)",
       "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)",
-      "🎁 AJÁNDÉK: 3 hónap Teljes VIP Zsebedző App hozzáférés (7 470 Ft értékben)",
+      "🎁 AJÁNDÉK: Örökös VIP Zsebedző Hozzáférés & Minden jövőbeli modulfrissítés",
     ],
   },
 };
@@ -375,7 +376,7 @@ function PricingCard({ tier, isRecommended, onCheckout, isCheckingOut }) {
         {tier.price.toLocaleString("hu-HU")} Ft
       </p>
       <p className="text-xs font-medium mt-1" style={{ color: "#8A7268" }}>
-        Egyszeri fizetés • Nincs rejtett költség
+        Egyszeri fizetés • 0 Ft havidíj
       </p>
 
       <ul className="mt-5 space-y-3 flex-1">
@@ -868,7 +869,7 @@ export default function LandingPage({ onOpenApp }) {
       features: [
         "FitAnya Alapprogram (30 Családi Gyorsrecept & Tenyér-szabály PDF)",
         "Interaktív Tenyér-Makró Útmutató (PDF)",
-        "🎁 AJÁNDÉK: 1 hónap FitAnya Zsebedző Prémium App hozzáférés (2 490 Ft értékben)",
+        "🎁 AJÁNDÉK: Teljes Zsebedző App hozzáférés (Örökös aktiváció, 0 Ft havidíj)",
       ],
     },
     {
@@ -881,7 +882,7 @@ export default function LandingPage({ onOpenApp }) {
         "Bolti Bűntudatmentes Nassolási Kalauz & Címkeolvasó (PDF)",
         "4 Hetes FitAnya Szokásformáló Rendszer (PDF)",
         "Heti Mester-Bevásárlólista & 15 Perces Dobozolási Kisokos (PDF)",
-        "🎁 AJÁNDÉK: 2 hónap FitAnya Zsebedző Prémium App hozzáférés (4 980 Ft értékben)",
+        "🎁 AJÁNDÉK: Teljes Zsebedző App hozzáférés & Korlátlan AI Hűtőmentő",
       ],
     },
     {
@@ -894,7 +895,7 @@ export default function LandingPage({ onOpenApp }) {
         "„Feszes Pocak & Kerek Fenék” 10 Perces Csendes Torna (PDF)",
         "Kollagén & Bőrfiatalító Hormon-Reset Kisokos (PDF)",
         "48 Órás SOS Puffadásmentesítő & Lapos Has Protokoll (PDF)",
-        "🎁 AJÁNDÉK: 3 hónap Teljes VIP Zsebedző App hozzáférés (7 470 Ft értékben)",
+        "🎁 AJÁNDÉK: Örökös VIP Zsebedző Hozzáférés & Minden jövőbeli modulfrissítés",
       ],
     },
   ];
@@ -923,7 +924,7 @@ export default function LandingPage({ onOpenApp }) {
     },
     {
       q: "Hogyan működik az ajándék Zsebedző app hozzáférés?",
-      a: "A csomag megvásárlása után az e-mailben kapott linken keresztül a megvásárolt csomagtól függően 1, 2 vagy 3 hónapig ingyenesen és korlátlanul használhatod a digitális zsebedzőt (Claude AI Hűtőmentő, Tányérkövető, Ivás emlékeztető).",
+      a: "A csomag megvásárlása után az e-mailben kapott linken keresztül 1 kattintással aktiválhatod a digitális zsebedzőt. Nincs havidíj, nincs megújuló előfizetés – a megvásárolt csomaggal korlátlanul használhatod az applikáció funkcióit (Claude AI Hűtőmentő, Tányérkövető, Ivás emlékeztető).",
     },
     {
       q: "Mi történik a fizetés után? Hogyan kapom meg az anyagokat?",
@@ -1539,10 +1540,10 @@ export default function LandingPage({ onOpenApp }) {
                 <h4 className="font-display font-semibold text-lg text-[#2D3748]">
                   Szeretnéd a nyomtatható családi recepteket &amp; kisokosokat is?
                 </h4>
-                <span className="text-xs font-bold text-[#E07A5F]">PDF Csomagok + Ajándék App</span>
+                <span className="text-xs font-bold text-[#E07A5F]">PDF Csomagok + Örökös App</span>
               </div>
               <p className="text-xs sm:text-sm text-[#4A5568] leading-relaxed mb-4">
-                Ha szereted a hűtőre kitett heti menütervezőket, a bolti polctérképet és a kész családi receptfüzetet, válaszd ki a csomagodat, és az átfogó PDF kézikönyvek mellé <strong>1–3 hónap Prémium Zsebedző hozzáférést adunk ajándékba</strong>!
+                Ha szereted a hűtőre kitett heti menütervezőket, a bolti polctérképet és a kész családi receptfüzetet, válaszd ki a csomagodat, és az átfogó PDF kézikönyvek mellé <strong>teljes Prémium Zsebedző hozzáférést adunk ajándékba (0 Ft havidíjjal)</strong>!
               </p>
               
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[#F0DCD4]">
@@ -1801,7 +1802,7 @@ export default function LandingPage({ onOpenApp }) {
             <SectionEyebrow>Komplett Életmód Csomagok</SectionEyebrow>
             <h2 className="font-display font-semibold text-3xl sm:text-4xl mt-3">Válaszd ki, meddig szeretnél eljutni</h2>
             <p className="text-sm sm:text-base text-[#6B5A52] mt-2 max-w-xl mx-auto">
-              Minden csomag tartalmazza a nyomtatható útmutatókat és a megfelelő időtartamú <strong>FitAnya Zsebedző Prémium</strong> applikáció hozzáférést!
+              Minden csomag tartalmazza a nyomtatható útmutatókat és a <strong>FitAnya Zsebedző Prémium</strong> applikáció örökös hozzáférését (havidíj nélkül)!
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-5 items-start">
