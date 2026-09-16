@@ -9,7 +9,20 @@ import SettingsModal from "./components/ui/SettingsModal";
 import PaywallModal from "./components/ui/PaywallModal";
 import FullQuizModal from "./components/ui/FullQuizModal";
 import WeeklySummaryCard from "./components/ui/WeeklySummaryCard";
-import { Smartphone, Download, Share, PlusSquare, X, Settings, Sparkles, Heart, MoreVertical, Check } from "lucide-react";
+import { 
+  Smartphone, 
+  Download, 
+  Share, 
+  PlusSquare, 
+  X, 
+  Settings, 
+  Sparkles, 
+  Heart, 
+  MoreVertical, 
+  Check,
+  Flame,
+  ArrowRight
+} from "lucide-react";
 
 const MODULES = [
   { 
@@ -41,6 +54,8 @@ const MODULES = [
     Comp: HydrationEngine 
   },
 ];
+
+const STRIPE_40PLUS_URL = "https://buy.stripe.com/7sY00l9SodM381v2zi9ws03";
 
 function PwaContent() {
   const { activeTab, setActiveTab, isPremium, setIsPaywallOpen } = useFitAnya();
@@ -149,6 +164,18 @@ function PwaContent() {
     } catch {}
   };
 
+  const handleOpen40PlusCheckout = () => {
+    try {
+      const email = (localStorage.getItem("fa_email") || "").trim();
+      const checkoutUrl = email
+        ? `${STRIPE_40PLUS_URL}?prefilled_email=${encodeURIComponent(email)}`
+        : STRIPE_40PLUS_URL;
+      window.location.href = checkoutUrl;
+    } catch (e) {
+      window.location.href = STRIPE_40PLUS_URL;
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto min-h-screen pb-12 relative bg-[#FDFBF7]" style={{ fontFamily: sans }}>
       {/* 1. TELEPÍTÉSI SÁV */}
@@ -198,7 +225,7 @@ function PwaContent() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {/* PRÉMIUM AKTIVÁLÁSA GOMB NEM-ELŐFIZETŐKNEK */}
+          {/* 40+ CSOMAG / PRÉMIUM GOMB (A RÉGI 7 NAP PRÓBA HELYETT) */}
           {!isPremium && (
             <button
               type="button"
@@ -206,7 +233,7 @@ function PwaContent() {
               className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-[#E07A5F] to-[#C3634C] text-white shadow-xs hover:opacity-95 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
             >
               <Sparkles size={12} />
-              <span>7 nap 0 Ft</span>
+              <span>40+ Csomag</span>
             </button>
           )}
 
@@ -232,7 +259,7 @@ function PwaContent() {
       </header>
 
       {/* 3. FUNKCIÓVÁLASZTÓ KÁRTYÁK */}
-      <nav className="px-4 grid grid-cols-2 gap-2 mb-5 select-none">
+      <nav className="px-4 grid grid-cols-2 gap-2 mb-4 select-none">
         {MODULES.map((m) => {
           const isActive = activeTab === m.key;
           return (
@@ -266,7 +293,40 @@ function PwaContent() {
         })}
       </nav>
 
-      {/* 4. AKTÍV NÉZET */}
+      {/* 4. ÁLLANDÓ 40+ ANYAGCSERE GYORSKALAUZ AJÁNLÓKÁRTYA */}
+      <section className="px-4 mb-4">
+        <div
+          onClick={handleOpen40PlusCheckout}
+          className="rounded-2xl p-3.5 bg-gradient-to-r from-[#FFF9F5] via-[#FDE8E1] to-[#FFF9F5] border-2 border-[#E07A5F] shadow-xs hover:shadow-md transition-all active:scale-[0.99] cursor-pointer flex items-center justify-between gap-3"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-[#E07A5F] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Flame size={20} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#E07A5F] text-white">
+                  40+ Kiemelt
+                </span>
+                <span className="text-xs font-bold text-[#8A4B4F]">
+                  3 490 Ft
+                </span>
+              </div>
+              <p className="text-xs font-bold text-[#2D3748] mt-0.5 truncate">
+                Anyagcsere-Újraindító Gyorskalauz
+              </p>
+              <p className="text-[10px] text-[#6B5A52] truncate">
+                15 maszatmentes recept + Aldi/Lidl polctérkép
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-xl bg-white text-[#E07A5F] shadow-xs border border-[#F0DCD4]">
+            <ArrowRight size={16} />
+          </div>
+        </div>
+      </section>
+
+      {/* 5. AKTÍV NÉZET */}
       <main className="px-4">
         <Active />
       </main>
