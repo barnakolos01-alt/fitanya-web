@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useFitAnya } from "../../context/FitAnyaContext";
 import { serif, sans } from "../../styles/tokens";
 import {
@@ -32,7 +32,7 @@ function sanitizeAge(rawAge) {
   
   const currentYear = new Date().getFullYear();
   if (num >= 1920 && num <= currentYear) {
-    return currentYear - num; // pl. 2026 - 1973 = 53
+    return currentYear - num;
   }
   if (num < 16) return 25;
   if (num > 100) return 40;
@@ -121,8 +121,10 @@ export default function FullQuizModal({ isOpen, onClose }) {
   const [analysisIndex, setAnalysisIndex] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
 
-  // E-mail és küldési állapot
+  // E-mail, automatikus felismerés és validációs állapot
   const [email, setEmail] = useState("");
+  const [emailAutoDetected, setEmailAutoDetected] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [form, setForm] = useState({
@@ -137,6 +139,25 @@ export default function FullQuizModal({ isOpen, onClose }) {
     kitchen: "",
     focus: "",
   });
+
+  // Automatikus e-mail felismerés URL-ből (?email=...) vagy korábbi munkamenetből
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlEmail = params.get("email");
+        const storedEmail = localStorage.getItem("fa_email");
+        const detected = (urlEmail || storedEmail || "").trim().toLowerCase();
+
+        if (detected && detected.includes("@") && detected.includes(".")) {
+          setEmail(detected);
+          setEmailAutoDetected(true);
+        }
+      } catch (err) {
+        console.error("Hiba az e-mail cím kiolvasásakor:", err);
+      }
+    }
+  }, []);
 
   const stepLabels = [
     "Alapadatok",
@@ -186,11 +207,14 @@ export default function FullQuizModal({ isOpen, onClose }) {
   // VÉGSŐ BEKÜLDÉS ÉS SHEET SZINKRONIZÁLÁS + META PIXEL KÖVETÉS
   const handleFinalSubmit = async () => {
     const cleanEmail = email.trim().toLowerCase();
+    
+    // Dead click elleni védelem: vizuális hibaüzenet
     if (!cleanEmail || !cleanEmail.includes("@") || !cleanEmail.includes(".")) {
-      alert("Kérlek, add meg az e-mail címedet, hogy elmenthessük a fiókodat!");
+      setEmailError("Kérlek, add meg az e-mail címedet az eredményeid mentéséhez!");
       return;
     }
 
+    setEmailError("");
     setIsSubmitting(true);
 
     const cleanAge = sanitizeAge(form.age);
@@ -205,7 +229,6 @@ export default function FullQuizModal({ isOpen, onClose }) {
       goal: form.goalWeight < form.weight ? "fogyas" : "szintentartas",
     };
 
-    // Google Apps Script Payload (tiszta életkorral)
     const payload = {
       email: cleanEmail,
       profile: auditResults.profile,
@@ -251,7 +274,6 @@ export default function FullQuizModal({ isOpen, onClose }) {
       localStorage.setItem("fa_done", "true");
       localStorage.setItem("fa_email", cleanEmail);
 
-      // META PIXEL LEAD (ÉRDEKLŐDŐ) ESEMÉNY ELSÜTÉSE
       if (typeof window !== "undefined" && typeof window.fbq === "function") {
         window.fbq("track", "Lead", {
           content_name: auditResults.profile,
@@ -260,7 +282,7 @@ export default function FullQuizModal({ isOpen, onClose }) {
         });
       }
     } catch (e) {
-      console.error("Hiba a mentés vagy a Képpont esemény során:", e);
+      console.error("Hiba a mentés során:", e);
     }
 
     setIsSubmitting(false);
@@ -495,7 +517,7 @@ export default function FullQuizModal({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* FELOLDOTT EREDMÉNYEK & E-MAIL REGISZTRÁCIÓS KAPU */}
+        {/* FELOLDOTT EREDMÉNYEK & E-MAIL KAPU */}
         {showSummary && (
           <div className="space-y-4 animate-in fade-in">
             <div className="text-center">
@@ -545,23 +567,50 @@ export default function FullQuizModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* E-MAIL MEZŐ A BELÉPÉSHEZ */}
-            <div className="bg-[#FFF9F6] p-4 rounded-2xl border border-[#E07A5F]/30 text-left space-y-2">
-              <label className="text-xs font-bold text-[#2D3748] flex items-center gap-1.5">
-                <Mail size={14} className="text-[#E07A5F]" /> Add meg az e-mail címed a profil mentéséhez:
-              </label>
-              <p className="text-[11px] text-[#6B5A52] leading-tight">
-                Ide mentjük a számaidat, és ezzel aktiválod a <strong>7 napos díjmentes Zsebedző</strong> elérést.
-              </p>
-              <input
-                type="email"
-                required
-                placeholder="pelda@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl px-3.5 py-2.5 text-sm bg-white border border-[#F0DCD4] focus:outline-[#E07A5F] shadow-xs"
-              />
-            </div>
+            {/* B VERZIÓS E-MAIL SZEKCIÓ (Felismerés vagy kézi megadás hibajelzéssel) */}
+            {emailAutoDetected ? (
+              <div className="bg-[#F6FAF7] p-4 rounded-2xl border border-[#7C9885]/40 text-left space-y-1.5 shadow-xs">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[#2D3748]">
+                  <Check size={16} className="text-[#7C9885]" />
+                  <span>Azonosított profilod:</span>
+                </div>
+                <p className="text-xs font-bold text-[#E07A5F] break-all">{email}</p>
+                <p className="text-[11px] text-[#6B5A52] leading-tight">
+                  A számaidat automatikusan ehhez a fiókhoz rögzítjük az applikációban.
+                </p>
+              </div>
+            ) : (
+              <div
+                className={`p-4 rounded-2xl border transition-all text-left space-y-2 ${
+                  emailError
+                    ? "bg-[#FFF5F5] border-red-400 ring-2 ring-red-200"
+                    : "bg-[#FFF9F6] border-[#E07A5F]/30"
+                }`}
+              >
+                <label className="text-xs font-bold text-[#2D3748] flex items-center gap-1.5">
+                  <Mail size={14} className="text-[#E07A5F]" /> Add meg az e-mail címed a profil mentéséhez:
+                </label>
+                <p className="text-[11px] text-[#6B5A52] leading-tight">
+                  Ide mentjük a számaidat, és ezzel aktiválod az <strong>örökös, díjmentes Zsebedző</strong> elérést.
+                </p>
+                <input
+                  type="email"
+                  required
+                  placeholder="pelda@gmail.com"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError("");
+                  }}
+                  className="w-full rounded-xl px-3.5 py-2.5 text-sm bg-white border border-[#F0DCD4] focus:outline-[#E07A5F] shadow-xs"
+                />
+                {emailError && (
+                  <p className="text-xs font-bold text-red-600 flex items-center gap-1 mt-1">
+                    ⚠️ {emailError}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* BELÉPÉS GOMB */}
             <button
